@@ -1,0 +1,32 @@
+package components
+
+templ Address() {
+  <form class="bg-gray-200">
+    <ul class="flex flex-col gap-4">
+      <li>
+        <h2>Country/region</h2> // one select to htmx request for contact co
+        <select>
+          <option value="LT">Lithuania</option>
+          <option value="LV">Latvia</option>
+          <option value="EE">Estonia</option>
+        </select>
+      </li>
+      <li class="bg-white p-4 flex flex-col gap-4" >
+        <h2 class="font-semibold">Contact information</h2>
+        <input class="border border-gray-500 rounded outline-none placeholder-gray-500 p-2" type="text" placeholder="Contact name*">
+        <div class="flex gap-4">
+          <input class="w-1/4 border border-gray-500 rounded outline-none placeholder-gray-500 p-2" type="text" placeholder="Country co">
+          <input class="w-3/4 border border-gray-500 rounded outline-none placeholder-gray-500 p-2" type="text" placeholder="Mobile number*">
+        </div>
+      </li>
+      <li class="bg-white p-4 flex flex-col gap-4">
+        <h2 class="font-semibold">Address</h2>
+        <input class="border border-gray-500 rounded outline-none placeholder-gray-500 p-2" type="text" placeholder="Street, house/apartment/unit*">
+        <input class="border border-gray-500 rounded outline-none placeholder-gray-500 p-2" type="text" placeholder="Apt, suite, unit, etc (optional)">
+        <input class="border border-gray-500 rounded outline-none placeholder-gray-500 p-2" type="text" placeholder="State/Province*">
+        <input class="border border-gray-500 rounded outline-none placeholder-gray-500 p-2" type="text" placeholder="City*">
+        <input class="border border-gray-500 rounded outline-none placeholder-gray-500 p-2" type="text" placeholder="ZIP code*">
+      </li>
+    </ul>
+  </form>
+}
