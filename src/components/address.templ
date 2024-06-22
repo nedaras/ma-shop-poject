@@ -27,24 +27,11 @@ templ Select() {
         border-top: 0.5em solid #9ca3af;
       }
     </style>
-    // .1 we have some problem to note first we assume that there will be disabled element reloading would break badly
-    //    . prob add sript to check quickly or server side render (meh)
-    // .2 second we update faster then we will get response from htmx (need to fix)
-    // .3 even though we hate javascript we still need it time to time
-    // .4 there is an option for a custom web component that should fix all problem, but hey no one gaf these bugs
-    <select name="country" hx-post="/api/country_code" hx-trigger="change" hx-target="#country_code" hx-swap="outerHTML" class="w-full p-2 pr-12 bg-white appearance-none border border-gray-400 rounded outline-none" onchange="this.style.color = 'black';" style="color: #9ca3af;">
+    <select id="country_selector" class="w-full p-2 pr-12 bg-white appearance-none border border-gray-400 rounded outline-none" style="color:#9ca3af;">
       { children... }
     </select>
     <span class="display-arrows absolute block h-full w-10 top-0 right-0 pointer-events-none"></span>
   </div>
-}
-
-templ CountryCode(c string) {
-  if c == "" {
-    <div id="country_code" class="w-max select-none whitespace-nowrap border border-gray-400 rounded outline-none text-gray-400 p-2">Country code*</div>
-  } else {
-    <div id="country_code" class="w-max select-none whitespace-nowrap border border-gray-400 rounded outline-none p-2">{c}</div>
-  }
 }
 
 templ Address() {
@@ -53,17 +40,26 @@ templ Address() {
       <li class="bg-white p-4 flex flex-col gap-4">
         <h2 class="font-semibold">Country/region</h2>
         @Select() {
+          // would be cooler if we tried to predict where dis dude lives
           <option value="" selected disabled hidden>Select a country</option>
+          <option value="AL">Albania</option>
+          <option value="BA">Bosnia and Herzegovina</option>
           <option value="EE">Estonia</option>
+          <option value="XK">Kosovo</option>
           <option value="LV">Latvia</option>
+          <option value="LI">Liechtenstein</option>
           <option value="LT">Lithuania</option>
+          <option value="MD">Maldova</option>
+          <option value="ME">Montenegro</option>
+          <option value="MK">North Macedonia</option>
+          <option value="RS">Serbia</option>
         }
       </li>
       <li class="bg-white p-4 flex flex-col gap-4" >
         <h2 class="font-semibold">Contact information</h2>
         <input class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" type="text" placeholder="Contact name*">
         <div class="inline-flex gap-4">
-          @CountryCode("")
+          <div id="country_code" class="w-max select-none whitespace-nowrap border border-gray-400 rounded outline-none p-2" style="color:#9ca3af;">Country code*</div>
           <input class="w-full border border-gray-400 rounded outline-none placeholder-gray-400 p-2" type="text" placeholder="Mobile number*">
         </div>
       </li>

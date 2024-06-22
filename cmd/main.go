@@ -13,7 +13,6 @@ func main() {
   e.Static("/", "public");
 
 	e.GET("/", handlers.HandleIndex)
-	e.POST("/api/country_code", handlers.HandleCountryCode)
 
 	e.Logger.Fatal(e.Start(":3000"))
 
