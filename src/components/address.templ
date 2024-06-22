@@ -1,31 +1,79 @@
 package components
 
+templ Select() {
+  <div class="relative">
+    <style type="text/css">
+      .display-arrows::before,
+      .display-arrows::after {
+        content: "";
+        position: absolute;
+        width: 0;
+        height: 0;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+      .display-arrows::before {
+        border-left: 0.5em solid transparent;
+        border-right: 0.5em solid transparent;
+        border-bottom: 0.5em solid #9ca3af;
+        top: 35%;
+      }
+
+      .display-arrows::after {
+        top: 65%;
+        border-left: 0.5em solid transparent;
+        border-right: 0.5em solid transparent;
+        border-top: 0.5em solid #9ca3af;
+      }
+    </style>
+    // .1 we have some problem to note first we assume that there will be disabled element reloading would break badly
+    //    . prob add sript to check quickly or server side render (meh)
+    // .2 second we update faster then we will get response from htmx (need to fix)
+    // .3 even though we hate javascript we still need it time to time
+    // .4 there is an option for a custom web component that should fix all problem, but hey no one gaf these bugs
+    <select name="country" hx-post="/api/country_code" hx-trigger="change" hx-target="#country_code" hx-swap="outerHTML" class="w-full p-2 pr-12 bg-white appearance-none border border-gray-400 rounded outline-none" onchange="this.style.color = 'black';" style="color: #9ca3af;">
+      { children... }
+    </select>
+    <span class="display-arrows absolute block h-full w-10 top-0 right-0 pointer-events-none"></span>
+  </div>
+}
+
+templ CountryCode(c string) {
+  if c == "" {
+    <div id="country_code" class="w-max select-none whitespace-nowrap border border-gray-400 rounded outline-none text-gray-400 p-2">Country code*</div>
+  } else {
+    <div id="country_code" class="w-max select-none whitespace-nowrap border border-gray-400 rounded outline-none p-2">{c}</div>
+  }
+}
+
 templ Address() {
   <form class="bg-gray-200">
     <ul class="flex flex-col gap-4">
-      <li>
-        <h2>Country/region</h2> // one select to htmx request for contact co
-        <select>
-          <option value="LT">Lithuania</option>
-          <option value="LV">Latvia</option>
+      <li class="bg-white p-4 flex flex-col gap-4">
+        <h2 class="font-semibold">Country/region</h2>
+        @Select() {
+          <option value="" selected disabled hidden>Select a country</option>
           <option value="EE">Estonia</option>
-        </select>
+          <option value="LV">Latvia</option>
+          <option value="LT">Lithuania</option>
+        }
       </li>
       <li class="bg-white p-4 flex flex-col gap-4" >
         <h2 class="font-semibold">Contact information</h2>
-        <input class="border border-gray-500 rounded outline-none placeholder-gray-500 p-2" type="text" placeholder="Contact name*">
-        <div class="flex gap-4">
-          <input class="w-1/4 border border-gray-500 rounded outline-none placeholder-gray-500 p-2" type="text" placeholder="Country co">
-          <input class="w-3/4 border border-gray-500 rounded outline-none placeholder-gray-500 p-2" type="text" placeholder="Mobile number*">
+        <input class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" type="text" placeholder="Contact name*">
+        <div class="inline-flex gap-4">
+          @CountryCode("")
+          <input class="w-full border border-gray-400 rounded outline-none placeholder-gray-400 p-2" type="text" placeholder="Mobile number*">
         </div>
       </li>
       <li class="bg-white p-4 flex flex-col gap-4">
         <h2 class="font-semibold">Address</h2>
-        <input class="border border-gray-500 rounded outline-none placeholder-gray-500 p-2" type="text" placeholder="Street, house/apartment/unit*">
-        <input class="border border-gray-500 rounded outline-none placeholder-gray-500 p-2" type="text" placeholder="Apt, suite, unit, etc (optional)">
-        <input class="border border-gray-500 rounded outline-none placeholder-gray-500 p-2" type="text" placeholder="State/Province*">
-        <input class="border border-gray-500 rounded outline-none placeholder-gray-500 p-2" type="text" placeholder="City*">
-        <input class="border border-gray-500 rounded outline-none placeholder-gray-500 p-2" type="text" placeholder="ZIP code*">
+        <input class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" type="text" placeholder="Street, house/apartment/unit*">
+        <input class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" type="text" placeholder="Apt, suite, unit, etc (optional)">
+        <input class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" type="text" placeholder="State/Province*">
+        <input class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" type="text" placeholder="City*">
+        <input class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" type="text" placeholder="ZIP code*">
       </li>
     </ul>
   </form>

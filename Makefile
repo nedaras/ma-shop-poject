@@ -1,4 +1,4 @@
 run:
 	@templ generate
-	@npx tailwind -i src/styles/tailwind.css -o public/tailwind.css
+	@npx tailwind -i src/styles/styles.css -o public/styles.css
 	@go run cmd/main.go
