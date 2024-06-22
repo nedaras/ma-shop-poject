@@ -9,6 +9,7 @@ import (
 
 func getCountryCode(c string) (string, bool) {
   switch c {
+    case "": return "", true; // u can never know mb that disabled attr will not work in some browsers
     case "LT": return "+370", true;
     case "LV": return "+371", true;
     case "EE": return "+372", true;
@@ -16,7 +17,7 @@ func getCountryCode(c string) (string, bool) {
   }
 }
 
-// return json errors prob?
+// we will only handle errors if it is needed, below errors should never apear if user uses interface as intended
 func HandleCountryCode(c echo.Context) error {
   params, err := c.FormParams()
   if err != nil {
@@ -36,7 +37,7 @@ func HandleCountryCode(c echo.Context) error {
   code, ok := getCountryCode(country)
 
   if !ok {
-    return fmt.Errorf("country code not valid: %s", "LT")
+    return fmt.Errorf("country not valid: '%s'", country)
   }
   return render(c, components.CountryCode(code));
 }
