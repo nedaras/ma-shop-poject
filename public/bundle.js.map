@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../src/scripts/main.ts"],
+  "sourcesContent": ["console.log(\"hello world\")\nconsole.log(document.getElementById('country_code')?.innerHTML)\n"],
+  "mappings": "mBAAA,QAAQ,IAAI,aAAa,EAAzB,IAAAA,EACA,QAAQ,KAAIA,EAAA,SAAS,eAAe,cAAc,IAAtC,YAAAA,EAAyC,SAAS",
+  "names": ["_a"]
+}
