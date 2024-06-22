@@ -32,3 +32,11 @@ function update() {
 
 selector.addEventListener('change', update)
 update()
+
+// we need to support mutiple script files not only main.ts chek on vite
+document.body.addEventListener('htmx:beforeSwap', (evnt: HTMXBeforeSwapEvent) => {
+  if (evnt.detail.xhr.status === 422) {
+    evnt.detail.shouldSwap = true
+    evnt.detail.isError = false
+  }
+})

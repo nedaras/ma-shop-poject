@@ -13,6 +13,7 @@ func main() {
   e.Static("/", "public");
 
 	e.GET("/", handlers.HandleIndex)
+	e.POST("/api/address/validate", handlers.HandleAddressValidate)
 
 	e.Logger.Fatal(e.Start(":3000"))
 

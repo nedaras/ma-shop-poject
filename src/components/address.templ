@@ -27,7 +27,7 @@ templ Select() {
         border-top: 0.5em solid #9ca3af;
       }
     </style>
-    <select id="country_selector" class="w-full p-2 pr-12 bg-white appearance-none border border-gray-400 rounded outline-none" style="color:#9ca3af;">
+    <select id="country_selector" class="w-full p-2 pr-12 bg-white appearance-none border border-gray-400 rounded outline-none" style="color:#9ca3af;" required>
       { children... }
     </select>
     <span class="display-arrows absolute block h-full w-10 top-0 right-0 pointer-events-none"></span>
@@ -35,13 +35,13 @@ templ Select() {
 }
 
 templ Address() {
-  <form class="bg-gray-200">
+  <form hx-post="/api/address/validate" class="bg-gray-200">
     <ul class="flex flex-col gap-4">
       <li class="bg-white p-4 flex flex-col gap-4">
         <h2 class="font-semibold">Country/region</h2>
         @Select() {
           // would be cooler if we tried to predict where dis dude lives
-          <option value="" selected disabled hidden>Select a country</option>
+          <option value="" selected disabled hidden>Country*</option>
           <option value="AL">Albania</option>
           <option value="BA">Bosnia and Herzegovina</option>
           <option value="EE">Estonia</option>
@@ -57,20 +57,29 @@ templ Address() {
       </li>
       <li class="bg-white p-4 flex flex-col gap-4" >
         <h2 class="font-semibold">Contact information</h2>
-        <input class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" type="text" placeholder="Contact name*">
+        <input class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" required type="text" placeholder="Contact name*">
         <div class="inline-flex gap-4">
           <div id="country_code" class="w-max select-none whitespace-nowrap border border-gray-400 rounded outline-none p-2" style="color:#9ca3af;">Country code*</div>
-          <input class="w-full border border-gray-400 rounded outline-none placeholder-gray-400 p-2" type="text" placeholder="Mobile number*">
+          <input class="w-full border border-gray-400 rounded outline-none placeholder-gray-400 p-2" required type="text" placeholder="Mobile number*">
         </div>
       </li>
       <li class="bg-white p-4 flex flex-col gap-4">
-        <h2 class="font-semibold">Address</h2>
-        <input class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" type="text" placeholder="Street, house/apartment/unit*">
-        <input class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" type="text" placeholder="Apt, suite, unit, etc (optional)">
-        <input class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" type="text" placeholder="State/Province*">
-        <input class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" type="text" placeholder="City*">
-        <input class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" type="text" placeholder="ZIP code*">
+        @AddressField()
+      </li>
+      <li class="p-4">
+        <button class="text-lg text-white font-semibold rounded-3xl text-center w-full p-2 bg-blue-400" type="submit">
+          Save
+        </button>
       </li>
     </ul>
   </form>
+}
+
+templ AddressField() {
+  <h2 class="font-semibold">Address</h2>
+  <input class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" required type="text" placeholder="Street, house/apartment/unit*">
+  <input class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" type="text" placeholder="Apt, suite, unit, etc (optional)">
+  <input class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" required type="text" placeholder="State/Province*">
+  <input class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" required type="text" placeholder="City*">
+  <input class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" required type="text" placeholder="ZIP code*">
 }
