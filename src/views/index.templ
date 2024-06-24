@@ -4,6 +4,13 @@ import "nedas/shop/src/layouts"
 
 templ Index() {
   @layouts.Layout("Shop") {
-    <input hx-post="/htmx/validate_path" hx-trigger="load, keyup changed delay:500ms" hx-swap="afterend" name="url" type="text" placeholder="Put nike by you shoe address.">
+    // some idea todo a client url validation, hook that htmx event or sum
+    <div class="bg-gray-200 p-4">
+      <input class="w-full rounded border border-gray-400 placeholder-gray-400 outline-none p-2" name="url" type="text" placeholder="id..."
+        hx-post="/htmx/sneaker" 
+        hx-target="#out"
+      >
+    </div>
+    <div id="out"></div>
   }
 }

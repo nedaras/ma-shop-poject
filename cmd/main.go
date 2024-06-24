@@ -18,7 +18,7 @@ func main() {
 	e.GET("/address", handlers.HandleAddress)
 
 	e.POST("/htmx/address/validate", handlers.HandleAddressValidate)
-	e.POST("/htmx/validate_path", handlers.HandlePathValidation)
+	e.POST("/htmx/sneaker", handlers.HandleSneaker)
 
 	e.Logger.Fatal(e.Start(":3000"))
 

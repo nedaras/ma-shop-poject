@@ -35,7 +35,11 @@ templ Select() {
 }
 
 templ Address() {
-  <form hx-post="/htmx/address/validate" hx-swap="outerHTML" hx-replace-url="/" class="bg-gray-200">
+  <form class="bg-gray-200"
+    hx-post="/htmx/address/validate"
+    hx-swap="outerHTML"
+    hx-replace-url="/"
+  >
     <ul class="flex flex-col gap-4">
       <li class="bg-white p-4 flex flex-col gap-4">
         <h2 class="font-semibold">Country/region</h2>

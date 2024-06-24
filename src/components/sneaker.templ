@@ -1,0 +1,11 @@
+package components
+
+type SneakerContext struct {
+  Title string
+  ImageSrc string 
+}
+
+templ Sneaker(c SneakerContext) {
+  <h3>{ c.Title }</h3>
+  <img alt="sneaker" src={ c.ImageSrc }>
+}
