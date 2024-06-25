@@ -3,13 +3,16 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"nedas/shop/src/components"
 	"net/http"
+	"regexp"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 )
 
-type SneakerData struct {
+type NikeConsumerData struct {
   Objects []struct {
     Imagery []struct {
       ViewCode string `json:"viewCode"`
@@ -21,8 +24,44 @@ type SneakerData struct {
   Errors []interface{} `json:"errors"`
 }
 
-func getImageByID(sd *SneakerData, id string) (string, error) {
-  for _, i := range sd.Objects {
+type NikeScrapedData struct {
+  ID string
+  Title string
+}
+
+
+func HandleSneaker(c echo.Context) error {
+  url := c.FormValue("url")
+  if !isNikeURL(url) {
+    return newHTTPError(http.StatusBadRequest, "'url' is invalid");
+  }
+
+  sData, err := scrapeNikeURL(url);
+
+  if err != nil {
+    return err // templ
+  }
+
+  cData, err := getNikeConsumerData(sData.ID)
+  if err != nil {
+    return err // templ
+  }
+
+  src, err := getImageByID(cData, "B")
+  if err != nil {
+    return err // templ
+  }
+
+  sc := components.SneakerContext {
+    Title: sData.Title,
+    ImageSrc: src,
+  }
+
+  return render(c, components.Sneaker(sc))
+}
+
+func getImageByID(d *NikeConsumerData, id string) (string, error) {
+  for _, i := range d.Objects {
     for _, image := range i.Imagery {
       if image.ViewCode == id {
         return image.ImageSourceURL, nil
@@ -32,41 +71,74 @@ func getImageByID(sd *SneakerData, id string) (string, error) {
   return "", fmt.Errorf("image not found")
 }
 
-func HandleSneaker(c echo.Context) error {
-  url := c.FormValue("url")
-  if (url == "") {
-    return newHTTPError(http.StatusBadRequest, "field 'url' is empty or not defined");
+func isNikeURL(url string) bool {
+  if strings.HasPrefix(url, "https://www.nike.com/") {
+    return true
   }
+  if strings.HasPrefix(url, "www.nike.com/") {
+    return true
+  }
+  if strings.HasPrefix(url, "https://nike.com/") {
+    return true
+  }
+  if strings.HasPrefix(url, "nike.com/") {
+    return true
+  }
+  return false
+}
 
-  // and we need to validate domain first
-  // idk how to get the id, from the url scrape that shit we will even get the shoe title
-  // use regex for that one field with a class
-
-  // we need templates for errors
-  res, err := http.Get(fmt.Sprintf("https://api.nike.com/customization/consumer_designs/v1?filter=shortId(%s)", url))
+func getNikeConsumerData(id string) (*NikeConsumerData, error) {
+  res, err := http.Get(fmt.Sprintf("https://api.nike.com/customization/consumer_designs/v1?filter=shortId(%s)", id))
   if err != nil {
-    return err
+    return nil, err
   }
+  defer res.Body.Close()
 
+  data := &NikeConsumerData{};
   decoder := json.NewDecoder(res.Body)
 
-  var response SneakerData
-  if err := decoder.Decode(&response); err != nil {
-    return err
+  if err := decoder.Decode(&data); err != nil {
+    return nil, err
   }
+  return data, nil
+}
 
-  fmt.Println(response)
-
-  src, err := getImageByID(&response, "B")
+// from scrape we can get everything like prices and shit, but it slow
+func scrapeNikeURL(url string) (NikeScrapedData, error) {
+  titleR, err := regexp.Compile(`<h1 .*data-test="product-title">(.+)<\/h1>`)
   if err != nil {
-    // give some templ or shit
-    return err
+    panic("could not compile regexp")
   }
 
-  sc := components.SneakerContext {
-    Title: "Some shoe",
-    ImageSrc: src,
+  idR, err := regexp.Compile(`"metricId":"(.{10})"`)
+  if err != nil {
+    panic("could not compile regexp")
   }
 
-  return render(c, components.Sneaker(sc))
+  res, err := http.Get(url)
+  if err != nil {
+    return NikeScrapedData{}, err
+  }
+  defer res.Body.Close()
+
+  buf := new(strings.Builder)
+  if _, err = io.Copy(buf, res.Body); err != nil {
+    return NikeScrapedData{}, err
+  }
+
+  titleMatches := titleR.FindStringSubmatch(buf.String())
+  if len(titleMatches) != 2 {
+    return NikeScrapedData{}, fmt.Errorf("'url' is invalid")
+  }
+
+  idMatches := idR.FindStringSubmatch(buf.String())
+  if len(idMatches) != 2 {
+    return NikeScrapedData{}, fmt.Errorf("'url' is invalid")
+  }
+  
+  return NikeScrapedData {
+    Title: titleMatches[1],
+    ID: idMatches[1],
+  }, nil
+
 }

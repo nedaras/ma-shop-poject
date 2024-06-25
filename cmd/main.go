@@ -16,6 +16,7 @@ func main() {
   e.Use(middleware.Logger())
 	e.GET("/", handlers.HandleIndex)
 	e.GET("/address", handlers.HandleAddress)
+  //e.GET("/product/:id", handlers.HandleAddress)
 
 	e.POST("/htmx/address/validate", handlers.HandleAddressValidate)
 	e.POST("/htmx/sneaker", handlers.HandleSneaker)

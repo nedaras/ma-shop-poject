@@ -1,14 +1,16 @@
 package views
 
 import "nedas/shop/src/layouts"
+import "nedas/shop/src/components"
 
 templ Index() {
   @layouts.Layout("Shop") {
-    // some idea todo a client url validation, hook that htmx event or sum
+    @components.Header()
     <div class="bg-gray-200 p-4">
       <input class="w-full rounded border border-gray-400 placeholder-gray-400 outline-none p-2" name="url" type="text" placeholder="id..."
         hx-post="/htmx/sneaker" 
         hx-target="#out"
+        hx-trigger="load"
       >
     </div>
     <div id="out"></div>

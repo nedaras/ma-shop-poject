@@ -1,11 +1,16 @@
 package components
 
+// TODO: we will just copy the nike interface bro
 type SneakerContext struct {
   Title string
   ImageSrc string 
 }
 
 templ Sneaker(c SneakerContext) {
-  <h3>{ c.Title }</h3>
-  <img alt="sneaker" src={ c.ImageSrc }>
+  <div class="bg-gray-200">
+    <div class="bg-white p-4">
+      <h1 class="text-xl" >{ c.Title }</h1>
+    </div>
+    <img alt="{c.Title}" src={ c.ImageSrc }>
+  </div>
 }
