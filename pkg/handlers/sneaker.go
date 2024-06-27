@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -24,20 +25,151 @@ type NikeConsumerData struct {
   Errors []interface{} `json:"errors"`
 }
 
+type NextDataData struct {
+  Props struct {
+    PageProps struct {
+      InitialState struct {
+        Threads struct {
+          Products map[string]ProductData `json:"products"`
+        } `json:"Threads"`
+      } `json:"initialState"`
+    } `json:"pageProps"`
+  } `json:"props"`
+  Query struct {
+    PBID string `json:"pbid"`
+  } `json:"query"`
+}
+
+type ProductData struct {
+  Title string `json:"title"`
+  CurrentPrice float64 `json:"currentPrice"`
+}
+
 type NikeScrapedData struct {
   ID string
   Title string
+  Price float64
 }
 
+// need to unit test
+func convertLink(str string) (string, error) {
+  if len(str) == 0 {
+    return "", fmt.Errorf("'url' is invalid")
+  }
 
+  i := 0;
+  strBuilder := new(strings.Builder)
+
+  switch str[0] {
+    case 'h': {
+      {
+        flag := "http"
+        if i + len(flag) > len(str) {
+          return "", fmt.Errorf("'url' is invalid")
+        }
+
+        if str[i:i+len(flag)] != flag {
+          return "", fmt.Errorf("'url' is invalid")
+        }
+        i += len(flag)
+
+        if i + 1 > len(str) {
+          return "", fmt.Errorf("'url' is invalid")
+        }
+
+        if str[i] == 's' {
+          i++
+        }
+      }
+      {
+        flag := "://"
+        if i + len(flag) > len(str) {
+          return "", fmt.Errorf("'url' is invalid")
+        }
+
+        if str[i:i+len(flag)] != flag {
+          return "", fmt.Errorf("'url' is invalid")
+        }
+        i += len(flag)
+      }
+    }
+    fallthrough
+    case 'w': {
+      flag := "www."
+      if i + len(flag) > len(str) {
+          return "", fmt.Errorf("'url' is invalid")
+      }
+
+      if str[i:i+len(flag)] == flag {
+        i += len(flag)
+      } else if i == 0 {
+          return "", fmt.Errorf("'url' is invalid")
+      }
+    }
+    fallthrough
+    case 'n': {
+      flag := "nike.com/"
+      if i + len(flag) > len(str) {
+          return "", fmt.Errorf("'url' is invalid")
+      }
+
+      if str[i:i+len(flag)] != flag {
+        return "", fmt.Errorf("'url' is invalid")
+      }
+      i += len(flag)
+    }
+  }
+
+  if _, err := strBuilder.WriteString("https://www.nike.com/"); err != nil {
+    return "", err
+  }
+
+  if i + 2 > len(str) {
+    return "", fmt.Errorf("'url' is invalid")
+  }
+
+  if str[i:i+2] == "u/" {
+    goto final 
+  }
+
+  for i < len(str) {
+    if str[i] == '/' {
+      i++;
+      break
+    }
+    i++;
+  }
+
+  if i + 2 > len(str) {
+    return "", fmt.Errorf("'url' is invalid")
+  }
+
+  if str[i:i+2] != "u/" {
+    return "", fmt.Errorf("'url' is invalid")
+  }
+
+final:
+  i += 2
+  if _, err := strBuilder.WriteString("gb/u/"); err != nil {
+    return "", err
+  }
+
+  if _, err := strBuilder.WriteString(str[i:]); err != nil {
+    return "", err
+  }
+
+  return strBuilder.String(), nil
+}
+
+// there is an idea to handle this scrape and stuff in like other languege, like zig
+// we need to convert to GB link and in bg check conversion rates
 func HandleSneaker(c echo.Context) error {
-  url := c.FormValue("url")
-  if !isNikeURL(url) {
-    return newHTTPError(http.StatusBadRequest, "'url' is invalid");
+  url, err := convertLink(c.FormValue("url"))
+  if err != nil {
+    return err // templ
   }
 
   sData, err := scrapeNikeURL(url);
-
   if err != nil {
     return err // templ
   }
@@ -55,6 +187,7 @@ func HandleSneaker(c echo.Context) error {
   sc := components.SneakerContext {
     Title: sData.Title,
     ImageSrc: src,
+    Price: sData.Price,
   }
 
   return render(c, components.Sneaker(sc))
@@ -69,22 +202,6 @@ func getImageByID(d *NikeConsumerData, id string) (string, error) {
     }
   }
   return "", fmt.Errorf("image not found")
-}
-
-func isNikeURL(url string) bool {
-  if strings.HasPrefix(url, "https://www.nike.com/") {
-    return true
-  }
-  if strings.HasPrefix(url, "www.nike.com/") {
-    return true
-  }
-  if strings.HasPrefix(url, "https://nike.com/") {
-    return true
-  }
-  if strings.HasPrefix(url, "nike.com/") {
-    return true
-  }
-  return false
 }
 
 func getNikeConsumerData(id string) (*NikeConsumerData, error) {
@@ -105,15 +222,7 @@ func getNikeConsumerData(id string) (*NikeConsumerData, error) {
 
 // from scrape we can get everything like prices and shit, but it slow
 func scrapeNikeURL(url string) (NikeScrapedData, error) {
-  titleR, err := regexp.Compile(`<h1 .*data-test="product-title">(.+)<\/h1>`)
-  if err != nil {
-    panic("could not compile regexp")
-  }
-
-  idR, err := regexp.Compile(`"metricId":"(.{10})"`)
-  if err != nil {
-    panic("could not compile regexp")
-  }
+  nextDataR := regexp.MustCompile(`<script id="__NEXT_DATA__" type="application\/json">(.+)<\/script>`)
 
   res, err := http.Get(url)
   if err != nil {
@@ -126,19 +235,33 @@ func scrapeNikeURL(url string) (NikeScrapedData, error) {
     return NikeScrapedData{}, err
   }
 
-  titleMatches := titleR.FindStringSubmatch(buf.String())
-  if len(titleMatches) != 2 {
+  nextDataMatches := nextDataR.FindSubmatch([]byte(buf.String()))
+
+  if len(nextDataMatches) != 2 {
     return NikeScrapedData{}, fmt.Errorf("'url' is invalid")
   }
 
-  idMatches := idR.FindStringSubmatch(buf.String())
-  if len(idMatches) != 2 {
-    return NikeScrapedData{}, fmt.Errorf("'url' is invalid")
-  }
-  
-  return NikeScrapedData {
-    Title: titleMatches[1],
-    ID: idMatches[1],
-  }, nil
+  reader := bytes.NewReader(nextDataMatches[1])
+  decoder := json.NewDecoder(reader)
 
+  var nextData NextDataData
+  if err := decoder.Decode(&nextData); err != nil {
+    // it prob means link is invalid or some
+    return NikeScrapedData{}, err
+  }
+
+  for k := range nextData.Props.PageProps.InitialState.Threads.Products {
+    product, ok := nextData.Props.PageProps.InitialState.Threads.Products[k]
+    if !ok {
+      panic("could not get value from a map")
+    }
+
+    return NikeScrapedData {
+      Title: product.Title,
+      ID: nextData.Query.PBID,
+      Price: product.CurrentPrice,
+    }, nil
+  }
+
+  return NikeScrapedData{}, fmt.Errorf("'url' is invalid")
 }
