@@ -43,6 +43,7 @@ type NextDataData struct {
 type ProductData struct {
   Title string `json:"title"`
   CurrentPrice float64 `json:"currentPrice"`
+  PathName string `json:"pathName"`
 }
 
 type NikeScrapedData struct {
@@ -160,6 +161,17 @@ final:
 
   return strBuilder.String(), nil
 }
+
+// for some size guide
+// https://api.nike.com/customization/availabilities/v1?filter=pathName(af1mid365ho22)&filter=countryCode(GB)&language=en-GB
+
+// here price if found though no Title, we still need to scrape nike itself
+// https://api.nike.com/customization/builderaggregator/v2/builder/GB/en_GB/af1mid365ho22
+
+// mb will be usefull oneday
+// https://www.nike.com/assets/nikeid/builder-helper/dist/language-mapper/languageMap.json
+
+// there has to be away to get title cuz recomendation in that page
 
 // there is an idea to handle this scrape and stuff in like other languege, like zig
 // we need to convert to GB link and in bg check conversion rates
