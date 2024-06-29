@@ -13,6 +13,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// use the template to load smaller images
 type NikeConsumerData struct {
   Objects []struct {
     Imagery []struct {
@@ -46,11 +47,16 @@ type ProductData struct {
   PathName string `json:"pathName"`
 }
 
+// we could just use product data...
 type NikeScrapedData struct {
   ID string
   Title string
   Price float64
+  PathName string
 }
+
+// need shoe esizes and fsio
+// and a way to edit nike image size
 
 // need to unit test
 func convertLink(str string) (string, error) {
@@ -171,10 +177,49 @@ final:
 // mb will be usefull oneday
 // https://www.nike.com/assets/nikeid/builder-helper/dist/language-mapper/languageMap.json
 
-// there has to be away to get title cuz recomendation in that page
-
 // there is an idea to handle this scrape and stuff in like other languege, like zig
-// we need to convert to GB link and in bg check conversion rates
+
+func getGetGetEverything(d NikeScrapedData, g string) (*NikeConsumerData, []string, error) {
+  ch := make(chan ErrResult[any], 2)
+
+  go func(id string, ch chan<- ErrResult[any]) {
+    val, err := getNikeConsumerData(id)
+    ch <- ErrResult[any] {
+      Val: val,
+      Err: err,
+    }
+  }(d.ID, ch)
+
+  go func(p string, g string, ch chan<- ErrResult[any]) {
+    val, err := GetSizes(p, g)
+    ch <- ErrResult[any] {
+      Val: val,
+      Err: err,
+    }
+  }(d.PathName, g, ch)
+
+  var cd *NikeConsumerData
+  var s []string
+
+  for range(2) {
+    res := <- ch
+    if res.Err != nil {
+      return nil, []string{}, res.Err
+    }
+
+    switch v := res.Val.(type) {
+    case *NikeConsumerData:
+      cd = v
+    case []string:
+      s = v
+    default:
+      panic("got invalid type")
+    }
+  }
+
+  return cd, s, nil
+}
+
 func HandleSneaker(c echo.Context) error {
   url, err := convertLink(c.FormValue("url"))
   if err != nil {
@@ -186,7 +231,8 @@ func HandleSneaker(c echo.Context) error {
     return err // templ
   }
 
-  cData, err := getNikeConsumerData(sData.ID)
+
+  cData, s, err := getGetGetEverything(sData, "men")
   if err != nil {
     return err // templ
   }
@@ -202,7 +248,7 @@ func HandleSneaker(c echo.Context) error {
     Price: sData.Price,
   }
 
-  return render(c, components.Sneaker(sc))
+  return render(c, components.Sneaker(sc, s))
 }
 
 func getImageByID(d *NikeConsumerData, id string) (string, error) {
@@ -272,6 +318,7 @@ func scrapeNikeURL(url string) (NikeScrapedData, error) {
       Title: product.Title,
       ID: nextData.Query.PBID,
       Price: product.CurrentPrice,
+      PathName: product.PathName,
     }, nil
   }
 

@@ -8,12 +8,13 @@ type SneakerContext struct {
   ImageSrc string 
 }
 
-templ Sneaker(c SneakerContext) {
+templ Sneaker(c SneakerContext, s []string) {
   <div id="product" class="hidden bg-gray-200">
     <div class="bg-white p-4">
       <h1 class="text-xl" >{ c.Title }</h1>
       <h3>£{ strconv.FormatFloat(c.Price, 'f', 2, 32) }</h3>
     </div>
     <img alt="{c.Title}" src={ c.ImageSrc } onload="document.getElementById('product').classList.remove('hidden')">
+    @Sizes(s, true)
   </div>
 }

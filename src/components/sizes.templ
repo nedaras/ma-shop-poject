@@ -1,0 +1,11 @@
+package components
+
+templ Sizes(sizes []string, men bool) {
+  <ul>
+  for _, s := range sizes {
+    <li>
+      UK { s }
+    </li>
+  }
+  </ul>
+}
