@@ -24,7 +24,7 @@ templ SimpleError(c int) {
 
 templ Error(c int, msg string) {
   <!DOCTYPE html>
-  <html lang="en">
+  <html class="h-full" lang="en">
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -32,12 +32,10 @@ templ Error(c int, msg string) {
     <link rel="stylesheet" href="/styles.css">
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
   </head>
-  <body>
-    <div class="grid place-items-center h-screen font-mono p-2">
-      <div class="max-w-[420px] flex items-center">
-        <h1 class="text-4xl font-semibold">{strconv.Itoa(c)}</h1>
-        <p class="leading-tight pl-4 py-2 ml-4 border-l border-l-gray-200">{msg}.</p>
-      </div>
+  <body class="grid place-items-center h-full font-mono p-2">
+    <div class="max-w-[420px] flex items-center">
+      <h1 class="text-4xl font-semibold">{strconv.Itoa(c)}</h1>
+      <p class="leading-tight pl-4 py-2 ml-4 border-l border-l-gray-200">{msg}.</p>
     </div>
   </body>
   </html>

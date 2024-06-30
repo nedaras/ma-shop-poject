@@ -1,4 +1,5 @@
 // mb we can use css variables to get colors or sum 
+// i want mutiple script arrhhh
 window.addEventListener('load', () => {
   const selector = document.getElementById('country_selector') as HTMLSelectElement
   const code = document.getElementById('country_code') as HTMLDivElement

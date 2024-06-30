@@ -13,7 +13,7 @@ func getSizesURL(path string, men bool) string {
 templ Sizes(sizes []string, path string, men bool) {
   // todo: add some js for selecting
   <div id="sizes" class="p-2"> // is there a way to remove id
-    <div class="flex flex-row gap-2 mb-4">
+    <div class="flex flex-row gap-2 mb-2">
       <button class={"w-full border border-gray-200 rounded p-2 text-center", templ.KV("bg-black", men), templ.KV("text-white", men)} 
         disabled?={men}
         hx-get={getSizesURL(path, true)}
