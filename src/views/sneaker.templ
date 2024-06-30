@@ -1,0 +1,25 @@
+package views 
+
+import "strconv"
+import "nedas/shop/src/layouts"
+import "nedas/shop/src/components"
+
+type SneakerContext struct {
+  Title string
+  Price float64
+  ImageSrc string
+  Sizes []string
+  PathName string
+}
+
+templ Sneaker(c SneakerContext) {
+  @layouts.Layout(c.Title) {
+    @components.Header()
+    <div class="bg-white p-4">
+      <h1 class="text-xl" >{ c.Title }</h1>
+      <h3>£{ strconv.FormatFloat(c.Price, 'f', 2, 32) }</h3>
+    </div>
+    <img alt="{c.Title}" src={ string(templ.URL(c.ImageSrc)) }>
+    @components.Sizes(c.Sizes, c.PathName, true)
+  }
+}

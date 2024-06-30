@@ -7,8 +7,8 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type ErrResult[T any] struct {
-  Val T
+type ErrResult struct {
+  Val any
   Err error
 }
 

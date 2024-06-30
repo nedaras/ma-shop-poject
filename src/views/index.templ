@@ -5,14 +5,7 @@ import "nedas/shop/src/components"
 
 templ Index() {
   @layouts.Layout("Shop") {
-    @components.Header()
-    <div class="bg-gray-200 p-4">
-      <input class="w-full rounded border border-gray-400 placeholder-gray-400 outline-none p-2" name="url" type="text" placeholder="id..."
-        hx-post="/htmx/sneaker" 
-        hx-target="#out"
-        hx-trigger="load"
-      >
-    </div>
-    <div id="out"></div>
+    @components.Header() // need to change url
+    <h1>IDK HOW TO MAKE SEARCH</h1>
   }
 }

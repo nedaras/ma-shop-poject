@@ -3,9 +3,10 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
-	"nedas/shop/src/components"
+	"nedas/shop/src/views"
 	"net/http"
 	"regexp"
 	"strings"
@@ -26,6 +27,7 @@ type NikeConsumerData struct {
   Errors []interface{} `json:"errors"`
 }
 
+// how to err if like query is undefined hu?
 type NextDataData struct {
   Props struct {
     PageProps struct {
@@ -37,7 +39,9 @@ type NextDataData struct {
     } `json:"pageProps"`
   } `json:"props"`
   Query struct {
-    PBID string `json:"pbid"`
+    //PBID string `json:"pbid"`
+    Mid string `json:"mid"`
+    Slug string `json:"slug"`
   } `json:"query"`
 }
 
@@ -47,15 +51,34 @@ type ProductData struct {
   PathName string `json:"pathName"`
 }
 
-// we could just use product data...
 type NikeScrapedData struct {
   ID string
+  Slug string
   Title string
   Price float64
   PathName string
 }
 
-// need shoe esizes and fsio
+var (
+  ErrImageNotFound = errors.New("image not found")
+)
+
+func HandleSneaker(c echo.Context) error {
+  path := c.Param("path")
+  id := c.Param("id")
+
+  d, err := scrapeNikeURL(path, id);
+  if err != nil {
+    return err // ret 404
+  }
+
+  sc, err := getSneakerContext(d, true)
+  if err != nil {
+    return err // ret hard 500
+  }
+  return render(c, views.Sneaker(sc))
+}
+
 // and a way to edit nike image size
 
 // need to unit test
@@ -168,35 +191,24 @@ final:
   return strBuilder.String(), nil
 }
 
-// for some size guide
-// https://api.nike.com/customization/availabilities/v1?filter=pathName(af1mid365ho22)&filter=countryCode(GB)&language=en-GB
+func getSneakerContext(d NikeScrapedData, men bool) (views.SneakerContext, error) {
+  ch := make(chan ErrResult, 2)
 
-// here price if found though no Title, we still need to scrape nike itself
-// https://api.nike.com/customization/builderaggregator/v2/builder/GB/en_GB/af1mid365ho22
-
-// mb will be usefull oneday
-// https://www.nike.com/assets/nikeid/builder-helper/dist/language-mapper/languageMap.json
-
-// there is an idea to handle this scrape and stuff in like other languege, like zig
-
-func getGetGetEverything(d NikeScrapedData, g string) (*NikeConsumerData, []string, error) {
-  ch := make(chan ErrResult[any], 2)
-
-  go func(id string, ch chan<- ErrResult[any]) {
+  go func(id string, ch chan<- ErrResult) {
     val, err := getNikeConsumerData(id)
-    ch <- ErrResult[any] {
+    ch <- ErrResult {
       Val: val,
       Err: err,
     }
   }(d.ID, ch)
 
-  go func(p string, g string, ch chan<- ErrResult[any]) {
-    val, err := GetSizes(p, g)
-    ch <- ErrResult[any] {
+  go func(p string, men bool, ch chan<- ErrResult) {
+    val, err := GetSizes(p, men)
+    ch <- ErrResult {
       Val: val,
       Err: err,
     }
-  }(d.PathName, g, ch)
+  }(d.PathName, men, ch)
 
   var cd *NikeConsumerData
   var s []string
@@ -204,7 +216,7 @@ func getGetGetEverything(d NikeScrapedData, g string) (*NikeConsumerData, []stri
   for range(2) {
     res := <- ch
     if res.Err != nil {
-      return nil, []string{}, res.Err
+      return views.SneakerContext{}, res.Err
     }
 
     switch v := res.Val.(type) {
@@ -217,38 +229,20 @@ func getGetGetEverything(d NikeScrapedData, g string) (*NikeConsumerData, []stri
     }
   }
 
-  return cd, s, nil
-}
-
-func HandleSneaker(c echo.Context) error {
-  url, err := convertLink(c.FormValue("url"))
+  img, err := getImageByID(cd, "B")
   if err != nil {
-    return err // templ
+    return views.SneakerContext{}, errors.Join(fmt.Errorf("could net get image with id 'B'"), err)
   }
 
-  sData, err := scrapeNikeURL(url);
-  if err != nil {
-    return err // templ
+  sc := views.SneakerContext{
+    Title: d.Title,
+    Price: d.Price,
+    ImageSrc: img,
+    Sizes: s,
+    PathName: d.PathName,
   }
 
-
-  cData, s, err := getGetGetEverything(sData, "men")
-  if err != nil {
-    return err // templ
-  }
-
-  src, err := getImageByID(cData, "B")
-  if err != nil {
-    return err // templ
-  }
-
-  sc := components.SneakerContext {
-    Title: sData.Title,
-    ImageSrc: src,
-    Price: sData.Price,
-  }
-
-  return render(c, components.Sneaker(sc, s))
+  return sc, nil
 }
 
 func getImageByID(d *NikeConsumerData, id string) (string, error) {
@@ -259,7 +253,7 @@ func getImageByID(d *NikeConsumerData, id string) (string, error) {
       }
     }
   }
-  return "", fmt.Errorf("image not found")
+  return "", ErrImageNotFound
 }
 
 func getNikeConsumerData(id string) (*NikeConsumerData, error) {
@@ -278,9 +272,9 @@ func getNikeConsumerData(id string) (*NikeConsumerData, error) {
   return data, nil
 }
 
-// from scrape we can get everything like prices and shit, but it slow
-func scrapeNikeURL(url string) (NikeScrapedData, error) {
+func scrapeNikeURL(path string, id string) (NikeScrapedData, error) {
   nextDataR := regexp.MustCompile(`<script id="__NEXT_DATA__" type="application\/json">(.+)<\/script>`)
+  url := fmt.Sprintf("https://www.nike.com/gb/u/%s?mid=%s", path, id)
 
   res, err := http.Get(url)
   if err != nil {
@@ -316,7 +310,8 @@ func scrapeNikeURL(url string) (NikeScrapedData, error) {
 
     return NikeScrapedData {
       Title: product.Title,
-      ID: nextData.Query.PBID,
+      ID: nextData.Query.Mid,
+      Slug: nextData.Query.Slug,
       Price: product.CurrentPrice,
       PathName: product.PathName,
     }, nil

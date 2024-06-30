@@ -36,7 +36,6 @@ type BuilderData struct {
 }
 
 var (
-  ErrInvalidGender = errors.New("gender is invalid")
   ErrSizesNotFound = errors.New("sizes not found")
 )
 
@@ -99,11 +98,7 @@ func translateBuilderSizeData(d *BuilderData, men bool) ([]string, error) {
 }
 
 // todo: chage to men bool
-func GetSizes(p string, g string) ([]string, error) {
-  if g != "men" && g != "women" {
-    return []string{}, ErrInvalidGender
-  }
-
+func GetSizes(p string, men bool) ([]string, error) {
   res, err := http.Get(fmt.Sprintf("https://api.nike.com/customization/builderaggregator/v2/builder/GB/en_GB/%s", p))
   if err != nil {
     return []string{}, err
@@ -117,7 +112,7 @@ func GetSizes(p string, g string) ([]string, error) {
     return []string{}, err
   }
 
-  return translateBuilderSizeData(data, g == "men")
+  return translateBuilderSizeData(data, men)
 }
 
 func HandleSizes(c echo.Context) error {
@@ -128,14 +123,13 @@ func HandleSizes(c echo.Context) error {
     return newHTTPError(http.StatusBadRequest, "query param 'gender' is not specified");
   }
 
-  s, err := GetSizes(path, gender)
-  if err != nil {
-    switch {
-    case errors.Is(err, ErrInvalidGender):
-      return newHTTPError(http.StatusBadRequest, "query param 'gender' is invalid");
-    default:
-      return err
-    }
+  if gender != "men" && gender != "women" {
+    return newHTTPError(http.StatusBadRequest, "query param 'gender' is invalid");
   }
-  return render(c, components.Sizes(s, gender == "men"))
+
+  s, err := GetSizes(path, gender == "men")
+  if err != nil {
+    return err
+  }
+  return render(c, components.Sizes(s, path, gender == "men"))
 }
