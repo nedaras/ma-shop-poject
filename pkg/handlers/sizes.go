@@ -81,7 +81,7 @@ func translateBuilderSizeData(d *BuilderData, men bool) ([]string, error) {
           }
 
           if i == 0 {
-            return []string{}, ErrSizesNotFound
+            return []string{}, errors.Join(ErrInvalidURL, ErrSizesNotFound)
           }
 
           if len(sizes) > i {
@@ -94,7 +94,7 @@ func translateBuilderSizeData(d *BuilderData, men bool) ([]string, error) {
     }
   }
 
-  return []string{}, ErrSizesNotFound
+  return []string{}, errors.Join(ErrInvalidURL, ErrSizesNotFound)
 }
 
 // todo: chage to men bool

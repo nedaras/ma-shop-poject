@@ -61,21 +61,34 @@ type NikeScrapedData struct {
 
 var (
   ErrImageNotFound = errors.New("image not found")
+  ErrInvalidURL = errors.New("url is invalid")
 )
-
+// https://api.nike.com/cic/grand/v1/graphql/getfulfillmenttypesofferings/v4?variables=%7B%22countryCode%22%3A%22GB%22%2C%22currency%22%3A%22GBP%22%2C%22locale%22%3A%22en-GB%22%2C%22locationId%22%3A%22%22%2C%22locationType%22%3A%22STORE_VIEWS%22%2C%22offeringTypes%22%3A%5B%22SHIP%22%5D%2C%22postalCode%22%3A%22%22%2C%22productId%22%3A%2210c70f8d-07e3-5653-b02c-bae0e5671a45%22%7D
+// some idea is we can pass threadId into a path this way the page will load fast, who cares about the search slow
 func HandleSneaker(c echo.Context) error {
   path := c.Param("path")
   id := c.Param("id")
 
   d, err := scrapeNikeURL(path, id);
   if err != nil {
-    return err // ret 404
+    switch {
+    case errors.Is(err, ErrInvalidURL):
+      return render(c, views.SimpleError(http.StatusNotFound))
+    default:
+      return render(c, views.SimpleError(http.StatusInternalServerError))
+    }
   }
 
   sc, err := getSneakerContext(d, true)
   if err != nil {
-    return err // ret hard 500
+    switch {
+    case errors.Is(err, ErrInvalidURL):
+      return render(c, views.SimpleError(http.StatusNotFound))
+    default:
+      return render(c, views.SimpleError(http.StatusInternalServerError))
+    }
   }
+
   return render(c, views.Sneaker(sc))
 }
 
@@ -84,7 +97,7 @@ func HandleSneaker(c echo.Context) error {
 // need to unit test
 func convertLink(str string) (string, error) {
   if len(str) == 0 {
-    return "", fmt.Errorf("'url' is invalid")
+    return "", ErrInvalidURL
   }
 
   i := 0;
@@ -95,16 +108,16 @@ func convertLink(str string) (string, error) {
       {
         flag := "http"
         if i + len(flag) > len(str) {
-          return "", fmt.Errorf("'url' is invalid")
+          return "",ErrInvalidURL  
         }
 
         if str[i:i+len(flag)] != flag {
-          return "", fmt.Errorf("'url' is invalid")
+          return "",ErrInvalidURL  
         }
         i += len(flag)
 
         if i + 1 > len(str) {
-          return "", fmt.Errorf("'url' is invalid")
+          return "",ErrInvalidURL  
         }
 
         if str[i] == 's' {
@@ -114,11 +127,11 @@ func convertLink(str string) (string, error) {
       {
         flag := "://"
         if i + len(flag) > len(str) {
-          return "", fmt.Errorf("'url' is invalid")
+          return "", ErrInvalidURL  
         }
 
         if str[i:i+len(flag)] != flag {
-          return "", fmt.Errorf("'url' is invalid")
+          return "", ErrInvalidURL  
         }
         i += len(flag)
       }
@@ -127,24 +140,24 @@ func convertLink(str string) (string, error) {
     case 'w': {
       flag := "www."
       if i + len(flag) > len(str) {
-          return "", fmt.Errorf("'url' is invalid")
+          return "", ErrInvalidURL 
       }
 
       if str[i:i+len(flag)] == flag {
         i += len(flag)
       } else if i == 0 {
-          return "", fmt.Errorf("'url' is invalid")
+          return "", ErrInvalidURL 
       }
     }
     fallthrough
     case 'n': {
       flag := "nike.com/"
       if i + len(flag) > len(str) {
-          return "", fmt.Errorf("'url' is invalid")
+          return "", ErrInvalidURL 
       }
 
       if str[i:i+len(flag)] != flag {
-        return "", fmt.Errorf("'url' is invalid")
+        return "", ErrInvalidURL
       }
       i += len(flag)
     }
@@ -155,7 +168,7 @@ func convertLink(str string) (string, error) {
   }
 
   if i + 2 > len(str) {
-    return "", fmt.Errorf("'url' is invalid")
+    return "", ErrInvalidURL
   }
 
   if str[i:i+2] == "u/" {
@@ -171,11 +184,11 @@ func convertLink(str string) (string, error) {
   }
 
   if i + 2 > len(str) {
-    return "", fmt.Errorf("'url' is invalid")
+    return "", ErrInvalidURL
   }
 
   if str[i:i+2] != "u/" {
-    return "", fmt.Errorf("'url' is invalid")
+    return "", ErrInvalidURL
   }
 
 final:
@@ -253,7 +266,7 @@ func getImageByID(d *NikeConsumerData, id string) (string, error) {
       }
     }
   }
-  return "", ErrImageNotFound
+  return "", errors.Join(ErrInvalidURL, ErrImageNotFound)
 }
 
 func getNikeConsumerData(id string) (*NikeConsumerData, error) {
@@ -290,7 +303,7 @@ func scrapeNikeURL(path string, id string) (NikeScrapedData, error) {
   nextDataMatches := nextDataR.FindSubmatch([]byte(buf.String()))
 
   if len(nextDataMatches) != 2 {
-    return NikeScrapedData{}, fmt.Errorf("'url' is invalid")
+    return NikeScrapedData{}, ErrInvalidURL
   }
 
   reader := bytes.NewReader(nextDataMatches[1])
@@ -298,8 +311,7 @@ func scrapeNikeURL(path string, id string) (NikeScrapedData, error) {
 
   var nextData NextDataData
   if err := decoder.Decode(&nextData); err != nil {
-    // it prob means link is invalid or some
-    return NikeScrapedData{}, err
+    return NikeScrapedData{}, err 
   }
 
   for k := range nextData.Props.PageProps.InitialState.Threads.Products {
@@ -317,5 +329,5 @@ func scrapeNikeURL(path string, id string) (NikeScrapedData, error) {
     }, nil
   }
 
-  return NikeScrapedData{}, fmt.Errorf("'url' is invalid")
+  return NikeScrapedData{}, ErrInvalidURL
 }

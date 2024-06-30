@@ -19,7 +19,7 @@ templ Sneaker(c SneakerContext) {
       <h1 class="text-xl" >{ c.Title }</h1>
       <h3>£{ strconv.FormatFloat(c.Price, 'f', 2, 32) }</h3>
     </div>
-    <img alt="{c.Title}" src={ string(templ.URL(c.ImageSrc)) }>
+    <img alt={c.Title} src={ string(templ.URL(c.ImageSrc)) }>
     @components.Sizes(c.Sizes, c.PathName, true)
   }
 }
