@@ -12,7 +12,7 @@ type SneakerContext struct {
 
 templ Sneaker(c SneakerContext) {
 	<title>{ c.Title }</title>
-	<div class="bg-white p-4">
+	<div class="p-4">
 		<h1 class="text-xl">{ c.Title }</h1>
 		<h3>£{ strconv.FormatFloat(c.Price, 'f', 2, 32) }</h3>
 	</div>

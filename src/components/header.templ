@@ -1,5 +1,17 @@
 package components
 
 templ Header() {
-	<nav></nav>
+	<nav class="p-4 flex justify-between items-center shadow">
+		<div hx-boost="true">
+			<a href="/">BRAND</a>
+		</div>
+		<ul class="flex gap-4">
+			<li>
+				<i class="fa-solid fa-user"></i>
+			</li>
+			<li>
+				<i class="fa-solid fa-bag-shopping"></i>
+			</li>
+		</ul>
+	</nav>
 }
