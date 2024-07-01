@@ -16,9 +16,9 @@ func main() {
   e.Use(middleware.Logger())
 	e.GET("/", handlers.HandleIndex)
 	e.GET("/address", handlers.HandleAddress)
-  // we cna remove sneaker
-  e.GET("/sneaker/:path/:id", handlers.HandleSneaker)
+  e.GET("/:path/:id", handlers.HandleSneaker)
 
+  e.POST("/htmx/search", handlers.HandleSearch)
 	e.POST("/htmx/address/validate", handlers.HandleAddressValidate)
   e.GET("/htmx/sizes/:path", handlers.HandleSizes)
 

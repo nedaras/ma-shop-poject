@@ -1,0 +1,22 @@
+package components
+
+templ Search(err string) {
+  <form action="#"
+    hx-post="/htmx/search"
+    hx-target="closest main"
+    hx-swap="outerHTML"
+  >
+    <input 
+      class="w-full"
+      placeholder="Search by pasting your Nike By You link"
+      id="search"
+      name="url"
+      type="search"
+      autocomplete="off"
+      required
+    >
+    if err != "" {
+      <label for="search">{err}</label>
+    }
+  </form>
+}

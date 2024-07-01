@@ -69,7 +69,9 @@ func HandleSneaker(c echo.Context) error {
   path := c.Param("path")
   id := c.Param("id")
 
-  d, err := scrapeNikeURL(path, id);
+  url := fmt.Sprintf("https://www.nike.com/gb/u/%s?mid=%s", path, id)
+
+  d, err := scrapeNikeURL(url);
   if err != nil {
     switch {
     case errors.Is(err, ErrInvalidURL):
@@ -92,136 +94,24 @@ func HandleSneaker(c echo.Context) error {
   return render(c, views.Sneaker(sc))
 }
 
-// and a way to edit nike image size
-
-// need to unit test
-func convertLink(str string) (string, error) {
-  if len(str) == 0 {
-    return "", ErrInvalidURL
-  }
-
-  i := 0;
-  strBuilder := new(strings.Builder)
-
-  switch str[0] {
-    case 'h': {
-      {
-        flag := "http"
-        if i + len(flag) > len(str) {
-          return "",ErrInvalidURL  
-        }
-
-        if str[i:i+len(flag)] != flag {
-          return "",ErrInvalidURL  
-        }
-        i += len(flag)
-
-        if i + 1 > len(str) {
-          return "",ErrInvalidURL  
-        }
-
-        if str[i] == 's' {
-          i++
-        }
-      }
-      {
-        flag := "://"
-        if i + len(flag) > len(str) {
-          return "", ErrInvalidURL  
-        }
-
-        if str[i:i+len(flag)] != flag {
-          return "", ErrInvalidURL  
-        }
-        i += len(flag)
-      }
-    }
-    fallthrough
-    case 'w': {
-      flag := "www."
-      if i + len(flag) > len(str) {
-          return "", ErrInvalidURL 
-      }
-
-      if str[i:i+len(flag)] == flag {
-        i += len(flag)
-      } else if i == 0 {
-          return "", ErrInvalidURL 
-      }
-    }
-    fallthrough
-    case 'n': {
-      flag := "nike.com/"
-      if i + len(flag) > len(str) {
-          return "", ErrInvalidURL 
-      }
-
-      if str[i:i+len(flag)] != flag {
-        return "", ErrInvalidURL
-      }
-      i += len(flag)
-    }
-  }
-
-  if _, err := strBuilder.WriteString("https://www.nike.com/"); err != nil {
-    return "", err
-  }
-
-  if i + 2 > len(str) {
-    return "", ErrInvalidURL
-  }
-
-  if str[i:i+2] == "u/" {
-    goto final 
-  }
-
-  for i < len(str) {
-    if str[i] == '/' {
-      i++;
-      break
-    }
-    i++;
-  }
-
-  if i + 2 > len(str) {
-    return "", ErrInvalidURL
-  }
-
-  if str[i:i+2] != "u/" {
-    return "", ErrInvalidURL
-  }
-
-final:
-  i += 2
-  if _, err := strBuilder.WriteString("gb/u/"); err != nil {
-    return "", err
-  }
-
-  if _, err := strBuilder.WriteString(str[i:]); err != nil {
-    return "", err
-  }
-
-  return strBuilder.String(), nil
-}
-
 func getSneakerContext(d NikeScrapedData, men bool) (views.SneakerContext, error) {
   ch := make(chan ErrResult, 2)
 
-  go func(id string, ch chan<- ErrResult) {
-    val, err := getNikeConsumerData(id)
+  go func() {
+    val, err := getNikeConsumerData(d.ID)
     ch <- ErrResult {
       Val: val,
       Err: err,
     }
-  }(d.ID, ch)
+  }()
 
-  go func(p string, men bool, ch chan<- ErrResult) {
-    val, err := GetSizes(p, men)
+  go func() {
+    val, err := GetSizes(d.PathName, men)
     ch <- ErrResult {
       Val: val,
       Err: err,
     }
-  }(d.PathName, men, ch)
+  }()
 
   var cd *NikeConsumerData
   var s []string
@@ -285,9 +175,9 @@ func getNikeConsumerData(id string) (*NikeConsumerData, error) {
   return data, nil
 }
 
-func scrapeNikeURL(path string, id string) (NikeScrapedData, error) {
+// make this take in url
+func scrapeNikeURL(url string) (NikeScrapedData, error) {
   nextDataR := regexp.MustCompile(`<script id="__NEXT_DATA__" type="application\/json">(.+)<\/script>`)
-  url := fmt.Sprintf("https://www.nike.com/gb/u/%s?mid=%s", path, id)
 
   res, err := http.Get(url)
   if err != nil {
