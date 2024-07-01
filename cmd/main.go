@@ -11,16 +11,16 @@ func main() {
 
 	e := echo.New()
 
-  e.Static("/", "public");
+	e.Static("/", "public")
 
-  e.Use(middleware.Logger())
+	e.Use(middleware.Logger())
 	e.GET("/", handlers.HandleIndex)
 	e.GET("/address", handlers.HandleAddress)
-  e.GET("/:path/:id", handlers.HandleSneaker)
+	e.GET("/:path/:id", handlers.HandleSneaker)
 
-  e.POST("/htmx/search", handlers.HandleSearch)
+	e.POST("/htmx/search", handlers.HandleSearch)
 	e.POST("/htmx/address/validate", handlers.HandleAddressValidate)
-  e.GET("/htmx/sizes/:path", handlers.HandleSizes)
+	e.GET("/htmx/sizes/:path", handlers.HandleSizes)
 
 	e.Logger.Fatal(e.Start(":3000"))
 

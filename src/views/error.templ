@@ -6,38 +6,37 @@ import "strings"
 import "unicode"
 
 func formatStr(str string) string {
-  if len(str) == 0 {
-    return str
-  }
+	if len(str) == 0 {
+		return str
+	}
 
-  var b strings.Builder
-  b.Grow(len(str))
-  b.WriteRune(unicode.ToUpper(rune(str[0])))
-  b.WriteString(strings.ToLower(str[1:]))
-  return b.String()
+	var b strings.Builder
+	b.Grow(len(str))
+	b.WriteRune(unicode.ToUpper(rune(str[0])))
+	b.WriteString(strings.ToLower(str[1:]))
+	return b.String()
 
 }
 
 templ SimpleError(c int) {
-  @Error(c, formatStr(http.StatusText(c)))
+	@Error(c, formatStr(http.StatusText(c)))
 }
 
 templ Error(c int, msg string) {
-  <!DOCTYPE html>
-  <html class="h-full" lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{strconv.Itoa(c)} | {msg}</title>
-    <link rel="stylesheet" href="/styles.css">
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
-  </head>
-  <body class="grid place-items-center h-full font-mono p-2">
-    <div class="max-w-[420px] flex items-center">
-      <h1 class="text-4xl font-semibold">{strconv.Itoa(c)}</h1>
-      <p class="leading-tight pl-4 py-2 ml-4 border-l border-l-gray-200">{msg}.</p>
-    </div>
-  </body>
-  </html>
-
+	<!DOCTYPE html>
+	<html class="h-full" lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>{ strconv.Itoa(c) } | { msg }</title>
+			<link rel="stylesheet" href="/styles.css"/>
+			<link rel="icon" href="/favicon.ico" type="image/x-icon"/>
+		</head>
+		<body class="grid place-items-center h-full font-mono p-2">
+			<div class="max-w-[420px] flex items-center">
+				<h1 class="text-4xl font-semibold">{ strconv.Itoa(c) }</h1>
+				<p class="leading-tight pl-4 py-2 ml-4 border-l border-l-gray-200">{ msg }.</p>
+			</div>
+		</body>
+	</html>
 }

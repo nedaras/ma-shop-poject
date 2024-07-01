@@ -6,8 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-
 func HandleAddress(c echo.Context) error {
-  return render(c, views.Address())
+	return render(c, views.Address())
 
 }

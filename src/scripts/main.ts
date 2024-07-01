@@ -1,6 +1,20 @@
 // mb we can use css variables to get colors or sum 
 // i want mutiple script arrhhh
-window.addEventListener('load', () => {
+// can i fix that title thingy here with ignoreTitle stufff uk uk
+document.addEventListener('DOMContentLoaded', () => {
+  document.body.addEventListener('htmx:beforeSwap', (e) => {
+    if (e.detail.pathInfo.requestPath !== '/htmx/search') return
+    switch (e.detail.xhr.status) {
+    case 404:
+    case 500:
+      break
+    default:
+      return
+    }
+    e.detail.isError = false
+    e.detail.shouldSwap = true
+  })
+
   const selector = document.getElementById('country_selector') as HTMLSelectElement
   const code = document.getElementById('country_code') as HTMLDivElement
 

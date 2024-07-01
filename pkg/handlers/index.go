@@ -7,6 +7,6 @@ import (
 )
 
 func HandleIndex(c echo.Context) error {
-  return render(c, views.Index());
+	return render(c, views.Index())
 
 }

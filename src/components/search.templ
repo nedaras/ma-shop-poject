@@ -1,22 +1,25 @@
 package components
 
 templ Search(err string) {
-  <form action="#"
-    hx-post="/htmx/search"
-    hx-target="closest main"
-    hx-swap="outerHTML"
-  >
-    <input 
-      class="w-full"
-      placeholder="Search by pasting your Nike By You link"
-      id="search"
-      name="url"
-      type="search"
-      autocomplete="off"
-      required
-    >
-    if err != "" {
-      <label for="search">{err}</label>
-    }
-  </form>
+	<form
+		class="p-2"
+		action="#"
+		hx-post="/htmx/search"
+		hx-target="closest main"
+	>
+		<input
+			class="border border-gray-400 w-full bg-white rounded placeholder-gray-400 p-2 outline-none"
+			placeholder="Search by pasting your Nike By You link"
+			id="search"
+			name="url"
+			type="search"
+			autocomplete="off"
+			required
+		/>
+		if err != "" {
+			<label class="text-red-500" for="search">
+				<p class="pt-2 px-2">{ err }</p>
+			</label>
+		}
+	</form>
 }

@@ -1,0 +1,21 @@
+package components
+
+import "strconv"
+
+type SneakerContext struct {
+	Title    string
+	Price    float64
+	ImageSrc string
+	Sizes    []string
+	PathName string
+}
+
+templ Sneaker(c SneakerContext) {
+	<title>{ c.Title }</title>
+	<div class="bg-white p-4">
+		<h1 class="text-xl">{ c.Title }</h1>
+		<h3>£{ strconv.FormatFloat(c.Price, 'f', 2, 32) }</h3>
+	</div>
+	<img alt={ c.Title } src={ string(templ.URL(c.ImageSrc + "&wid=512")) }/>
+	@Sizes(c.Sizes, c.PathName, true)
+}

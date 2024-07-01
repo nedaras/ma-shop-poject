@@ -3,37 +3,40 @@ package components
 import "fmt"
 
 func getSizesURL(path string, men bool) string {
-  gs := "women"
-  if men {
-    gs = "men"
-  }
-  return string(templ.URL(fmt.Sprintf("/htmx/sizes/%s?gender=%s", path, gs)))
+	gs := "women"
+	if men {
+		gs = "men"
+	}
+	return string(templ.URL(fmt.Sprintf("/htmx/sizes/%s?gender=%s", path, gs)))
 }
 
 templ Sizes(sizes []string, path string, men bool) {
-  // todo: add some js for selecting
-  <div id="sizes" class="p-2"> // is there a way to remove id
-    <div class="flex flex-row gap-2 mb-2">
-      <button class={"w-full border border-gray-200 rounded p-2 text-center", templ.KV("bg-black", men), templ.KV("text-white", men)} 
-        disabled?={men}
-        hx-get={getSizesURL(path, true)}
-        hx-target="#sizes"
-        hx-swap="outerHTML"
-      >Men's</button>
-      <button class={"w-full border border-gray-200 rounded p-2 text-center", templ.KV("bg-black", !men), templ.KV("text-white", !men)} 
-        disabled?={!men}
-        hx-get={getSizesURL(path, false)}
-        hx-target="#sizes"
-        hx-swap="outerHTML"
-      >Women's</button>
-    </div>
-    // make this like select
-    <ul class="grid grid-cols-3 gap-2">
-    for _, s := range sizes {
-      <li>
-        <button class="w-full border border-gray-200 rounded p-2 text-center" value={s}>UK {s}</button>
-      </li>
-    }
-    </ul>
-  </div>
+	// todo: add some js for selecting
+	<div id="sizes" class="p-2">
+		// is there a way to remove id
+		<div class="flex flex-row gap-2 mb-2">
+			<button
+				class={ "w-full border border-gray-200 rounded p-2 text-center", templ.KV("bg-black", men), templ.KV("text-white", men) }
+				disabled?={ men }
+				hx-get={ getSizesURL(path, true) }
+				hx-target="#sizes"
+				hx-swap="outerHTML"
+			>Men's</button>
+			<button
+				class={ "w-full border border-gray-200 rounded p-2 text-center", templ.KV("bg-black", !men), templ.KV("text-white", !men) }
+				disabled?={ !men }
+				hx-get={ getSizesURL(path, false) }
+				hx-target="#sizes"
+				hx-swap="outerHTML"
+			>Women's</button>
+		</div>
+		// make this like select
+		<ul class="grid grid-cols-3 gap-2">
+			for _, s := range sizes {
+				<li>
+					<button class="w-full border border-gray-200 rounded p-2 text-center" value={ s }>UK { s }</button>
+				</li>
+			}
+		</ul>
+	</div>
 }
