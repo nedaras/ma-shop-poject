@@ -41,7 +41,7 @@ type NextDataData struct {
 	} `json:"props"`
 	Query struct {
 		//PBID string `json:"pbid"`
-		Mid  string `json:"mid"`
+		Mid  string `json:"mid"` // mb use metricId from "__NEXT_DATA__.props.pageProps.initialState.NikeId"
 		Slug string `json:"slug"`
 	} `json:"query"`
 }
@@ -61,8 +61,9 @@ type NikeScrapedData struct {
 }
 
 var (
-	ErrImageNotFound = errors.New("image not found")
-	ErrInvalidURL    = errors.New("url is invalid")
+	ErrImageNotFound     = errors.New("image not found")
+	ErrInvalidURL        = errors.New("url is invalid")
+	ErrInvalidConsumerId = errors.New("invalid consumer id")
 )
 
 // https://api.nike.com/cic/grand/v1/graphql/getfulfillmenttypesofferings/v4?variables=%7B%22countryCode%22%3A%22GB%22%2C%22currency%22%3A%22GBP%22%2C%22locale%22%3A%22en-GB%22%2C%22locationId%22%3A%22%22%2C%22locationType%22%3A%22STORE_VIEWS%22%2C%22offeringTypes%22%3A%5B%22SHIP%22%5D%2C%22postalCode%22%3A%22%22%2C%22productId%22%3A%2210c70f8d-07e3-5653-b02c-bae0e5671a45%22%7D
@@ -97,11 +98,11 @@ func HandleSneaker(c echo.Context) error {
 }
 
 func getSneakerContext(d NikeScrapedData, men bool) (components.SneakerContext, error) {
-	ch := make(chan ErrResult, 2)
+	ch := make(chan ErrResult[any], 2)
 
 	go func() {
 		val, err := getNikeConsumerData(d.ID)
-		ch <- ErrResult{
+		ch <- ErrResult[any]{
 			Val: val,
 			Err: err,
 		}
@@ -109,7 +110,7 @@ func getSneakerContext(d NikeScrapedData, men bool) (components.SneakerContext, 
 
 	go func() {
 		val, err := GetSizes(d.PathName, men)
-		ch <- ErrResult{
+		ch <- ErrResult[any]{
 			Val: val,
 			Err: err,
 		}
@@ -121,7 +122,12 @@ func getSneakerContext(d NikeScrapedData, men bool) (components.SneakerContext, 
 	for range 2 {
 		res := <-ch
 		if res.Err != nil {
-			return components.SneakerContext{}, res.Err
+			switch {
+			case errors.Is(res.Err, ErrInvalidProductID):
+				return components.SneakerContext{}, errors.Join(ErrInvalidURL, res.Err)
+			default:
+				return components.SneakerContext{}, res.Err
+			}
 		}
 
 		switch v := res.Val.(type) {
@@ -136,7 +142,7 @@ func getSneakerContext(d NikeScrapedData, men bool) (components.SneakerContext, 
 
 	img, err := getImageByID(cd, "B")
 	if err != nil {
-		return components.SneakerContext{}, errors.Join(fmt.Errorf("could net get image with id 'B'"), err)
+		return components.SneakerContext{}, errors.Join(fmt.Errorf("could net get image with id 'B'"), ErrInvalidURL, err)
 	}
 
 	sc := components.SneakerContext{
@@ -158,9 +164,11 @@ func getImageByID(d *NikeConsumerData, id string) (string, error) {
 			}
 		}
 	}
-	return "", errors.Join(ErrInvalidURL, ErrImageNotFound)
+	return "", ErrImageNotFound
 }
 
+// todo: allow inspiration designs like by chechking if mid exsists or sum
+// todo: slog or log idk the 500 responses
 func getNikeConsumerData(id string) (*NikeConsumerData, error) {
 	res, err := http.Get(fmt.Sprintf("https://api.nike.com/customization/consumer_designs/v1?filter=shortId(%s)", id))
 	if err != nil {
@@ -174,6 +182,15 @@ func getNikeConsumerData(id string) (*NikeConsumerData, error) {
 	if err := decoder.Decode(&data); err != nil {
 		return nil, err
 	}
+
+	if len(data.Objects) == 0 {
+		return nil, ErrInvalidConsumerId
+	}
+
+	if len(data.Errors) != 0 {
+		return nil, fmt.Errorf("failed to get consumer data, %v", data.Errors...)
+	}
+
 	return data, nil
 }
 

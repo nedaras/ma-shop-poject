@@ -39,6 +39,7 @@ var (
 	ErrSizesNotFound = errors.New("sizes not found")
 )
 
+// remove that invalid URL error wtf im stupid
 func translateBuilderSizeData(d *BuilderData, men bool) ([]string, error) {
 	ms := "Women's"
 	if men {

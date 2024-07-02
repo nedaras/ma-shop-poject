@@ -15,6 +15,8 @@ func main() {
 
 	e.Use(middleware.Logger())
 	e.GET("/", handlers.HandleIndex)
+	e.GET("/bag", handlers.HandleBag)
+	e.GET("/account", handlers.HandleAccount)
 	e.GET("/address", handlers.HandleAddress)
 	e.GET("/:path/:id", handlers.HandleSneaker)
 

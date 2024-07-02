@@ -1,0 +1,41 @@
+package views
+
+import "nedas/shop/src/layouts"
+import "nedas/shop/src/components"
+import "strconv"
+
+// store some data in local storage and in db how?
+// . if no acc from localstorage, mb use coocies cuz local storage is local uk uk
+
+// store shit:
+//  {thread_id}:{mid}
+// https://api.nike.com/product_feed/rollup_threads/v2?filter=marketplace(GB)&filter=language(en-GB)&filter=employeePrice(true)&filter=id({th_id})&consumerChannelId=d9a5bc42-4b9c-4976-858a-f159cf99c647
+
+// some place holder data
+// https://www.nike.com/u/custom-nike-dunk-high-by-you-shoes-10001378/2190276125?mid=3475937855&sitesrc=bx3d_link
+// https://www.nike.com/u/custom-nike-air-force-1-mid-by-you-shoes-10001368/4063348121?mid=4063348121&sitesrc=nikebyyoupdp
+
+type BagContext struct {
+	Products []Product
+}
+
+type Product struct {
+	Title string
+	Price float64
+	Image string
+}
+
+templ Bag(c BagContext) {
+	@layouts.Layout("Bag") {
+		@components.Header()
+		<main>
+			<ul>
+				for _, p := range c.Products {
+					<img alt={ p.Title } src={ string(templ.URL(p.Image + "&wid=256")) }/>
+					<h1>{ p.Title }</h1>
+					<h3>£{ strconv.FormatFloat(p.Price, 'f', 2, 32) }</h3>
+				}
+			</ul>
+		</main>
+	}
+}
