@@ -140,9 +140,9 @@ func getSneakerContext(d NikeScrapedData, men bool) (components.SneakerContext, 
 		}
 	}
 
-	img, err := getImageByID(cd, "B")
-	if err != nil {
-		return components.SneakerContext{}, errors.Join(fmt.Errorf("could net get image with id 'B'"), ErrInvalidURL, err)
+	img := getImageByID(cd, "B")
+	if img == "" {
+		return components.SneakerContext{}, errors.Join(fmt.Errorf("could net get image with id 'B'"), ErrInvalidURL)
 	}
 
 	sc := components.SneakerContext{
@@ -156,23 +156,25 @@ func getSneakerContext(d NikeScrapedData, men bool) (components.SneakerContext, 
 	return sc, nil
 }
 
-func getImageByID(d *NikeConsumerData, id string) (string, error) {
+func getImageByID(d *NikeConsumerData, id string) string {
 	for _, i := range d.Objects {
 		for _, image := range i.Imagery {
 			if image.ViewCode == id {
-				return image.ImageSourceURL, nil
+				return image.ImageSourceURL
 			}
 		}
 	}
-	return "", ErrImageNotFound
+	return "" 
 }
 
+// Any returned error will be of type [*NikeAPIError].
 // todo: allow inspiration designs like by chechking if mid exsists or sum
 // todo: slog or log idk the 500 responses
 func getNikeConsumerData(id string) (*NikeConsumerData, error) {
-	res, err := http.Get(fmt.Sprintf("https://api.nike.com/customization/consumer_designs/v1?filter=shortId(%s)", id))
+  url := "https://api.nike.com/customization/consumer_designs/v1?filter=shortId(" + id + ")";
+	res, err := http.Get(url)
 	if err != nil {
-		return nil, err
+    return nil, &NikeAPIError{URL: url, Err: err}
 	}
 	defer res.Body.Close()
 
@@ -180,21 +182,20 @@ func getNikeConsumerData(id string) (*NikeConsumerData, error) {
 	decoder := json.NewDecoder(res.Body)
 
 	if err := decoder.Decode(&data); err != nil {
-		return nil, err
+		return nil, &NikeAPIError{URL: url, Err: err} 
 	}
 
 	if len(data.Objects) == 0 {
-		return nil, ErrInvalidConsumerId
+		return nil, &NikeAPIError{URL: url, Err: ErrNotFound} 
 	}
 
 	if len(data.Errors) != 0 {
-		return nil, fmt.Errorf("failed to get consumer data, %v", data.Errors...)
+    return nil, &NikeAPIError{URL: url, Err: fmt.Errorf("got some unexpected errors %v", data.Errors...)}
 	}
 
 	return data, nil
 }
 
-// make this take in url
 func scrapeNikeURL(url string) (NikeScrapedData, error) {
 	nextDataR := regexp.MustCompile(`<script id="__NEXT_DATA__" type="application\/json">(.+)<\/script>`)
 
@@ -228,6 +229,8 @@ func scrapeNikeURL(url string) (NikeScrapedData, error) {
 		if !ok {
 			panic("could not get value from a map")
 		}
+
+    // todo: check if all these params are not empty strings
 
 		return NikeScrapedData{
 			Title:    product.Title,

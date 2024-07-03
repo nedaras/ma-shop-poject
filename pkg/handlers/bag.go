@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"nedas/shop/src/views"
 	"net/http"
 	"strings"
@@ -26,9 +25,23 @@ type ProductFeedData struct {
 
 // placeholder, what db we will use
 var (
-	products            = []string{"b049e5fc-e1a4-4196-92c3-439ed3c475d1:3475937855", "e3864a31-60d8-470a-8f62-41cc7c0688bd:4063348121"}
+	products            = []string{"bb049e5fc-e1a4-4196-92c3-439ed3c475d1:3475937855", "e3864a31-60d8-470a-8f62-41cc7c0688bd:4063348121"}
 	ErrInvalidProductID = errors.New("invalid product id")
+  ErrNotFound = errors.New("could not found requested resource")
 )
+
+type NikeAPIError struct {
+  URL string
+  Err error
+}
+
+func (e *NikeAPIError) Error() string {
+  return "'" + e.URL + "': " + e.Err.Error()
+}
+
+func (e *NikeAPIError) Unwrap() error {
+  return e.Err
+}
 
 func HandleBag(c echo.Context) error {
 	products, err := getProducts(products)
@@ -43,12 +56,13 @@ func HandleBag(c echo.Context) error {
 	return render(c, views.Bag(bc))
 }
 
+// Any returned error will be of type [*NikeAPIError].
 func getProductFeedData(tid string) (*ProductFeedData, error) {
-	url := fmt.Sprintf("https://api.nike.com/product_feed/rollup_threads/v2?filter=marketplace(GB)&filter=language(en-GB)&filter=employeePrice(true)&filter=id(%s)&consumerChannelId=d9a5bc42-4b9c-4976-858a-f159cf99c647", tid)
-
+	url := "https://api.nike.com/product_feed/rollup_threads/v2?filter=marketplace(GB)&filter=language(en-GB)&filter=employeePrice(true)&filter=id(" + tid + ")&consumerChannelId=d9a5bc42-4b9c-4976-858a-f159cf99c647"
 	res, err := http.Get(url)
+
 	if err != nil {
-		return nil, err
+    return nil, &NikeAPIError{URL: url, Err: err}
 	}
 	defer res.Body.Close()
 
@@ -56,35 +70,33 @@ func getProductFeedData(tid string) (*ProductFeedData, error) {
 	decoder := json.NewDecoder(res.Body)
 
 	if err := decoder.Decode(&data); err != nil {
-		return nil, err
+    return nil, &NikeAPIError{URL: url, Err: err}
 	}
 
 	if len(data.Objects) == 0 {
-		return nil, ErrInvalidProductID
+    return nil, &NikeAPIError{URL: url, Err: ErrNotFound} 
 	}
 
 	return data, nil
 }
 
+// Any returned error will be of type [*NikeAPIError].
 func getProduct(id string) (views.Product, error) {
 	arr := strings.SplitN(id, ":", 2)
 	if len(arr) != 2 {
 		return views.Product{}, ErrInvalidProductID
 	}
 
-	tid := arr[0]
-	mid := arr[1]
-
+	tid, mid := arr[0], arr[1]
 	ch := make(chan ErrResult[any], 2)
 
-	var cd *NikeConsumerData
-	var pf *ProductFeedData
+  var (
+    pf *ProductFeedData
+	  cd *NikeConsumerData
+  )
 
 	go func() {
 		val, err := getProductFeedData(tid)
-		if err != nil {
-			err = errors.Join(fmt.Errorf("could net get product feed data with thread id '%s'", tid), err)
-		}
 		ch <- ErrResult[any]{
 			Val: val,
 			Err: err,
@@ -93,9 +105,6 @@ func getProduct(id string) (views.Product, error) {
 
 	go func() {
 		val, err := getNikeConsumerData(mid)
-		if err != nil {
-			err = errors.Join(fmt.Errorf("could not get consumer data with mid '%s'", mid), err)
-		}
 		ch <- ErrResult[any]{
 			Val: val,
 			Err: err,
@@ -117,9 +126,12 @@ func getProduct(id string) (views.Product, error) {
 		}
 	}
 
-	img, err := getImageByID(cd, "B")
-	if err != nil {
-		return views.Product{}, errors.Join(fmt.Errorf("could net get image with id 'B'"), ErrInvalidProductID, err)
+	img := getImageByID(cd, "B")
+	if img == "" {
+    return views.Product{}, &NikeAPIError{
+      URL: "https://api.nike.com/customization/consumer_designs/v1?filter=shortId(" + mid + ")",
+      Err: ErrNotFound,
+    }
 	}
 
 	for _, o := range pf.Objects {
@@ -137,9 +149,14 @@ func getProduct(id string) (views.Product, error) {
 			}, nil
 		}
 	}
-	return views.Product{}, ErrInvalidProductID
+
+	return views.Product{}, &NikeAPIError{
+    URL: "https://api.nike.com/product_feed/rollup_threads/v2?filter=marketplace(GB)&filter=language(en-GB)&filter=employeePrice(true)&filter=id(" + tid + ")&consumerChannelId=d9a5bc42-4b9c-4976-858a-f159cf99c647",
+    Err: ErrNotFound,
+  }
 }
 
+// Any returned error will be of type [*NikeAPIError].
 func getProducts(p []string) ([]views.Product, error) {
 	if len(p) == 1 {
 		p, err := getProduct(p[0])
@@ -149,19 +166,23 @@ func getProducts(p []string) ([]views.Product, error) {
 		return []views.Product{p}, nil
 	}
 
-	type indexed = struct {
-		i int
-		p views.Product
-		e error
-	}
+	ch := make(chan struct {
+    i int
+    p views.Product
+    e error
+  }, len(p))
 
-	ch := make(chan indexed, len(products))
-	products := make([]views.Product, len(products))
+	products := make([]views.Product, len(p))
+  size := 0
 
 	for i, id := range p {
 		go func() {
 			val, err := getProduct(id)
-			ch <- indexed{
+			ch <- struct{
+        i int
+        p views.Product
+        e error
+      }{
 				i: i,
 				p: val,
 				e: err,
@@ -172,10 +193,46 @@ func getProducts(p []string) ([]views.Product, error) {
 	for range p {
 		res := <-ch
 		if res.e != nil {
-			// idk what todo cuz if one errors what er all err then, we need to think
+      if errors.Is(res.e, ErrNotFound) {
+        continue
+      }
 			return []views.Product{}, res.e
 		}
 		products[res.i] = res.p
+    size++
 	}
-	return products, nil
+
+  if size == len(p) {
+    return products, nil
+  }
+
+  // a b c _ f _ _ _ g g e _
+  // _ _ _ a _ b _ c d g
+  // _ a
+  // can i like in O(n) like remove white space from products, without making a new array
+  // we fr fr need to unit test this one
+
+  fe := -1
+  for i, v := range products {
+    if fe == size {
+      break
+    }
+
+    if v == (views.Product{}) {
+      if fe == -1 {
+        fe = i
+      }
+      continue
+    }
+
+    if fe == -1 {
+      continue
+    }
+
+    products[fe] = v
+    products[i] = views.Product{}
+    fe++
+  }
+
+  return products[0:size], nil
 }

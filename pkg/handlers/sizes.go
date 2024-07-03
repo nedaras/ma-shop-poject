@@ -98,7 +98,6 @@ func translateBuilderSizeData(d *BuilderData, men bool) ([]string, error) {
 	return []string{}, errors.Join(ErrInvalidURL, ErrSizesNotFound)
 }
 
-// todo: chage to men bool
 func GetSizes(p string, men bool) ([]string, error) {
 	res, err := http.Get(fmt.Sprintf("https://api.nike.com/customization/builderaggregator/v2/builder/GB/en_GB/%s", p))
 	if err != nil {
