@@ -35,86 +35,6 @@ type BuilderData struct {
 	} `json:"marketingComponents"`
 }
 
-var (
-	ErrSizesNotFound = errors.New("sizes not found")
-)
-
-// remove that invalid URL error wtf im stupid
-func translateBuilderSizeData(d *BuilderData, men bool) ([]string, error) {
-	ms := "Women's"
-	if men {
-		ms = "Men's"
-	}
-
-	for _, c := range d.MarketingComponents {
-		if c.Type != "Size" {
-			continue
-		}
-		for _, q1 := range c.Questions {
-			if q1.Type != "Gender" {
-				continue
-			}
-			for _, a1 := range q1.Answers {
-				if a1.Type != "Gender" {
-					continue
-				}
-				if a1.DisplayName != ms {
-					continue
-				}
-				for _, q2 := range a1.Questions {
-					if q2.Type != "Sz" {
-						continue
-					}
-					sizes := make([]string, len(q2.Answers))
-					i := 0
-
-					for _, a2 := range q2.Answers {
-						if a2.Type != "Size" {
-							// idk if we should continue mb err
-							continue
-						}
-						for _, kv := range a2.KeyValues {
-							if kv.Key == "uk" {
-								sizes[i] = kv.Value
-								i++
-							}
-						}
-					}
-
-					if i == 0 {
-						return []string{}, errors.Join(ErrInvalidURL, ErrSizesNotFound)
-					}
-
-					if len(sizes) > i {
-						sizes = sizes[:i]
-					}
-
-					return sizes, nil
-				}
-			}
-		}
-	}
-
-	return []string{}, errors.Join(ErrInvalidURL, ErrSizesNotFound)
-}
-
-func GetSizes(p string, men bool) ([]string, error) {
-	res, err := http.Get(fmt.Sprintf("https://api.nike.com/customization/builderaggregator/v2/builder/GB/en_GB/%s", p))
-	if err != nil {
-		return []string{}, err
-	}
-	defer res.Body.Close()
-
-	data := &BuilderData{}
-	decoder := json.NewDecoder(res.Body)
-
-	if err := decoder.Decode(data); err != nil {
-		return []string{}, err
-	}
-
-	return translateBuilderSizeData(data, men)
-}
-
 func HandleSizes(c echo.Context) error {
 	gender := strings.ToLower(c.QueryParam("gender"))
 	path := c.Param("path")
@@ -129,7 +49,96 @@ func HandleSizes(c echo.Context) error {
 
 	s, err := GetSizes(path, gender == "men")
 	if err != nil {
+    if errors.Is(err, ErrNotFound) {
+      return newHTTPError(http.StatusNotFound, "could not find " + gender + "'s sizes")
+    }
 		return err
 	}
 	return render(c, components.Sizes(s, path, gender == "men"))
+}
+
+// Any returned error will be of type [*NikeAPIError].
+func GetSizes(path string, men bool) ([]string, error) {
+  url := "https://api.nike.com/customization/builderaggregator/v2/builder/GB/en_GB/" + path
+	res, err := http.Get(url)
+
+	if err != nil {
+    return []string{}, &NikeAPIError{URL: url, Err: err}
+	}
+	defer res.Body.Close()
+
+  if res.StatusCode != 200 {
+    switch res.StatusCode {
+    case 404:
+      return []string{}, &NikeAPIError{URL: url, Err: ErrNotFound}
+    default:
+      return []string{}, &NikeAPIError{URL: url, Err: fmt.Errorf("got unexpected response code '%d'", res.StatusCode)}
+    }
+  }
+
+  if res.Header.Get("Content-Type") != "application/json" {
+    return []string{}, &NikeAPIError{URL: url, Err: errors.New("responded content is not in json form")}
+  }
+
+	data := &BuilderData{}
+	decoder := json.NewDecoder(res.Body)
+
+	if err := decoder.Decode(data); err != nil {
+    return []string{}, &NikeAPIError{URL: url, Err: err}
+	}
+
+	gstr := "Women's"
+	if men {
+		gstr = "Men's"
+	}
+
+	for _, c := range data.MarketingComponents {
+		if c.Type != "Size" {
+			continue
+		}
+		for _, q1 := range c.Questions {
+			if q1.Type != "Gender" {
+				continue
+			}
+			for _, a1 := range q1.Answers {
+				if a1.Type != "Gender" {
+					continue
+				}
+				if a1.DisplayName != gstr {
+					continue
+				}
+				for _, q2 := range a1.Questions {
+					if q2.Type != "Sz" {
+						continue
+					}
+					sizes := make([]string, len(q2.Answers))
+					i := 0
+
+					for _, a2 := range q2.Answers {
+						if a2.Type != "Size" {
+							continue
+						}
+						for _, kv := range a2.KeyValues {
+							if kv.Key == "uk" {
+								sizes[i] = kv.Value
+								i++
+							}
+						}
+					}
+
+					if i == 0 {
+            return []string{}, &NikeAPIError{URL: url, Err: ErrNotFound}
+					}
+
+					if len(sizes) > i {
+						sizes = sizes[:i]
+					}
+
+					return sizes, nil
+				}
+			}
+		}
+	}
+
+  return []string{}, &NikeAPIError{URL: url, Err: ErrNotFound}
 }

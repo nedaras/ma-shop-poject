@@ -18,8 +18,7 @@ func main() {
 	e.GET("/bag", handlers.HandleBag)
 	e.GET("/account", handlers.HandleAccount)
 	e.GET("/address", handlers.HandleAddress)
-  // todo: dont use path use thread if it will be faster
-	e.GET("/:path/:id", handlers.HandleSneaker)
+	e.GET("/:thread_id/:mid", handlers.HandleSneaker)
 
 	e.POST("/htmx/search", handlers.HandleSearch)
 	e.POST("/htmx/address/validate", handlers.HandleAddressValidate)

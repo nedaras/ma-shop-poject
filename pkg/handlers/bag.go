@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"nedas/shop/src/views"
 	"net/http"
 	"strings"
@@ -19,29 +20,33 @@ type ProductFeedData struct {
 			ProductContent struct {
 				Title string `json:"title"`
 			} `json:"productContent"`
+      CustomizedPreBuild struct {
+        Legacy struct {
+          PathName string `json:"pathName"`
+        } `json:"legacy"`
+      } `json:"customizedPreBuild"`
 		} `json:"productInfo"`
 	} `json:"objects"`
 }
 
+
+type NikeConsumerData struct {
+	Objects []struct {
+		Imagery []struct {
+			ViewCode               string `json:"viewCode"`
+			ViewNumber             string `json:"viewNumber"`
+			ImageSourceURL         string `json:"imageSourceURL"`
+			ImageSourceURLTemplate string `json:"imageSourceURLTemplate"`
+		} `json:"imagery"`
+	} `json:"objects"`
+	Errors []interface{} `json:"errors"`
+}
+
 // placeholder, what db we will use
 var (
-	products            = []string{"bb049e5fc-e1a4-4196-92c3-439ed3c475d1:3475937855", "e3864a31-60d8-470a-8f62-41cc7c0688bd:4063348121"}
-	ErrInvalidProductID = errors.New("invalid product id")
+	products    = []string{"b049e5fc-e1a4-4196-92c3-439ed3c475d1:3475937855", "e3864a31-60d8-470a-8f62-41cc7c0688bd:4063348121"}
   ErrNotFound = errors.New("could not found requested resource")
 )
-
-type NikeAPIError struct {
-  URL string
-  Err error
-}
-
-func (e *NikeAPIError) Error() string {
-  return "'" + e.URL + "': " + e.Err.Error()
-}
-
-func (e *NikeAPIError) Unwrap() error {
-  return e.Err
-}
 
 func HandleBag(c echo.Context) error {
 	products, err := getProducts(products)
@@ -66,6 +71,19 @@ func getProductFeedData(tid string) (*ProductFeedData, error) {
 	}
 	defer res.Body.Close()
 
+  if res.StatusCode != 200 {
+    switch res.StatusCode {
+    case 404:
+      return nil, &NikeAPIError{URL: url, Err: ErrNotFound}
+    default:
+      return nil, &NikeAPIError{URL: url, Err: fmt.Errorf("got unexpected response code '%d'", res.StatusCode)}
+    }
+  }
+
+  if res.Header.Get("Content-Type") != "application/json" {
+    return nil, &NikeAPIError{URL: url, Err: errors.New("responded content is not in json form")}
+  }
+  
 	data := &ProductFeedData{}
 	decoder := json.NewDecoder(res.Body)
 
@@ -84,7 +102,7 @@ func getProductFeedData(tid string) (*ProductFeedData, error) {
 func getProduct(id string) (views.Product, error) {
 	arr := strings.SplitN(id, ":", 2)
 	if len(arr) != 2 {
-		return views.Product{}, ErrInvalidProductID
+    panic("passed string is not split by ':'")
 	}
 
 	tid, mid := arr[0], arr[1]
@@ -146,6 +164,7 @@ func getProduct(id string) (views.Product, error) {
 				Title: p.ProductContent.Title,
 				Price: p.MerchPrice.CurrentPrice,
 				Image: img,
+        PathName: p.CustomizedPreBuild.Legacy.PathName,
 			}, nil
 		}
 	}
@@ -206,19 +225,16 @@ func getProducts(p []string) ([]views.Product, error) {
     return products, nil
   }
 
-  // a b c _ f _ _ _ g g e _
-  // _ _ _ a _ b _ c d g
-  // _ a
-  // can i like in O(n) like remove white space from products, without making a new array
-  // we fr fr need to unit test this one
+  strip(&products)
+  return products, nil
+}
 
+func strip[T comparable](arr *[]T) {
+  var mt T
   fe := -1
-  for i, v := range products {
-    if fe == size {
-      break
-    }
 
-    if v == (views.Product{}) {
+  for i, v := range *arr {
+    if v == mt {
       if fe == -1 {
         fe = i
       }
@@ -229,10 +245,76 @@ func getProducts(p []string) ([]views.Product, error) {
       continue
     }
 
-    products[fe] = v
-    products[i] = views.Product{}
+    (*arr)[fe] = v
+    (*arr)[i] = mt 
     fe++
   }
+  
+  if fe != -1 {
+    *arr = (*arr)[:fe]
+  }
+}
 
-  return products[0:size], nil
+// Any returned error will be of type [*NikeAPIError].
+func getNikeConsumerData(mid string) (*NikeConsumerData, error) {
+  url := "https://api.nike.com/customization/consumer_designs/v1?filter=shortId(" + mid + ")"
+	res, err := http.Get(url)
+	if err != nil {
+    return nil, &NikeAPIError{URL: url, Err: err}
+	}
+	defer res.Body.Close()
+
+  if res.StatusCode != 200 {
+    switch res.StatusCode {
+    case 404:
+      return nil, &NikeAPIError{URL: url, Err: ErrNotFound}
+    default:
+      return nil, &NikeAPIError{URL: url, Err: fmt.Errorf("got unexpected response code '%d'", res.StatusCode)}
+    }
+  }
+
+  if res.Header.Get("Content-Type") != "application/json" {
+    return nil, &NikeAPIError{URL: url, Err: errors.New("responded content is not in json form")}
+  }
+
+	data := &NikeConsumerData{}
+	decoder := json.NewDecoder(res.Body)
+
+	if err := decoder.Decode(&data); err != nil {
+		return nil, &NikeAPIError{URL: url, Err: err} 
+	}
+
+	if len(data.Objects) == 0 {
+		return nil, &NikeAPIError{URL: url, Err: ErrNotFound} 
+	}
+
+	if len(data.Errors) != 0 {
+    return nil, &NikeAPIError{URL: url, Err: fmt.Errorf("got some unexpected errors %v", data.Errors...)}
+	}
+
+	return data, nil
+}
+
+func getImageByID(d *NikeConsumerData, id string) string {
+	for _, i := range d.Objects {
+		for _, image := range i.Imagery {
+			if image.ViewCode == id {
+				return image.ImageSourceURL
+			}
+		}
+	}
+	return "" 
+}
+
+type NikeAPIError struct {
+  URL string
+  Err error
+}
+
+func (e *NikeAPIError) Error() string {
+  return "'" + e.URL + "': " + e.Err.Error()
+}
+
+func (e *NikeAPIError) Unwrap() error {
+  return e.Err
 }

@@ -1,7 +1,6 @@
 package views
 
 import "strconv"
-import "net/http"
 import "strings"
 import "unicode"
 
@@ -16,10 +15,6 @@ func formatStr(str string) string {
 	b.WriteString(strings.ToLower(str[1:]))
 	return b.String()
 
-}
-
-templ SimpleError(c int) {
-	@Error(c, formatStr(http.StatusText(c)))
 }
 
 templ Error(c int, msg string) {
