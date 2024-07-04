@@ -64,8 +64,8 @@ func HandleSearch(c echo.Context) error {
 	ch := make(chan ErrResult[any], 2)
 
 	var (
-		img string
-		s   []string
+		img   string
+		sizes []string
 	)
 
 	go func() {
@@ -90,14 +90,14 @@ func HandleSearch(c echo.Context) error {
 			if errors.Is(res.Err, ErrNotFound) {
 				return renderWithStatus(http.StatusNotFound, c, components.Search("Nike By You link is invalid."))
 			}
-			c.Logger().Error(err)
+			c.Logger().Error(res.Err)
 			return renderWithStatus(http.StatusInternalServerError, c, components.Search("Something went wrong. Please try again later."))
 		}
 		switch v := res.Val.(type) {
 		case string:
 			img = v
 		case []string:
-			s = v
+			sizes = v
 		default:
 			panic("got invalid type")
 		}
@@ -108,7 +108,7 @@ func HandleSearch(c echo.Context) error {
 		Price:    data.Price,
 		PathName: data.PathName,
 		ImageSrc: img,
-		Sizes:    s,
+		Sizes:    sizes,
 	}
 
 	c.Response().Header().Add("HX-Push-Url", "/"+data.ThreadId+"/"+data.Mid)

@@ -104,7 +104,7 @@ func GetSizes(path string, men bool) ([]string, error) {
 				if a1.Type != "Gender" {
 					continue
 				}
-				if a1.DisplayName != gstr {
+				if a1.DisplayName != gstr && a1.DisplayName != "Unisex" {
 					continue
 				}
 				for _, q2 := range a1.Questions {

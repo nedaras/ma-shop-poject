@@ -18,7 +18,8 @@ type ProductFeedData struct {
 				CurrentPrice float64 `json:"currentPrice"`
 			} `json:"merchPrice"`
 			ProductContent struct {
-				Title string `json:"title"`
+				Title    string `json:"title"`
+				Subtitle string `json:"subtitle"`
 			} `json:"productContent"`
 			CustomizedPreBuild struct {
 				Legacy struct {
@@ -43,7 +44,7 @@ type NikeConsumerData struct {
 
 // placeholder, what db we will use
 var (
-	products    = []string{"b049e5fc-e1a4-4196-92c3-439ed3c475d1:3475937855", "e3864a31-60d8-470a-8f62-41cc7c0688bd:4063348121"}
+	products    = []string{"053748ec-4af2-49d8-b3d8-409eb64e9bcf:6320614280", "b049e5fc-e1a4-4196-92c3-439ed3c475d1:3475937855", "e3864a31-60d8-470a-8f62-41cc7c0688bd:4063348121"}
 	ErrNotFound = errors.New("could not found requested resource")
 )
 
@@ -153,14 +154,12 @@ func getProduct(id string) (views.Product, error) {
 
 	for _, o := range pf.Objects {
 		for _, p := range o.ProductInfo {
-			if p.ProductContent.Title == "" {
-				continue
-			}
-			if p.MerchPrice.CurrentPrice == 0.0 {
+			if p.CustomizedPreBuild.Legacy.PathName == "" {
 				continue
 			}
 			return views.Product{
 				Title:    p.ProductContent.Title,
+				Subtitle: p.ProductContent.Subtitle,
 				Price:    p.MerchPrice.CurrentPrice,
 				Image:    img,
 				PathName: p.CustomizedPreBuild.Legacy.PathName,
