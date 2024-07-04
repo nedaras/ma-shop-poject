@@ -14,31 +14,31 @@ func HandleSneaker(c echo.Context) error {
 	tid := c.Param("thread_id")
 	mid := c.Param("mid")
 
-  p, err := getProduct(tid + ":" + mid)
-  if err != nil {
-    if errors.Is(err, ErrNotFound) {
-      return renderSimpleError(c, http.StatusNotFound)
-    }
-    c.Logger().Error(err)
-    return renderSimpleError(c, http.StatusInternalServerError)
-  }
+	p, err := getProduct(tid + ":" + mid)
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return renderSimpleError(c, http.StatusNotFound)
+		}
+		c.Logger().Error(err)
+		return renderSimpleError(c, http.StatusInternalServerError)
+	}
 
-  s, err := GetSizes(p.PathName, true)
-  if err != nil {
-    if errors.Is(err, ErrNotFound) {
-      return renderSimpleError(c, http.StatusNotFound)
-    }
-    c.Logger().Error(err)
-    return renderSimpleError(c, http.StatusInternalServerError)
-  }
+	s, err := GetSizes(p.PathName, true)
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return renderSimpleError(c, http.StatusNotFound)
+		}
+		c.Logger().Error(err)
+		return renderSimpleError(c, http.StatusInternalServerError)
+	}
 
-  sc := components.SneakerContext{
-    Title: p.Title,
-    Price: p.Price,
-    ImageSrc: p.Image,
-    PathName: p.PathName,
-    Sizes: s,
-  }
+	sc := components.SneakerContext{
+		Title:    p.Title,
+		Price:    p.Price,
+		ImageSrc: p.Image,
+		PathName: p.PathName,
+		Sizes:    s,
+	}
 
-  return render(c, views.Sneaker(sc))
+	return render(c, views.Sneaker(sc))
 }

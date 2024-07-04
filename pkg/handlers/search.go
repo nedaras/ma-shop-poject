@@ -1,14 +1,14 @@
 package handlers
 
 import (
-  "bytes"
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
-  "io"
+	"io"
 	"nedas/shop/src/components"
 	"net/http"
-  "regexp"
+	"regexp"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -20,29 +20,29 @@ type NextData struct {
 			InitialState struct {
 				Threads struct {
 					Products map[string]struct {
-            Title        string  `json:"title"`
-            CurrentPrice float64 `json:"currentPrice"`
-            PathName     string  `json:"pathName"`
-            ThreadId string `json:"threadId"`
-          }`json:"products"`
+						Title        string  `json:"title"`
+						CurrentPrice float64 `json:"currentPrice"`
+						PathName     string  `json:"pathName"`
+						ThreadId     string  `json:"threadId"`
+					} `json:"products"`
 				} `json:"Threads"`
 			} `json:"initialState"`
 		} `json:"pageProps"`
 	} `json:"props"`
 	Query struct {
-		Mid  string `json:"mid"` // mb use metricId from "__NEXT_DATA__.props.pageProps.initialState.NikeId"
+		Mid string `json:"mid"` // mb use metricId from "__NEXT_DATA__.props.pageProps.initialState.NikeId"
 	} `json:"query"`
 }
 
 type NikeScrapedData struct {
-	Mid       string
+	Mid      string
 	Title    string
 	Price    float64
 	PathName string
-  ThreadId string
+	ThreadId string
 }
 
-var(
+var (
 	NextDataRegexp = regexp.MustCompile(`<script id="__NEXT_DATA__" type="application\/json">(.+)<\/script>`)
 )
 
@@ -54,45 +54,45 @@ func HandleSearch(c echo.Context) error {
 
 	data, err := scrapeNikeURL(url)
 	if err != nil {
-    if errors.Is(err, ErrNotFound) {
-      return renderWithStatus(http.StatusNotFound, c, components.Search("Nike By You link is invalid."))
-    }
-    c.Logger().Error(err)
+		if errors.Is(err, ErrNotFound) {
+			return renderWithStatus(http.StatusNotFound, c, components.Search("Nike By You link is invalid."))
+		}
+		c.Logger().Error(err)
 		return renderWithStatus(http.StatusInternalServerError, c, components.Search("Something went wrong. Please try again later."))
 	}
 
-  ch := make(chan ErrResult[any], 2)
+	ch := make(chan ErrResult[any], 2)
 
-  var (
-    img string
-    s []string
-  )
+	var (
+		img string
+		s   []string
+	)
 
-  go func() {
-    val, err := getImageWithId(data.Mid, "B")
-    ch <- ErrResult[any] {
-      Val: val,
-      Err: err,
-    }
-  }()
+	go func() {
+		val, err := getImageWithId(data.Mid, "B")
+		ch <- ErrResult[any]{
+			Val: val,
+			Err: err,
+		}
+	}()
 
-  go func() {
-    val, err := GetSizes(data.PathName, true)
-    ch <- ErrResult[any] {
-      Val: val,
-      Err: err,
-    }
-  }()
+	go func() {
+		val, err := GetSizes(data.PathName, true)
+		ch <- ErrResult[any]{
+			Val: val,
+			Err: err,
+		}
+	}()
 
-  for range(2) {
-    res := <-ch
-    if res.Err != nil {
-      if errors.Is(res.Err, ErrNotFound) {
-        return renderWithStatus(http.StatusNotFound, c, components.Search("Nike By You link is invalid."))
-      }
-      c.Logger().Error(err)
-		  return renderWithStatus(http.StatusInternalServerError, c, components.Search("Something went wrong. Please try again later."))
-    }
+	for range 2 {
+		res := <-ch
+		if res.Err != nil {
+			if errors.Is(res.Err, ErrNotFound) {
+				return renderWithStatus(http.StatusNotFound, c, components.Search("Nike By You link is invalid."))
+			}
+			c.Logger().Error(err)
+			return renderWithStatus(http.StatusInternalServerError, c, components.Search("Something went wrong. Please try again later."))
+		}
 		switch v := res.Val.(type) {
 		case string:
 			img = v
@@ -101,65 +101,65 @@ func HandleSearch(c echo.Context) error {
 		default:
 			panic("got invalid type")
 		}
-  }
+	}
 
-  sc := components.SneakerContext{
-    Title: data.Title,
-    Price: data.Price,
-    PathName: data.PathName,
-    ImageSrc: img,
-    Sizes: s,
-  }
+	sc := components.SneakerContext{
+		Title:    data.Title,
+		Price:    data.Price,
+		PathName: data.PathName,
+		ImageSrc: img,
+		Sizes:    s,
+	}
 
-	c.Response().Header().Add("HX-Push-Url", "/" + data.ThreadId + "/" + data.Mid)
+	c.Response().Header().Add("HX-Push-Url", "/"+data.ThreadId+"/"+data.Mid)
 	return render(c, components.Sneaker(sc))
 }
 
 // Any returned error will be of type [*NikeAPIError].
 func getImageWithId(mid string, id string) (string, error) {
-  val, err := getNikeConsumerData(mid)
-  if err != nil {
-    return "", err
-  }
+	val, err := getNikeConsumerData(mid)
+	if err != nil {
+		return "", err
+	}
 
-  img := getImageByID(val, id)
-  if img == "" {
-    return "", &NikeAPIError{URL: "https://api.nike.com/customization/consumer_designs/v1?filter=shortId(" + mid + ")", Err: ErrNotFound}
-  }
+	img := getImageByID(val, id)
+	if img == "" {
+		return "", &NikeAPIError{URL: "https://api.nike.com/customization/consumer_designs/v1?filter=shortId(" + mid + ")", Err: ErrNotFound}
+	}
 
-  return img, nil
+	return img, nil
 }
 
 // Any returned error will be of type [*NikeAPIError].
 func scrapeNikeURL(url string) (NikeScrapedData, error) {
 	res, err := http.Get(url)
 	if err != nil {
-    return NikeScrapedData{}, &NikeAPIError{URL: url, Err: err}
+		return NikeScrapedData{}, &NikeAPIError{URL: url, Err: err}
 	}
 	defer res.Body.Close()
 
-  if res.StatusCode != 200 {
-    switch res.StatusCode {
-    case 404:
-      return NikeScrapedData{}, &NikeAPIError{URL: url, Err: ErrNotFound}
-    default:
-      return NikeScrapedData{}, &NikeAPIError{URL: url, Err: fmt.Errorf("got unexpected response code '%d'", res.StatusCode)}
-    }
-  }
+	if res.StatusCode != 200 {
+		switch res.StatusCode {
+		case 404:
+			return NikeScrapedData{}, &NikeAPIError{URL: url, Err: ErrNotFound}
+		default:
+			return NikeScrapedData{}, &NikeAPIError{URL: url, Err: fmt.Errorf("got unexpected response code '%d'", res.StatusCode)}
+		}
+	}
 
-  if res.Header.Get("Content-Type") != "text/html; charset=UTF-8" {
-    return NikeScrapedData{}, &NikeAPIError{URL: url, Err: errors.New("responded content is not in UTF-8 html form")}
-  }
+	if res.Header.Get("Content-Type") != "text/html; charset=UTF-8" {
+		return NikeScrapedData{}, &NikeAPIError{URL: url, Err: errors.New("responded content is not in UTF-8 html form")}
+	}
 
 	buf := new(strings.Builder)
 	if _, err = io.Copy(buf, res.Body); err != nil {
-    return NikeScrapedData{}, &NikeAPIError{URL: url, Err: err}
+		return NikeScrapedData{}, &NikeAPIError{URL: url, Err: err}
 	}
 
 	nextDataMatches := NextDataRegexp.FindSubmatch([]byte(buf.String()))
 
 	if len(nextDataMatches) != 2 {
-    return NikeScrapedData{}, &NikeAPIError{URL: url, Err: ErrNotFound}
+		return NikeScrapedData{}, &NikeAPIError{URL: url, Err: ErrNotFound}
 	}
 
 	reader := bytes.NewReader(nextDataMatches[1])
@@ -167,7 +167,7 @@ func scrapeNikeURL(url string) (NikeScrapedData, error) {
 
 	var nextData NextData
 	if err := decoder.Decode(&nextData); err != nil {
-    return NikeScrapedData{}, &NikeAPIError{URL: url, Err: err}
+		return NikeScrapedData{}, &NikeAPIError{URL: url, Err: err}
 	}
 
 	for k := range nextData.Props.PageProps.InitialState.Threads.Products {
@@ -175,14 +175,14 @@ func scrapeNikeURL(url string) (NikeScrapedData, error) {
 
 		return NikeScrapedData{
 			Title:    product.Title,
-			Mid:       nextData.Query.Mid,
-			ThreadId:     product.ThreadId,
+			Mid:      nextData.Query.Mid,
+			ThreadId: product.ThreadId,
 			Price:    product.CurrentPrice,
 			PathName: product.PathName,
 		}, nil
 	}
 
-  return NikeScrapedData{}, &NikeAPIError{URL: url, Err: ErrNotFound}
+	return NikeScrapedData{}, &NikeAPIError{URL: url, Err: ErrNotFound}
 }
 
 // need to unit test
@@ -200,16 +200,16 @@ func convertLink(str string) string {
 			{
 				flag := "http"
 				if i+len(flag) > len(str) {
-					return "" 
+					return ""
 				}
 
 				if str[i:i+len(flag)] != flag {
-					return "" 
+					return ""
 				}
 				i += len(flag)
 
 				if i+1 > len(str) {
-					return "" 
+					return ""
 				}
 
 				if str[i] == 's' {
@@ -219,11 +219,11 @@ func convertLink(str string) string {
 			{
 				flag := "://"
 				if i+len(flag) > len(str) {
-					return "" 
+					return ""
 				}
 
 				if str[i:i+len(flag)] != flag {
-					return "" 
+					return ""
 				}
 				i += len(flag)
 			}
@@ -239,7 +239,7 @@ func convertLink(str string) string {
 			if str[i:i+len(flag)] == flag {
 				i += len(flag)
 			} else if i == 0 {
-				return "" 
+				return ""
 			}
 		}
 		fallthrough
@@ -247,11 +247,11 @@ func convertLink(str string) string {
 		{
 			flag := "nike.com/"
 			if i+len(flag) > len(str) {
-				return "" 
+				return ""
 			}
 
 			if str[i:i+len(flag)] != flag {
-				return "" 
+				return ""
 			}
 			i += len(flag)
 		}
@@ -260,7 +260,7 @@ func convertLink(str string) string {
 	b.WriteString("https://www.nike.com/")
 
 	if i+2 > len(str) {
-		return "" 
+		return ""
 	}
 
 	if str[i:i+2] == "u/" {
@@ -276,11 +276,11 @@ func convertLink(str string) string {
 	}
 
 	if i+2 > len(str) {
-		return "" 
+		return ""
 	}
 
 	if str[i:i+2] != "u/" {
-		return "" 
+		return ""
 	}
 
 final:

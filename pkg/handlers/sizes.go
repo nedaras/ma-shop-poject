@@ -49,9 +49,9 @@ func HandleSizes(c echo.Context) error {
 
 	s, err := GetSizes(path, gender == "men")
 	if err != nil {
-    if errors.Is(err, ErrNotFound) {
-      return newHTTPError(http.StatusNotFound, "could not find " + gender + "'s sizes")
-    }
+		if errors.Is(err, ErrNotFound) {
+			return newHTTPError(http.StatusNotFound, "could not find "+gender+"'s sizes")
+		}
 		return err
 	}
 	return render(c, components.Sizes(s, path, gender == "men"))
@@ -59,32 +59,32 @@ func HandleSizes(c echo.Context) error {
 
 // Any returned error will be of type [*NikeAPIError].
 func GetSizes(path string, men bool) ([]string, error) {
-  url := "https://api.nike.com/customization/builderaggregator/v2/builder/GB/en_GB/" + path
+	url := "https://api.nike.com/customization/builderaggregator/v2/builder/GB/en_GB/" + path
 	res, err := http.Get(url)
 
 	if err != nil {
-    return []string{}, &NikeAPIError{URL: url, Err: err}
+		return []string{}, &NikeAPIError{URL: url, Err: err}
 	}
 	defer res.Body.Close()
 
-  if res.StatusCode != 200 {
-    switch res.StatusCode {
-    case 404:
-      return []string{}, &NikeAPIError{URL: url, Err: ErrNotFound}
-    default:
-      return []string{}, &NikeAPIError{URL: url, Err: fmt.Errorf("got unexpected response code '%d'", res.StatusCode)}
-    }
-  }
+	if res.StatusCode != 200 {
+		switch res.StatusCode {
+		case 404:
+			return []string{}, &NikeAPIError{URL: url, Err: ErrNotFound}
+		default:
+			return []string{}, &NikeAPIError{URL: url, Err: fmt.Errorf("got unexpected response code '%d'", res.StatusCode)}
+		}
+	}
 
-  if res.Header.Get("Content-Type") != "application/json" {
-    return []string{}, &NikeAPIError{URL: url, Err: errors.New("responded content is not in json form")}
-  }
+	if res.Header.Get("Content-Type") != "application/json" {
+		return []string{}, &NikeAPIError{URL: url, Err: errors.New("responded content is not in json form")}
+	}
 
 	data := &BuilderData{}
 	decoder := json.NewDecoder(res.Body)
 
 	if err := decoder.Decode(data); err != nil {
-    return []string{}, &NikeAPIError{URL: url, Err: err}
+		return []string{}, &NikeAPIError{URL: url, Err: err}
 	}
 
 	gstr := "Women's"
@@ -127,7 +127,7 @@ func GetSizes(path string, men bool) ([]string, error) {
 					}
 
 					if i == 0 {
-            return []string{}, &NikeAPIError{URL: url, Err: ErrNotFound}
+						return []string{}, &NikeAPIError{URL: url, Err: ErrNotFound}
 					}
 
 					if len(sizes) > i {
@@ -140,5 +140,5 @@ func GetSizes(path string, men bool) ([]string, error) {
 		}
 	}
 
-  return []string{}, &NikeAPIError{URL: url, Err: ErrNotFound}
+	return []string{}, &NikeAPIError{URL: url, Err: ErrNotFound}
 }

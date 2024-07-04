@@ -24,7 +24,7 @@ func renderWithStatus(sc int, c echo.Context, comp templ.Component) error {
 }
 
 func renderSimpleError(c echo.Context, sc int) error {
-  return renderWithStatus(sc, c, views.Error(sc, http.StatusText(sc)))
+	return renderWithStatus(sc, c, views.Error(sc, http.StatusText(sc)))
 }
 
 func newHTTPError(code int, format string, a ...any) *echo.HTTPError {
