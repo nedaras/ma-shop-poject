@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"nedas/shop/src/components"
 	"nedas/shop/src/views"
 	"net/http"
 	"strings"
@@ -18,10 +19,16 @@ type ProductFeedData struct {
 				CurrentPrice float64 `json:"currentPrice"`
 			} `json:"merchPrice"`
 			ProductContent struct {
-				Title    string `json:"title"`
-				Subtitle string `json:"subtitle"`
+				Title string `json:"title"`
+				//Subtitle string `json:"subtitle"`
 			} `json:"productContent"`
 			CustomizedPreBuild struct {
+				Groups []struct {
+					Legacy struct {
+						PIID string `json:"piid"`
+						Slug string `json:"slug"`
+					} `json:"legacy"`
+				} `json:"groups"`
 				Legacy struct {
 					PathName string `json:"pathName"`
 				} `json:"legacy"`
@@ -54,11 +61,7 @@ func HandleBag(c echo.Context) error {
 		return err
 	}
 
-	bc := views.BagContext{
-		Products: products,
-	}
-
-	return render(c, views.Bag(bc))
+	return render(c, views.Bag(products))
 }
 
 // Any returned error will be of type [*NikeAPIError].
@@ -99,7 +102,7 @@ func getProductFeedData(tid string) (*ProductFeedData, error) {
 }
 
 // Any returned error will be of type [*NikeAPIError].
-func getProduct(id string) (views.Product, error) {
+func getProduct(id string) (components.Product, error) {
 	arr := strings.SplitN(id, ":", 2)
 	if len(arr) != 2 {
 		panic("passed string is not split by ':'")
@@ -132,7 +135,7 @@ func getProduct(id string) (views.Product, error) {
 	for range 2 {
 		res := <-ch
 		if res.Err != nil {
-			return views.Product{}, res.Err
+			return components.Product{}, res.Err
 		}
 		switch v := res.Val.(type) {
 		case *NikeConsumerData:
@@ -146,7 +149,7 @@ func getProduct(id string) (views.Product, error) {
 
 	img := getImageByID(cd, "B")
 	if img == "" {
-		return views.Product{}, &NikeAPIError{
+		return components.Product{}, &NikeAPIError{
 			URL: "https://api.nike.com/customization/consumer_designs/v1?filter=shortId(" + mid + ")",
 			Err: ErrNotFound,
 		}
@@ -157,39 +160,52 @@ func getProduct(id string) (views.Product, error) {
 			if p.CustomizedPreBuild.Legacy.PathName == "" {
 				continue
 			}
-			return views.Product{
-				Title:    p.ProductContent.Title,
-				Subtitle: p.ProductContent.Subtitle,
-				Price:    p.MerchPrice.CurrentPrice,
-				Image:    img,
-				PathName: p.CustomizedPreBuild.Legacy.PathName,
-			}, nil
+			for _, g := range p.CustomizedPreBuild.Groups {
+				if g.Legacy.Slug == "" {
+					continue
+				}
+
+				slug := g.Legacy.Slug
+				if g.Legacy.PIID != "" {
+					slug += "-" + g.Legacy.PIID
+				}
+
+				return components.Product{
+					Title:    p.ProductContent.Title,
+					Price:    p.MerchPrice.CurrentPrice,
+					Image:    img,
+					PathName: p.CustomizedPreBuild.Legacy.PathName,
+					Mid:      mid,
+					ThreadId: tid,
+					Slug:     slug,
+				}, nil
+			}
 		}
 	}
 
-	return views.Product{}, &NikeAPIError{
+	return components.Product{}, &NikeAPIError{
 		URL: "https://api.nike.com/product_feed/rollup_threads/v2?filter=marketplace(GB)&filter=language(en-GB)&filter=employeePrice(true)&filter=id(" + tid + ")&consumerChannelId=d9a5bc42-4b9c-4976-858a-f159cf99c647",
 		Err: ErrNotFound,
 	}
 }
 
 // Any returned error will be of type [*NikeAPIError].
-func getProducts(p []string) ([]views.Product, error) {
+func getProducts(p []string) ([]components.Product, error) {
 	if len(p) == 1 {
 		p, err := getProduct(p[0])
 		if err != nil {
-			return []views.Product{}, err
+			return []components.Product{}, err
 		}
-		return []views.Product{p}, nil
+		return []components.Product{p}, nil
 	}
 
 	ch := make(chan struct {
 		i int
-		p views.Product
+		p components.Product
 		e error
 	}, len(p))
 
-	products := make([]views.Product, len(p))
+	products := make([]components.Product, len(p))
 	size := 0
 
 	for i, id := range p {
@@ -197,7 +213,7 @@ func getProducts(p []string) ([]views.Product, error) {
 			val, err := getProduct(id)
 			ch <- struct {
 				i int
-				p views.Product
+				p components.Product
 				e error
 			}{
 				i: i,
@@ -213,7 +229,7 @@ func getProducts(p []string) ([]views.Product, error) {
 			if errors.Is(res.e, ErrNotFound) {
 				continue
 			}
-			return []views.Product{}, res.e
+			return []components.Product{}, res.e
 		}
 		products[res.i] = res.p
 		size++

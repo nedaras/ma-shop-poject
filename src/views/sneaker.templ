@@ -4,11 +4,11 @@ import "nedas/shop/src/layouts"
 import "nedas/shop/src/components"
 
 // on ma phone onload does not work
-templ Sneaker(c components.SneakerContext) {
-	@layouts.Layout(c.Title) {
+templ Sneaker(product components.Product, sizes []string) {
+	@layouts.Layout(product.Title) {
 		@components.Header()
 		<main>
-			@components.Sneaker(c)
+			@components.Sneaker(product, sizes)
 		</main>
 	}
 }

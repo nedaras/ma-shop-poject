@@ -30,7 +30,8 @@ type NextData struct {
 		} `json:"pageProps"`
 	} `json:"props"`
 	Query struct {
-		Mid string `json:"mid"` // mb use metricId from "__NEXT_DATA__.props.pageProps.initialState.NikeId"
+		Mid  string `json:"mid"` // mb use metricId from "__NEXT_DATA__.props.pageProps.initialState.NikeId"
+		Slug string `json:"slug"`
 	} `json:"query"`
 }
 
@@ -40,6 +41,7 @@ type NikeScrapedData struct {
 	Price    float64
 	PathName string
 	ThreadId string
+	Slug     string
 }
 
 var (
@@ -103,16 +105,18 @@ func HandleSearch(c echo.Context) error {
 		}
 	}
 
-	sc := components.SneakerContext{
+	product := components.Product{
 		Title:    data.Title,
 		Price:    data.Price,
 		PathName: data.PathName,
-		ImageSrc: img,
-		Sizes:    sizes,
+		Mid:      data.Mid,
+		ThreadId: data.ThreadId,
+		Slug:     data.Slug,
+		Image:    img,
 	}
 
 	c.Response().Header().Add("HX-Push-Url", "/"+data.ThreadId+"/"+data.Mid)
-	return render(c, components.Sneaker(sc))
+	return render(c, components.Sneaker(product, sizes))
 }
 
 // Any returned error will be of type [*NikeAPIError].
@@ -170,8 +174,15 @@ func scrapeNikeURL(url string) (NikeScrapedData, error) {
 		return NikeScrapedData{}, &NikeAPIError{URL: url, Err: err}
 	}
 
+	if nextData.Query.Mid == "" {
+		return NikeScrapedData{}, &NikeAPIError{URL: url, Err: ErrNotFound}
+	}
+
 	for k := range nextData.Props.PageProps.InitialState.Threads.Products {
 		product := nextData.Props.PageProps.InitialState.Threads.Products[k]
+		if product.PathName == "" {
+			continue
+		}
 
 		return NikeScrapedData{
 			Title:    product.Title,
@@ -179,6 +190,7 @@ func scrapeNikeURL(url string) (NikeScrapedData, error) {
 			ThreadId: product.ThreadId,
 			Price:    product.CurrentPrice,
 			PathName: product.PathName,
+			Slug:     nextData.Query.Slug,
 		}, nil
 	}
 

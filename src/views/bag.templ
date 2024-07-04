@@ -14,29 +14,16 @@ import "strconv"
 // some place holder data
 // https://www.nike.com/u/custom-nike-dunk-high-by-you-shoes-10001378/2190276125?mid=3475937855&sitesrc=bx3d_link
 // https://www.nike.com/u/custom-nike-air-force-1-mid-by-you-shoes-10001368/4063348121?mid=4063348121&sitesrc=nikebyyoupdp
-
-type BagContext struct {
-	Products []Product
-}
-
-type Product struct {
-	Title    string
-	Subtitle string
-	Price    float64
-	Image    string
-	PathName string
-}
-
-templ Bag(c BagContext) {
+templ Bag(products []components.Product) {
 	@layouts.Layout("Bag") {
 		@components.Header()
 		<main>
-			<ul class="flex flex-col gap-4 p-4">
-				for _, p := range c.Products {
+			<ul hx-boost="true" class="flex flex-col gap-4 p-4">
+				for _, p := range products {
 					<li class="grid grid-cols-[40%_auto] gap-4">
-						<div class="row-span-2 bg-gray-50 grid place-items-center">
+						<a href={ templ.SafeURL("/" + p.ThreadId + "/" + p.Mid) } class="row-span-2 bg-gray-50 grid place-items-center">
 							<img class="w-full" alt={ p.Title } src={ string(templ.URL(p.Image + "&wid=512")) }/>
-						</div>
+						</a>
 						<div class="mt-2 mr-2">
 							<h1>{ p.Title }</h1>
 							<h2 class="text-sm text-gray-800">£{ strconv.FormatFloat(p.Price, 'f', 2, 32) }</h2>
