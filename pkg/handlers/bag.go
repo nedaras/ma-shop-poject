@@ -56,12 +56,28 @@ var (
 )
 
 func HandleBag(c echo.Context) error {
-	products, err := getProducts(products)
+	auth := getAuth(c)
+
+	userProducts, err := getUserProducts(auth)
+	if err != nil {
+		return err
+	}
+
+	products, err := getProducts(userProducts)
 	if err != nil {
 		return err
 	}
 
 	return render(c, views.Bag(products))
+}
+
+func getUserProducts(auth Auth) ([]string, error) {
+	if auth.LoggedIn {
+		// fetch it from database from smth
+		return products, nil
+	}
+	// use cookies or sum to get stuff
+	return products, nil
 }
 
 // Any returned error will be of type [*NikeAPIError].

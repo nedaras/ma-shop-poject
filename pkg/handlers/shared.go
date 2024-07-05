@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"nedas/shop/pkg/middlewares"
 	"nedas/shop/src/views"
 	"net/http"
 
@@ -9,9 +10,19 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+type Auth = middlewares.Auth
+
 type ErrResult[T any] struct {
 	Val T
 	Err error
+}
+
+func getAuth(c echo.Context) Auth {
+	val, ok := c.Get("Authentication").(Auth)
+	if !ok {
+		panic("not using auth middleware")
+	}
+	return val
 }
 
 func render(c echo.Context, comp templ.Component) error {

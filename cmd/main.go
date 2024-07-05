@@ -1,20 +1,31 @@
 package main
 
 import (
+	"log"
+
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
 	"nedas/shop/pkg/handlers"
+	"nedas/shop/pkg/middlewares"
 )
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Fatal(err)
+	}
 
 	e := echo.New()
 
 	e.Static("/", "public")
 
 	e.Use(middleware.Logger())
+	e.Use(middlewares.AuthMiddleware)
+
 	e.GET("/", handlers.HandleIndex)
+	e.GET("/login", handlers.HandleLogin)
+	e.POST("/login", handlers.HandleLogin)
 	e.GET("/bag", handlers.HandleBag)
 	e.GET("/account", handlers.HandleAccount)
 	e.GET("/address", handlers.HandleAddress)
@@ -25,5 +36,4 @@ func main() {
 	e.GET("/htmx/sizes/:path", handlers.HandleSizes)
 
 	e.Logger.Fatal(e.Start(":3000"))
-
 }

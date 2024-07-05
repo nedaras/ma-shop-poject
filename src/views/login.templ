@@ -1,0 +1,13 @@
+package views
+
+import "nedas/shop/src/layouts"
+import "nedas/shop/src/components"
+
+templ Login(url string) {
+	@layouts.Layout("Login") {
+		@components.Header()
+		<a href={ templ.SafeURL(url) }>
+			Google
+		</a>
+	}
+}
