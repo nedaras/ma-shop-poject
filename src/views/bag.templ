@@ -14,6 +14,10 @@ import "strconv"
 // some place holder data
 // https://www.nike.com/u/custom-nike-dunk-high-by-you-shoes-10001378/2190276125?mid=3475937855&sitesrc=bx3d_link
 // https://www.nike.com/u/custom-nike-air-force-1-mid-by-you-shoes-10001368/4063348121?mid=4063348121&sitesrc=nikebyyoupdp
+
+// casandra use case
+
+// [uuid] [auth, products, payshit, address]
 templ Bag(products []components.Product) {
 	@layouts.Layout("Bag") {
 		@components.Header()
@@ -29,11 +33,13 @@ templ Bag(products []components.Product) {
 							<h2 class="text-sm text-gray-800">£{ strconv.FormatFloat(p.Price, 'f', 2, 32) }</h2>
 						</div>
 						<div class="mb-2 mr-2 flex items-end justify-end">
-							<div class="flex items-center gap-2">
+							<div class="flex items-center gap-4">
 								<div>
-									- 69+
+									<button class="text-sm fa-solid fa-minus"></button>
+									69
+									<button class="text-sm fa-solid fa-plus"></button>
 								</div>
-								<i class="fa-solid fa-trash"></i>
+								<button class="fa-solid fa-trash"></button>
 							</div>
 						</div>
 					</li>

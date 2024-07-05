@@ -2,3 +2,4 @@ node_modules
 build
 tmp
 *_templ.go
+.env
