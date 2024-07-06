@@ -1,8 +1,0 @@
-import './index'
-import './address'
-
-if (window.location.hostname === '/login/google') {
-  history.replaceState(null, '', '/')
-}
-
-console.log(window.location.pathname)

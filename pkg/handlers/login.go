@@ -12,9 +12,10 @@ import (
 )
 
 type GoogleAuthData struct {
-	AccessToken string `json:"access_token"`
-	IDToken     string `json:"id_token"`
-	ExpiresIn   int    `json:"expires_in"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	IDToken      string `json:"id_token"`
+	ExpiresIn    int    `json:"expires_in"`
 }
 
 var (
@@ -28,18 +29,78 @@ func HandleLogin(c echo.Context) error {
 
 func HandleGoogleLogin(c echo.Context) error {
 	code := c.QueryParam("code")
-	if code != "" {
-		_, err := getGoogleAuthData(code)
-		if err != nil {
-			if errors.Is(err, ErrInvalidCode) {
-				return renderSimpleError(c, http.StatusNotFound)
-			}
-			c.Logger().Error(err)
-			return renderSimpleError(c, http.StatusInternalServerError)
-		}
-		return c.Redirect(http.StatusMovedPermanently, "/")
+	if code == "" {
+		return renderSimpleError(c, http.StatusNotFound)
 	}
-	return renderSimpleError(c, http.StatusNotFound)
+
+	data, err := getGoogleAuthData(code)
+	if err != nil {
+		if errors.Is(err, ErrInvalidCode) {
+			return renderSimpleError(c, http.StatusNotFound)
+		}
+		c.Logger().Error(err)
+		return renderSimpleError(c, http.StatusInternalServerError)
+	}
+	id, err := getGoogleUserID(data)
+	if err != nil {
+		c.Logger().Error(err)
+		return renderSimpleError(c, http.StatusInternalServerError)
+	}
+
+	// prob hash the id for better locality
+	// save to database
+	// generate session token or smth
+
+	fmt.Println("MA ID:", id)
+
+	return c.Redirect(http.StatusMovedPermanently, "/")
+}
+
+// Any returned error will be of type [*OAuth2Error].
+func getGoogleUserID(d *GoogleAuthData) (string, error) {
+	// we coould decode jwt but idk idk to much work or we can do unsafe way but idk idk
+	// for 0 users dont get over my self
+	url := "https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=" + d.AccessToken
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return "", &OAuth2Error{Provider: "GOOGLE", URL: url, Err: err}
+	}
+
+	req.Header.Set("Authorization", "Bearer "+d.IDToken)
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", &OAuth2Error{Provider: "GOOGLE", URL: url, Err: err}
+	}
+	defer res.Body.Close()
+
+	data := &struct {
+		ID string `json:"id"`
+	}{}
+	decoder := json.NewDecoder(res.Body)
+
+	if res.StatusCode != 200 {
+		switch res.StatusCode {
+		case 401:
+			return "", &OAuth2Error{Provider: "GOOGLE", URL: url, Err: ErrInvalidCode} // mb remame this error idk
+		default:
+			return "", &OAuth2Error{Provider: "GOOGLE", URL: url, Err: fmt.Errorf("got unexpected response code '%d'", res.StatusCode)}
+		}
+	}
+
+	if res.Header.Get("Content-Type") != "application/json; charset=UTF-8" {
+		return "", &OAuth2Error{Provider: "GOOGLE", URL: url, Err: errors.New("responded content is not in UTF-8 json form")}
+	}
+
+	if err := decoder.Decode(data); err != nil {
+		return "", &OAuth2Error{Provider: "GOOGLE", URL: url, Err: err}
+	}
+
+	if data.ID == "" {
+		return "", &OAuth2Error{Provider: "GOOGLE", URL: url, Err: errors.New("user id is empty")}
+	}
+
+	return data.ID, nil
 }
 
 // Any returned error will be of type [*OAuth2Error].
@@ -81,7 +142,7 @@ func getGoogleAuthData(code string) (*GoogleAuthData, error) {
 		return nil, &OAuth2Error{Provider: "GOOGLE", URL: url, Err: errors.New("responded content is not in UTF-8 json form")}
 	}
 
-	data := &GoogleAuthData{}
+	data := new(GoogleAuthData)
 	decoder := json.NewDecoder(res.Body)
 
 	if err := decoder.Decode(data); err != nil {
@@ -96,7 +157,7 @@ func getGoogleAuthData(code string) (*GoogleAuthData, error) {
 }
 
 func getGoogleLoginURL(scopes string) string {
-	return fmt.Sprintf("https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=%s&response_type=code&access_type=offline&promt=consent&client_id=%s&scope=%s",
+	return fmt.Sprintf("https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=%s&response_type=code&include_granted_scopes=true&access_type=offline&promt=consent&client_id=%s&scope=%s",
 		os.Getenv("GOOGLE_REDIRECT_URL"),
 		os.Getenv("GOOGLE_CLIENT_ID"),
 		scopes,
