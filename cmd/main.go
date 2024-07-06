@@ -25,7 +25,7 @@ func main() {
 
 	e.GET("/", handlers.HandleIndex)
 	e.GET("/login", handlers.HandleLogin)
-	e.POST("/login", handlers.HandleLogin)
+	e.GET("/login/google", handlers.HandleGoogleLogin)
 	e.GET("/bag", handlers.HandleBag)
 	e.GET("/account", handlers.HandleAccount)
 	e.GET("/address", handlers.HandleAddress)
