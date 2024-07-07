@@ -9,3 +9,6 @@ esbuild:
 fmt:
 	@gofmt -w .
 	@templ fmt .
+
+test:
+	@go test ./...

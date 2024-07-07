@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	session "nedas/shop/pkg"
 	"nedas/shop/src/views"
 	"net/http"
 	"os"
@@ -24,7 +25,11 @@ var (
 )
 
 func HandleLogin(c echo.Context) error {
-	return render(c, views.Login(getGoogleLoginURL(scopes)))
+	session := getSession(c)
+	if session == nil {
+		return render(c, views.Login(getGoogleLoginURL(scopes)))
+	}
+	return renderSimpleError(c, http.StatusNotFound)
 }
 
 func HandleGoogleLogin(c echo.Context) error {
@@ -51,7 +56,8 @@ func HandleGoogleLogin(c echo.Context) error {
 	// save to database
 	// generate session token or smth
 
-	fmt.Println("MA ID:", id)
+	session := session.NewSession(id)
+	c.SetCookie(session.Cookie())
 
 	return c.Redirect(http.StatusMovedPermanently, "/")
 }

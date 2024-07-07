@@ -49,16 +49,19 @@ type NikeConsumerData struct {
 	Errors []interface{} `json:"errors"`
 }
 
-// placeholder, what db we will use
+// placeholder, what db we will use cassandra mb??? our key will be just user_id
+//
+//	. user_id will point to auth stuff
+//	. user_id will point to bag stuff
+//	. user_id will point to shipping stuff
+//	. user_id will point to address and stuff (if not present in shipping stuff)
 var (
 	products    = []string{"053748ec-4af2-49d8-b3d8-409eb64e9bcf:6320614280", "b049e5fc-e1a4-4196-92c3-439ed3c475d1:3475937855", "e3864a31-60d8-470a-8f62-41cc7c0688bd:4063348121"}
 	ErrNotFound = errors.New("could not found requested resource")
 )
 
 func HandleBag(c echo.Context) error {
-	auth := getAuth(c)
-
-	userProducts, err := getUserProducts(auth)
+	userProducts, err := getUserProducts(getSession(c))
 	if err != nil {
 		return err
 	}
@@ -71,9 +74,8 @@ func HandleBag(c echo.Context) error {
 	return render(c, views.Bag(products))
 }
 
-func getUserProducts(auth Auth) ([]string, error) {
-	if auth.LoggedIn {
-		// fetch it from database from smth
+func getUserProducts(session *Session) ([]string, error) {
+	if session != nil {
 		return products, nil
 	}
 	// use cookies or sum to get stuff
