@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	session "nedas/shop/pkg"
+	"nedas/shop/pkg/session"
 	"nedas/shop/src/views"
 	"net/http"
 	"os"

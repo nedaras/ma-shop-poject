@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/joho/godotenv"
@@ -9,9 +10,32 @@ import (
 
 	"nedas/shop/pkg/handlers"
 	"nedas/shop/pkg/middlewares"
+	"nedas/shop/pkg/models"
+	"nedas/shop/pkg/storage"
 )
 
 func main() {
+
+	c, err := storage.NewCassandra()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer c.Close()
+
+	user := models.User{
+		UserID: "123456",
+		Email:  "pimpalas.gaidys@gmail.com",
+	}
+
+	u2, err := c.GetUser(user.UserID)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(u2)
+
+	return
+
 	if err := godotenv.Load(); err != nil {
 		log.Fatal(err)
 	}

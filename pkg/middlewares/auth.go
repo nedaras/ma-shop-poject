@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	"nedas/shop/pkg"
+	"nedas/shop/pkg/session"
 
 	"github.com/labstack/echo/v4"
 )

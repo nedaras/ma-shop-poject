@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"fmt"
-	"nedas/shop/pkg"
+	"nedas/shop/pkg/session"
 	"nedas/shop/src/views"
 	"net/http"
 
