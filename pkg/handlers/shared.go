@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"nedas/shop/pkg/session"
+	"nedas/shop/pkg/storage"
 	"nedas/shop/src/views"
 	"net/http"
 
@@ -23,6 +24,14 @@ func getSession(c echo.Context) *Session {
 		return nil
 	}
 	return val
+}
+
+func getStorage(c echo.Context) storage.Storage {
+	val, ok := c.Get("auth-session").(storage.Storage)
+  if !ok {
+    panic("not using storage middleware") 
+  }
+  return val
 }
 
 func render(c echo.Context, comp templ.Component) error {

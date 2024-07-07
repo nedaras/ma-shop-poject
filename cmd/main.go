@@ -10,41 +10,27 @@ import (
 
 	"nedas/shop/pkg/handlers"
 	"nedas/shop/pkg/middlewares"
-	"nedas/shop/pkg/models"
 	"nedas/shop/pkg/storage"
 )
 
 func main() {
 
-	c, err := storage.NewCassandra()
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer c.Close()
-
-	user := models.User{
-		UserID: "123456",
-		Email:  "pimpalas.gaidys@gmail.com",
-	}
-
-	u2, err := c.GetUser(user.UserID)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println(u2)
-
-	return
-
 	if err := godotenv.Load(); err != nil {
 		log.Fatal(err)
 	}
+
+  storage, err := storage.NewCassandra()
+  if err != nil {
+    log.Fatal(err)
+  }
+  defer storage.Close()
 
 	e := echo.New()
 
 	e.Static("/", "public")
 
 	e.Use(middleware.Logger())
+  e.Use(middlewares.StorageMiddleware(storage))
 	e.Use(middlewares.AuthMiddleware)
 
 	e.GET("/", handlers.HandleIndex)

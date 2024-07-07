@@ -7,6 +7,7 @@ import (
 	"github.com/gocql/gocql"
 )
 
+// thread safe
 type Cassandra struct {
 	cluster *gocql.ClusterConfig
 	session *gocql.Session
