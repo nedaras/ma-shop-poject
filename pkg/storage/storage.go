@@ -21,6 +21,15 @@ type Storage interface {
 	// Any returned error should be of type [*NikeAPIError].
 	GetUser(userId string) (models.User, error)
 
+	// Any returned error should be of type [*NikeAPIError].
+  GetProducts(userId string) ([]models.Product, error)
+
+	// Any returned error should be of type [*NikeAPIError].
+	IncreaseProduct(userId string, tid string, mid string) error
+
+	// Any returned error should be of type [*NikeAPIError].
+	DecreaseProduct(userId string, tid string, mid string) error
+
 	Close()
 }
 

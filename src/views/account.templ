@@ -3,11 +3,11 @@ package views
 import "nedas/shop/src/layouts"
 import "nedas/shop/src/components"
 
-templ Account() {
+templ Account(email string) {
 	@layouts.Layout("Account") {
 		@components.Header()
 		<main>
-			<p>Dis is a account!!!</p>
+			<p>Ur email is {email}</p>
 		</main>
 	}
 }

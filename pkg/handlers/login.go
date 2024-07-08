@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"nedas/shop/pkg/models"
 	"nedas/shop/pkg/session"
 	"nedas/shop/src/views"
 	"net/http"
@@ -46,67 +47,74 @@ func HandleGoogleLogin(c echo.Context) error {
 		c.Logger().Error(err)
 		return renderSimpleError(c, http.StatusInternalServerError)
 	}
-	id, err := getGoogleUserID(data)
+	user, err := getGoogleUser(data)
 	if err != nil {
 		c.Logger().Error(err)
 		return renderSimpleError(c, http.StatusInternalServerError)
 	}
 
-	// prob hash the id for better locality
-	// save to database
-	// generate session token or smth
+  storage := getStorage(c)
+  err = storage.AddUser(user)
+  if err != nil {
+		c.Logger().Error(err)
+		return renderSimpleError(c, http.StatusInternalServerError)
+  }
 
-	session := session.NewSession(id)
+	session := session.NewSession(user.UserID)
 	c.SetCookie(session.Cookie())
 
 	return c.Redirect(http.StatusMovedPermanently, "/")
 }
 
 // Any returned error will be of type [*OAuth2Error].
-func getGoogleUserID(d *GoogleAuthData) (string, error) {
+func getGoogleUser(d *GoogleAuthData) (models.User, error) {
 	// we coould decode jwt but idk idk to much work or we can do unsafe way but idk idk
 	// for 0 users dont get over my self
 	url := "https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=" + d.AccessToken
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		return "", &OAuth2Error{Provider: "GOOGLE", URL: url, Err: err}
+		return models.User{}, &OAuth2Error{Provider: "GOOGLE", URL: url, Err: err}
 	}
 
 	req.Header.Set("Authorization", "Bearer "+d.IDToken)
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return "", &OAuth2Error{Provider: "GOOGLE", URL: url, Err: err}
+		return models.User{}, &OAuth2Error{Provider: "GOOGLE", URL: url, Err: err}
 	}
 	defer res.Body.Close()
 
 	data := &struct {
 		ID string `json:"id"`
+    Email string `json:"email"`
 	}{}
 	decoder := json.NewDecoder(res.Body)
 
 	if res.StatusCode != 200 {
 		switch res.StatusCode {
 		case 401:
-			return "", &OAuth2Error{Provider: "GOOGLE", URL: url, Err: ErrInvalidCode} // mb remame this error idk
+			return models.User{}, &OAuth2Error{Provider: "GOOGLE", URL: url, Err: ErrInvalidCode} // mb remame this error idk
 		default:
-			return "", &OAuth2Error{Provider: "GOOGLE", URL: url, Err: fmt.Errorf("got unexpected response code '%d'", res.StatusCode)}
+			return models.User{}, &OAuth2Error{Provider: "GOOGLE", URL: url, Err: fmt.Errorf("got unexpected response code '%d'", res.StatusCode)}
 		}
 	}
 
 	if res.Header.Get("Content-Type") != "application/json; charset=UTF-8" {
-		return "", &OAuth2Error{Provider: "GOOGLE", URL: url, Err: errors.New("responded content is not in UTF-8 json form")}
+		return models.User{}, &OAuth2Error{Provider: "GOOGLE", URL: url, Err: errors.New("responded content is not in UTF-8 json form")}
 	}
 
 	if err := decoder.Decode(data); err != nil {
-		return "", &OAuth2Error{Provider: "GOOGLE", URL: url, Err: err}
+		return models.User{}, &OAuth2Error{Provider: "GOOGLE", URL: url, Err: err}
 	}
 
-	if data.ID == "" {
-		return "", &OAuth2Error{Provider: "GOOGLE", URL: url, Err: errors.New("user id is empty")}
+	if data.ID == "" || data.Email == "" {
+		return models.User{}, &OAuth2Error{Provider: "GOOGLE", URL: url, Err: errors.New("user has some missing fields")}
 	}
 
-	return data.ID, nil
+	return models.User{
+    UserID: data.ID,
+    Email: data.Email,
+  }, nil
 }
 
 // Any returned error will be of type [*OAuth2Error].

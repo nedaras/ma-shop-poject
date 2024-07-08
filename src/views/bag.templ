@@ -3,21 +3,9 @@ package views
 import "nedas/shop/src/layouts"
 import "nedas/shop/src/components"
 import "strconv"
+import "fmt"
 
-// store some data in local storage and in db how?
-// . if no acc from localstorage, mb use coocies cuz local storage is local uk uk
-
-// store shit:
-//  {thread_id}:{mid}
-// https://api.nike.com/product_feed/rollup_threads/v2?filter=marketplace(GB)&filter=language(en-GB)&filter=employeePrice(true)&filter=id({th_id})&consumerChannelId=d9a5bc42-4b9c-4976-858a-f159cf99c647
-
-// some place holder data
-// https://www.nike.com/u/custom-nike-dunk-high-by-you-shoes-10001378/2190276125?mid=3475937855&sitesrc=bx3d_link
-// https://www.nike.com/u/custom-nike-air-force-1-mid-by-you-shoes-10001368/4063348121?mid=4063348121&sitesrc=nikebyyoupdp
-
-// casandra use case
-
-// [uuid] [auth, products, payshit, address]
+// todo: add that product component and on each click we will updtate only that row aaaa it will be so NICEEEEE
 templ Bag(products []components.Product) {
 	@layouts.Layout("Bag") {
 		@components.Header()
@@ -35,7 +23,13 @@ templ Bag(products []components.Product) {
 						<div class="mb-2 mr-2 flex items-end justify-end">
 							<div class="flex items-center gap-4">
 								<div>
-									<button class="text-sm fa-solid fa-minus"></button>
+									<button
+                    hx-post={fmt.Sprintf("/htmx/product?tid=%s&mid=%s", p.ThreadId, p.Mid)}
+                    hx-target="closest li"
+                    hx-swap="outerHTML"
+                  >
+                    <i class="text-sm fa-solid fa-minus"></i>
+                  </button>
 									69
 									<button class="text-sm fa-solid fa-plus"></button>
 								</div>

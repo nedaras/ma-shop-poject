@@ -27,7 +27,7 @@ func getSession(c echo.Context) *Session {
 }
 
 func getStorage(c echo.Context) storage.Storage {
-	val, ok := c.Get("auth-session").(storage.Storage)
+	val, ok := c.Get("storage").(storage.Storage)
   if !ok {
     panic("not using storage middleware") 
   }

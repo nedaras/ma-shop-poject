@@ -34,23 +34,14 @@ func (c *Cassandra) AddUser(user models.User) error {
 	assert(user.Email != "", "user email is empty")
 
 	query := c.session.Query(
-		"INSERT INTO users(user_id, email) VALUES (?, ?) IF NOT EXISTS",
+		"INSERT INTO users(user_id, email) VALUES (?, ?)",
 		user.UserID,
 		user.Email,
 	)
 
-	ok, err := query.ScanCAS(nil, nil)
-
-	if err != nil {
-		if errors.Is(err, gocql.ErrNotFound) {
-			err = ErrNotFound
-		}
-		return &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
-	}
-
-	if !ok {
-		return &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: ErrAlreadySet}
-	}
+  if err := query.Exec(); err != nil {
+			return &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
+  }
 
 	return nil
 }
@@ -101,6 +92,33 @@ func (c *Cassandra) GetUser(userId string) (models.User, error) {
 	}
 
 	return user, nil
+}
+
+
+func (c *Cassandra) GetProducts(userId string) ([]models.Product, error) {
+  return []models.Product{}, nil
+}
+
+func (c *Cassandra) IncreaseProduct(userId string, tid string, mid string) error {
+	assert(userId != "", "user id is empty")
+	assert(tid != "", "thread id is empty")
+	assert(mid != "", "mid is empty")
+
+  productId := tid + ":" + mid
+	query := c.session.Query(
+		"UPDATE products SET amount = amount + 1 WHERE user_id = ? AND product_id = ?",
+    userId,
+    productId,
+	)
+
+  if err := query.Exec(); err != nil {
+		return &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
+	}
+  return nil
+}
+
+func (c *Cassandra) DecreaseProduct(userId string, tid string, mid string) error {
+  return nil
 }
 
 func (c *Cassandra) Close() {
