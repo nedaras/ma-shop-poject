@@ -96,7 +96,40 @@ func (c *Cassandra) GetUser(userId string) (models.User, error) {
 
 
 func (c *Cassandra) GetProducts(userId string) ([]models.Product, error) {
-  return []models.Product{}, nil
+	assert(userId != "", "user id is empty")
+
+	query := c.session.Query(
+		"SELECT * FROM products WHERE user_id = ?",
+    userId,
+	)
+
+  iter := query.Iter()
+
+  if iter.NumRows() == 0 {
+    if err := iter.Close(); err != nil {
+		  return []models.Product{}, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
+    }
+    return []models.Product{}, nil
+  }
+
+  products := make([]models.Product, iter.NumRows())
+  for i := range iter.NumRows() {
+    product := &products[i]
+    ok := iter.Scan(&product.UserID, &product.ProductId, &product.Amount)
+    if !ok {
+      err := iter.Close()
+      if err != nil {
+        panic("no err and not ok!!!!")
+      }
+		  return []models.Product{}, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
+    }
+  }
+
+  if err := iter.Close(); err != nil {
+		return []models.Product{}, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
+  }
+
+  return products, nil
 }
 
 func (c *Cassandra) IncreaseProduct(userId string, tid string, mid string) error {

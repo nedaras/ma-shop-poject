@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"nedas/shop/pkg/storage"
 	"nedas/shop/src/components"
 	"nedas/shop/src/views"
 	"net/http"
@@ -61,25 +62,22 @@ var (
 )
 
 func HandleBag(c echo.Context) error {
-	userProducts, err := getUserProducts(getSession(c))
-	if err != nil {
-		return err
-	}
+  session := getSession(c)
+  storage := getStorage(c)
 
-	products, err := getProducts(userProducts)
+  if session == nil {
+    // products from cookies or sum
+	  return render(c, views.Bag([]components.Product{}))
+  }
+
+  // this functio one day will just take in c and do its own shit
+  // err can be from nike api or from storage
+	products, err := getProducts(session.UserId, storage)
 	if err != nil {
 		return err
 	}
 
 	return render(c, views.Bag(products))
-}
-
-func getUserProducts(session *Session) ([]string, error) {
-	if session != nil {
-		return products, nil
-	}
-	// use cookies or sum to get stuff
-	return products, nil
 }
 
 // Any returned error will be of type [*NikeAPIError].
@@ -207,8 +205,17 @@ func getProduct(id string) (components.Product, error) {
 	}
 }
 
-// Any returned error will be of type [*NikeAPIError].
-func getProducts(p []string) ([]components.Product, error) {
+func getProducts(userId string, storage storage.Storage) ([]components.Product, error) {
+  storageProducts, err := storage.GetProducts(userId)
+  if err != nil {
+    return []components.Product{}, err
+  }
+
+  p := make([]string, len(storageProducts))
+  for i, sp := range storageProducts {
+    p[i] = sp.ProductId
+  }
+
 	if len(p) == 1 {
 		p, err := getProduct(p[0])
 		if err != nil {
