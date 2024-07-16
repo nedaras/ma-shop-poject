@@ -53,12 +53,12 @@ func HandleGoogleLogin(c echo.Context) error {
 		return renderSimpleError(c, http.StatusInternalServerError)
 	}
 
-  storage := getStorage(c)
-  err = storage.AddUser(user)
-  if err != nil {
+	storage := getStorage(c)
+	err = storage.AddUser(user)
+	if err != nil {
 		c.Logger().Error(err)
 		return renderSimpleError(c, http.StatusInternalServerError)
-  }
+	}
 
 	session := session.NewSession(user.UserID)
 	c.SetCookie(session.Cookie())
@@ -85,8 +85,8 @@ func getGoogleUser(d *GoogleAuthData) (models.User, error) {
 	defer res.Body.Close()
 
 	data := &struct {
-		ID string `json:"id"`
-    Email string `json:"email"`
+		ID    string `json:"id"`
+		Email string `json:"email"`
 	}{}
 	decoder := json.NewDecoder(res.Body)
 
@@ -112,9 +112,9 @@ func getGoogleUser(d *GoogleAuthData) (models.User, error) {
 	}
 
 	return models.User{
-    UserID: data.ID,
-    Email: data.Email,
-  }, nil
+		UserID: data.ID,
+		Email:  data.Email,
+	}, nil
 }
 
 // Any returned error will be of type [*OAuth2Error].

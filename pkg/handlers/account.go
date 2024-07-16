@@ -8,18 +8,18 @@ import (
 )
 
 func HandleAccount(c echo.Context) error {
-  session := getSession(c)
-  storage := getStorage(c)
+	session := getSession(c)
+	storage := getStorage(c)
 
-  if session == nil {
-    // render login bla bla bla...
-    return renderSimpleError(c, http.StatusNotFound)
-  }
+	if session == nil {
+		// render login bla bla bla...
+		return renderSimpleError(c, http.StatusNotFound)
+	}
 
-  user, err := storage.GetUser(session.UserId)
-  if err != nil {
-    return err
-  }
+	user, err := storage.GetUser(session.UserId)
+	if err != nil {
+		return err
+	}
 
 	return render(c, views.Account(user.Email))
 }

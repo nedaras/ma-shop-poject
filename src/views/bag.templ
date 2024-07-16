@@ -9,7 +9,7 @@ templ Bag(products []components.BagProductContext) {
 		<main>
 			<ul hx-boost="true" class="flex flex-col gap-4 p-4">
 				for _, p := range products {
-          @components.BagProduct(p)
+					@components.BagProduct(p)
 				}
 			</ul>
 		</main>

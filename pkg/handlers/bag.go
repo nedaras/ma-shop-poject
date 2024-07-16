@@ -55,16 +55,16 @@ var (
 )
 
 func HandleBag(c echo.Context) error {
-  session := getSession(c)
-  storage := getStorage(c)
+	session := getSession(c)
+	storage := getStorage(c)
 
-  if session == nil {
-    // products from cookies or sum
-	  return render(c, views.Bag([]components.BagProductContext{}))
-  }
+	if session == nil {
+		// products from cookies or sum
+		return render(c, views.Bag([]components.BagProductContext{}))
+	}
 
-  // this functio one day will just take in c and do its own shit
-  // err can be from nike api or from storage
+	// this functio one day will just take in c and do its own shit
+	// err can be from nike api or from storage
 	products, err := getProducts(session.UserId, storage)
 	if err != nil {
 		return err
@@ -199,38 +199,38 @@ func getProduct(id string) (components.Product, error) {
 }
 
 func getProducts(userId string, storage storage.Storage) ([]components.BagProductContext, error) {
-  storageProducts, err := storage.GetProducts(userId)
-  if err != nil {
-    return []components.BagProductContext{}, err
-  }
+	storageProducts, err := storage.GetProducts(userId)
+	if err != nil {
+		return []components.BagProductContext{}, err
+	}
 
-  p := make([]string, len(storageProducts))
-  for i, sp := range storageProducts {
-    p[i] = sp.ProductId
-  }
+	p := make([]string, len(storageProducts))
+	for i, sp := range storageProducts {
+		p[i] = sp.ProductId
+	}
 
 	if len(p) == 1 {
 		p, err := getProduct(p[0])
 		if err != nil {
 			return []components.BagProductContext{}, err
 		}
-    
-    amount, err := storage.GetProductAmount(userId, p.ThreadId, p.Mid)
-    if err != nil {
-      return []components.BagProductContext{},  err
-    }
+
+		amount, err := storage.GetProductAmount(userId, p.ThreadId, p.Mid)
+		if err != nil {
+			return []components.BagProductContext{}, err
+		}
 
 		return []components.BagProductContext{{
-      Product: p,
-      Amount: amount,
-    }}, nil
+			Product: p,
+			Amount:  amount,
+		}}, nil
 	}
 
 	ch := make(chan struct {
-		i int
+		i       int
 		product components.Product
-    amount uint8
-		err error
+		amount  uint8
+		err     error
 	}, len(p))
 
 	products := make([]components.BagProductContext, len(p))
@@ -239,33 +239,33 @@ func getProducts(userId string, storage storage.Storage) ([]components.BagProduc
 	for i, id := range p {
 		go func() {
 			val, err := getProduct(id)
-      if err != nil {
-        ch <- struct {
-				  i int
-				  product components.Product
-          amount uint8
-				  err error
-			  }{
-          i: i,
-          product: components.Product{},
-          amount: 0,
-          err: err,
-        }
-        return
-      }
+			if err != nil {
+				ch <- struct {
+					i       int
+					product components.Product
+					amount  uint8
+					err     error
+				}{
+					i:       i,
+					product: components.Product{},
+					amount:  0,
+					err:     err,
+				}
+				return
+			}
 
-      amount, err := storage.GetProductAmount(userId, val.ThreadId, val.Mid)
-      ch <- struct {
-        i int
-        product components.Product
-        amount uint8
-        err error
-      }{
-        i: i,
-        product: val,
-        amount: amount,
-        err: err,
-      }
+			amount, err := storage.GetProductAmount(userId, val.ThreadId, val.Mid)
+			ch <- struct {
+				i       int
+				product components.Product
+				amount  uint8
+				err     error
+			}{
+				i:       i,
+				product: val,
+				amount:  amount,
+				err:     err,
+			}
 
 		}()
 	}
@@ -279,9 +279,9 @@ func getProducts(userId string, storage storage.Storage) ([]components.BagProduc
 			return []components.BagProductContext{}, res.err
 		}
 		products[res.i] = components.BagProductContext{
-      Product: res.product,
-      Amount: res.amount,
-    }
+			Product: res.product,
+			Amount:  res.amount,
+		}
 		size++
 	}
 

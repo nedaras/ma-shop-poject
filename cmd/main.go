@@ -18,18 +18,18 @@ func main() {
 		log.Fatal(err)
 	}
 
-  storage, err := storage.NewCassandra()
-  if err != nil {
-    log.Fatal(err)
-  }
-  defer storage.Close()
+	storage, err := storage.NewCassandra()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer storage.Close()
 
 	e := echo.New()
 
 	e.Static("/", "public")
 
 	e.Use(middleware.Logger())
-  e.Use(middlewares.StorageMiddleware(storage))
+	e.Use(middlewares.StorageMiddleware(storage))
 	e.Use(middlewares.AuthMiddleware)
 
 	e.GET("/", handlers.HandleIndex)
@@ -42,9 +42,9 @@ func main() {
 
 	e.POST("/htmx/search", handlers.HandleSearch)
 	e.POST("/htmx/address/validate", handlers.HandleAddressValidate)
-  e.POST("/htmx/product/decrement", handlers.HandleDecrement)
-  e.POST("/htmx/product/increment", handlers.HandleIncrement)
-  e.POST("/htmx/product/delete", handlers.HandleDelete)
+	e.POST("/htmx/product/decrement", handlers.HandleDecrement)
+	e.POST("/htmx/product/increment", handlers.HandleIncrement)
+	e.POST("/htmx/product/delete", handlers.HandleDelete)
 	e.GET("/htmx/sizes/:path", handlers.HandleSizes)
 
 	// change echo error handler would better error pages

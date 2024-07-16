@@ -28,10 +28,10 @@ func getSession(c echo.Context) *Session {
 
 func getStorage(c echo.Context) storage.Storage {
 	val, ok := c.Get("storage").(storage.Storage)
-  if !ok {
-    panic("not using storage middleware") 
-  }
-  return val
+	if !ok {
+		panic("not using storage middleware")
+	}
+	return val
 }
 
 func render(c echo.Context, comp templ.Component) error {

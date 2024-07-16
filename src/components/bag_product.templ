@@ -4,46 +4,44 @@ import "strconv"
 import "fmt"
 
 type BagProductContext struct {
-  Product Product
-  Amount uint8
+	Product Product
+	Amount  uint8
 }
 
 templ BagProduct(c BagProductContext) {
-  <li class="grid grid-cols-[40%_auto] gap-4">
+	<li class="grid grid-cols-[40%_auto] gap-4">
 		<a href={ templ.SafeURL("/" + c.Product.ThreadId + "/" + c.Product.Mid) } class="row-span-2 bg-gray-50 grid place-items-center">
 			<img class="w-full" alt={ c.Product.Title } src={ string(templ.URL(c.Product.Image + "&wid=512")) }/>
 		</a>
 		<div class="mt-2 mr-2">
-		  <h1>{ c.Product.Title }</h1>
+			<h1>{ c.Product.Title }</h1>
 			<h2 class="text-sm text-gray-800">£{ strconv.FormatFloat(c.Product.Price, 'f', 2, 32) }</h2>
 		</div>
 		<div class="mb-2 mr-2 flex items-end justify-end">
-		<div class="flex items-center gap-4">
-		  <div>
+			<div class="flex items-center gap-4">
+				<div>
+					<button
+						class="text-sm fa-solid fa-minus"
+						hx-post={ fmt.Sprintf("/htmx/product/decrement?tid=%s&mid=%s", c.Product.ThreadId, c.Product.Mid) }
+						hx-target="closest li"
+						hx-swap="outerHTML"
+					></button>
+					{ strconv.Itoa(int(c.Amount)) }
+					<button
+						class="text-sm fa-solid fa-plus"
+						hx-post={ fmt.Sprintf("/htmx/product/increment?tid=%s&mid=%s", c.Product.ThreadId, c.Product.Mid) }
+						hx-target="closest li"
+						hx-swap="outerHTML"
+					></button>
+				</div>
 				<button
-          class="text-sm fa-solid fa-minus"
-          hx-post={fmt.Sprintf("/htmx/product/decrement?tid=%s&mid=%s", c.Product.ThreadId, c.Product.Mid)}
-          hx-target="closest li"
-          hx-swap="outerHTML"
-        >
-        </button>
-				{ strconv.Itoa(int(c.Amount)) }
-				<button
-          class="text-sm fa-solid fa-plus"
-          hx-post={fmt.Sprintf("/htmx/product/increment?tid=%s&mid=%s", c.Product.ThreadId, c.Product.Mid)}
-          hx-target="closest li"
-          hx-swap="outerHTML"
-        >
-        </button>
+					class="fa-solid fa-trash"
+					class="text-sm fa-solid fa-plus"
+					hx-post={ fmt.Sprintf("/htmx/product/delete?tid=%s&mid=%s", c.Product.ThreadId, c.Product.Mid) }
+					hx-target="closest li"
+					hx-swap="outerHTML"
+				></button>
 			</div>
-		  <button class="fa-solid fa-trash"
-        class="text-sm fa-solid fa-plus"
-        hx-post={fmt.Sprintf("/htmx/product/delete?tid=%s&mid=%s", c.Product.ThreadId, c.Product.Mid)}
-        hx-target="closest li"
-        hx-swap="outerHTML"
-      >
-      </button>
-	  </div>
-  </div>
-</li>
+		</div>
+	</li>
 }
