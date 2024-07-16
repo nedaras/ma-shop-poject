@@ -2,6 +2,7 @@ package storage
 
 import (
 	"errors"
+	"math"
 	"nedas/shop/pkg/models"
 
 	"github.com/gocql/gocql"
@@ -115,8 +116,7 @@ func (c *Cassandra) GetProducts(userId string) ([]models.Product, error) {
   products := make([]models.Product, iter.NumRows())
   for i := range iter.NumRows() {
     product := &products[i]
-    ok := iter.Scan(&product.UserID, &product.ProductId, &product.Amount)
-    if !ok {
+    if ok := iter.Scan(&product.UserID, &product.ProductId, &product.Amount); !ok {
       err := iter.Close()
       if err != nil {
         panic("no err and not ok!!!!")
@@ -132,25 +132,122 @@ func (c *Cassandra) GetProducts(userId string) ([]models.Product, error) {
   return products, nil
 }
 
-func (c *Cassandra) IncreaseProduct(userId string, tid string, mid string) error {
+func (c *Cassandra) GetProductAmount(userId string, tid string, mid string) (uint8, error) {
+  assert(userId != "", "user id is empty")
+  assert(tid != "", "thread id is empty")
+  assert(mid != "", "mid id is empty")
+
+  var amount uint8
+
+  productId := tid + ":" + mid
+  query := c.session.Query(
+    "SELECT amount FROM products WHERE user_id = ? AND product_id = ?",
+    userId,
+    productId,
+  )
+
+  iter := query.Iter()
+  if iter.NumRows() == 0 {
+    if err := iter.Close(); err != nil {
+      return 0, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
+    }
+    return 0, nil
+  }
+
+  if ok := iter.Scan(&amount); !ok {
+    err := iter.Close()
+    if err != nil {
+      panic("no err and not ok!!!!")
+    }
+    return 0, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
+  }
+
+  if err := iter.Close(); err != nil {
+    return 0, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
+  }
+
+  return amount, nil
+}
+
+
+func (c *Cassandra) IncreaseProduct(userId string, tid string, mid string) (uint8, error) {
+	assert(userId != "", "user id is empty")
+	assert(tid != "", "thread id is empty")
+	assert(mid != "", "mid is empty")
+
+  amount, err := c.GetProductAmount(userId, tid, mid)
+  if err != nil {
+    return 0, err
+  }
+
+  if amount == math.MaxUint8 {
+    return math.MaxUint8, nil
+  }
+
+  productId := tid + ":" + mid
+	query := c.session.Query(
+		"UPDATE products SET amount = ? WHERE user_id = ? AND product_id = ?",
+    amount + 1,
+    userId,
+    productId,
+	)
+
+  if err := query.Exec(); err != nil {
+		return 0, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
+	}
+  return amount + 1, nil
+}
+
+func (c *Cassandra) DecreaseProduct(userId string, tid string, mid string) (uint8, error) {
+	assert(userId != "", "user id is empty")
+	assert(tid != "", "thread id is empty")
+	assert(mid != "", "mid is empty")
+
+  amount, err := c.GetProductAmount(userId, tid, mid)
+  if err != nil {
+    return 0, err
+  }
+
+  var query *gocql.Query 
+  productId := tid + ":" + mid
+
+  if amount == 1 {
+    query = c.session.Query(
+      "DELETE FROM products WHERE user_id = ? AND product_id = ?",
+      userId,
+      productId,
+    )
+  } else {
+    query = c.session.Query(
+      "UPDATE products SET amount = ? WHERE user_id = ? AND product_id = ?",
+      amount - 1,
+      userId,
+      productId,
+    )
+  }
+
+  if err := query.Exec(); err != nil {
+		return 0, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
+	}
+  return amount - 1, nil
+}
+
+func (c *Cassandra) DeleteProduct(userId string, tid string, mid string) error {
 	assert(userId != "", "user id is empty")
 	assert(tid != "", "thread id is empty")
 	assert(mid != "", "mid is empty")
 
   productId := tid + ":" + mid
 	query := c.session.Query(
-		"UPDATE products SET amount = amount + 1 WHERE user_id = ? AND product_id = ?",
+		"DELETE FROM products WHERE user_id = ? AND product_id = ?",
     userId,
     productId,
 	)
 
   if err := query.Exec(); err != nil {
 		return &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
-	}
-  return nil
-}
+  }
 
-func (c *Cassandra) DecreaseProduct(userId string, tid string, mid string) error {
   return nil
 }
 

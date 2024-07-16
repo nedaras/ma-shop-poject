@@ -42,7 +42,9 @@ func main() {
 
 	e.POST("/htmx/search", handlers.HandleSearch)
 	e.POST("/htmx/address/validate", handlers.HandleAddressValidate)
-  e.POST("/htmx/product", handlers.HandleIncrement)
+  e.POST("/htmx/product/decrement", handlers.HandleDecrement)
+  e.POST("/htmx/product/increment", handlers.HandleIncrement)
+  e.POST("/htmx/product/delete", handlers.HandleDelete)
 	e.GET("/htmx/sizes/:path", handlers.HandleSizes)
 
 	// change echo error handler would better error pages

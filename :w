@@ -31,7 +31,7 @@ type Storage interface {
 	IncreaseProduct(userId string, tid string, mid string) (uint8, error)
 
 	// Any returned error should be of type [*NikeAPIError].
-	DecreaseProduct(userId string, tid string, mid string) (uint8, error)
+	DecreaseProduct(userId string, tid string, mid string) error
 
 	// Any returned error should be of type [*NikeAPIError].
 	DeleteProduct(userId string, tid string, mid string) error

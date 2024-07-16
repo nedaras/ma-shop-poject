@@ -2,41 +2,14 @@ package views
 
 import "nedas/shop/src/layouts"
 import "nedas/shop/src/components"
-import "strconv"
-import "fmt"
 
-// todo: add that product component and on each click we will updtate only that row aaaa it will be so NICEEEEE
-templ Bag(products []components.Product) {
+templ Bag(products []components.BagProductContext) {
 	@layouts.Layout("Bag") {
 		@components.Header()
 		<main>
 			<ul hx-boost="true" class="flex flex-col gap-4 p-4">
 				for _, p := range products {
-					<li class="grid grid-cols-[40%_auto] gap-4">
-						<a href={ templ.SafeURL("/" + p.ThreadId + "/" + p.Mid) } class="row-span-2 bg-gray-50 grid place-items-center">
-							<img class="w-full" alt={ p.Title } src={ string(templ.URL(p.Image + "&wid=512")) }/>
-						</a>
-						<div class="mt-2 mr-2">
-							<h1>{ p.Title }</h1>
-							<h2 class="text-sm text-gray-800">£{ strconv.FormatFloat(p.Price, 'f', 2, 32) }</h2>
-						</div>
-						<div class="mb-2 mr-2 flex items-end justify-end">
-							<div class="flex items-center gap-4">
-								<div>
-									<button
-                    hx-post={fmt.Sprintf("/htmx/product?tid=%s&mid=%s", p.ThreadId, p.Mid)}
-                    hx-target="closest li"
-                    hx-swap="outerHTML"
-                  >
-                    <i class="text-sm fa-solid fa-minus"></i>
-                  </button>
-									69
-									<button class="text-sm fa-solid fa-plus"></button>
-								</div>
-								<button class="fa-solid fa-trash"></button>
-							</div>
-						</div>
-					</li>
+          @components.BagProduct(p)
 				}
 			</ul>
 		</main>

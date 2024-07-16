@@ -50,14 +50,7 @@ type NikeConsumerData struct {
 	Errors []interface{} `json:"errors"`
 }
 
-// placeholder, what db we will use cassandra mb??? our key will be just user_id
-//
-//	. user_id will point to auth stuff
-//	. user_id will point to bag stuff
-//	. user_id will point to shipping stuff
-//	. user_id will point to address and stuff (if not present in shipping stuff)
 var (
-	products    = []string{"053748ec-4af2-49d8-b3d8-409eb64e9bcf:6320614280", "b049e5fc-e1a4-4196-92c3-439ed3c475d1:3475937855", "e3864a31-60d8-470a-8f62-41cc7c0688bd:4063348121"}
 	ErrNotFound = errors.New("could not found requested resource")
 )
 
@@ -67,7 +60,7 @@ func HandleBag(c echo.Context) error {
 
   if session == nil {
     // products from cookies or sum
-	  return render(c, views.Bag([]components.Product{}))
+	  return render(c, views.Bag([]components.BagProductContext{}))
   }
 
   // this functio one day will just take in c and do its own shit
@@ -205,10 +198,10 @@ func getProduct(id string) (components.Product, error) {
 	}
 }
 
-func getProducts(userId string, storage storage.Storage) ([]components.Product, error) {
+func getProducts(userId string, storage storage.Storage) ([]components.BagProductContext, error) {
   storageProducts, err := storage.GetProducts(userId)
   if err != nil {
-    return []components.Product{}, err
+    return []components.BagProductContext{}, err
   }
 
   p := make([]string, len(storageProducts))
@@ -219,44 +212,76 @@ func getProducts(userId string, storage storage.Storage) ([]components.Product, 
 	if len(p) == 1 {
 		p, err := getProduct(p[0])
 		if err != nil {
-			return []components.Product{}, err
+			return []components.BagProductContext{}, err
 		}
-		return []components.Product{p}, nil
+    
+    amount, err := storage.GetProductAmount(userId, p.ThreadId, p.Mid)
+    if err != nil {
+      return []components.BagProductContext{},  err
+    }
+
+		return []components.BagProductContext{{
+      Product: p,
+      Amount: amount,
+    }}, nil
 	}
 
 	ch := make(chan struct {
 		i int
-		p components.Product
-		e error
+		product components.Product
+    amount uint8
+		err error
 	}, len(p))
 
-	products := make([]components.Product, len(p))
+	products := make([]components.BagProductContext, len(p))
 	size := 0
 
 	for i, id := range p {
 		go func() {
 			val, err := getProduct(id)
-			ch <- struct {
-				i int
-				p components.Product
-				e error
-			}{
-				i: i,
-				p: val,
-				e: err,
-			}
+      if err != nil {
+        ch <- struct {
+				  i int
+				  product components.Product
+          amount uint8
+				  err error
+			  }{
+          i: i,
+          product: components.Product{},
+          amount: 0,
+          err: err,
+        }
+        return
+      }
+
+      amount, err := storage.GetProductAmount(userId, val.ThreadId, val.Mid)
+      ch <- struct {
+        i int
+        product components.Product
+        amount uint8
+        err error
+      }{
+        i: i,
+        product: val,
+        amount: amount,
+        err: err,
+      }
+
 		}()
 	}
 
 	for range p {
 		res := <-ch
-		if res.e != nil {
-			if errors.Is(res.e, ErrNotFound) {
+		if res.err != nil {
+			if errors.Is(res.err, ErrNotFound) {
 				continue
 			}
-			return []components.Product{}, res.e
+			return []components.BagProductContext{}, res.err
 		}
-		products[res.i] = res.p
+		products[res.i] = components.BagProductContext{
+      Product: res.product,
+      Amount: res.amount,
+    }
 		size++
 	}
 
