@@ -33,8 +33,15 @@ func HandleProduct(c echo.Context) error {
 	case http.MethodPut:
 		if err := storage.AddProduct(session.UserId, product.ThreadId, product.Mid); err != nil {
 			if errors.Is(err, ErrAlreadySet) {
-				// todo: display the product with conflict content
-				return newHTTPError(http.StatusConflict, fmt.Sprintf("product with thread id '%s' and mid '%s' is already in the bag", product.ThreadId, product.Mid))
+				amount, err := storage.GetProductAmount(session.UserId, product.ThreadId, product.Mid)
+				if err != nil {
+					return err
+				}
+				// cuz u know its not rly an error
+				return renderWithStatus(http.StatusAccepted, c, components.BagProduct(components.BagProductContext{
+					Product: product,
+					Amount:  amount,
+				}))
 			}
 			return err
 		}
