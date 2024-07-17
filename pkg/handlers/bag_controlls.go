@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"nedas/shop/src/components"
 	"net/http"
 
@@ -17,16 +18,12 @@ func HandleIncrement(c echo.Context) error {
 		return newHTTPError(http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
 	}
 
-	// todo idk mb validate if session id is even valid
-	// todo add validate id function, it would be faster
-	tid, mid := c.QueryParam("tid"), c.QueryParam("mid")
-	product, err := getProduct(tid + ":" + mid)
-
+	product, err := getQueryProduct(c)
 	if err != nil {
 		return err
 	}
 
-	amount, err := storage.IncreaseProduct(session.UserId, tid, mid)
+	amount, err := storage.IncreaseProduct(session.UserId, product.ThreadId, product.Mid)
 	if err != nil {
 		return err
 	}
@@ -46,16 +43,12 @@ func HandleDecrement(c echo.Context) error {
 		return newHTTPError(http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
 	}
 
-	// todo idk mb validate if session id is even valid
-	// todo add validate id function, it would be faster
-	tid, mid := c.QueryParam("tid"), c.QueryParam("mid")
-	product, err := getProduct(tid + ":" + mid)
-
+	product, err := getQueryProduct(c)
 	if err != nil {
 		return err
 	}
 
-	amount, err := storage.DecreaseProduct(session.UserId, tid, mid)
+	amount, err := storage.DecreaseProduct(session.UserId, product.ThreadId, product.Mid)
 	if err != nil {
 		return err
 	}
@@ -78,31 +71,33 @@ func HandleDelete(c echo.Context) error {
 		return newHTTPError(http.StatusNotImplemented, http.StatusText(http.StatusNotImplemented))
 	}
 
-	tid, mid, err := validateAndGetProductID(c)
+	product, err := getQueryProduct(c)
 	if err != nil {
 		return err
 	}
 
-	if err := storage.DeleteProduct(session.UserId, tid, mid); err != nil {
+	if err := storage.DeleteProduct(session.UserId, product.ThreadId, product.Mid); err != nil {
 		return err
-
 	}
 
 	return c.NoContent(http.StatusOK)
 }
 
-func validateAndGetProductID(c echo.Context) (string, string, error) {
+func getQueryProduct(c echo.Context) (components.Product, error) {
 	tid, mid := c.QueryParam("tid"), c.QueryParam("mid")
-	if tid == "" || mid == "" {
-		return "", "", newHTTPError(http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
+	if tid == "" {
+		return components.Product{}, newHTTPError(http.StatusBadRequest, "query param 'tid' is not specified")
+	}
+	if mid == "" {
+		return components.Product{}, newHTTPError(http.StatusBadRequest, "query param 'mid' is not specified")
 	}
 
-	if _, err := getProduct(tid + ":" + mid); err != nil {
+	product, err := getProduct(tid + ":" + mid)
+	if err != nil {
 		if errors.Is(err, ErrNotFound) {
-			return "", "", newHTTPError(http.StatusNotFound, http.StatusText(http.StatusNotFound))
+			return components.Product{}, newHTTPError(http.StatusNotFound, fmt.Sprintf("product not found with thread id '%s' and mid '%s'", tid, mid))
 		}
-		return "", "", err
+		return components.Product{}, err
 	}
-
-	return tid, mid, nil
+	return product, nil
 }

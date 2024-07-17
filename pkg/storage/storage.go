@@ -12,28 +12,28 @@ var (
 
 type Storage interface {
 
-	// Any returned error should be of type [*NikeAPIError].
+	// Any returned error should be of type [*StorageError].
 	AddUser(user models.User) error
 
-	// Any returned error should be of type [*NikeAPIError].
+	// Any returned error should be of type [*StorageError].
 	RemoveUser(userId string) error
 
-	// Any returned error should be of type [*NikeAPIError].
+	// Any returned error should be of type [*StorageError].
 	GetUser(userId string) (models.User, error)
 
-	// Any returned error should be of type [*NikeAPIError].
+	// Any returned error should be of type [*StorageError].
 	GetProducts(userId string) ([]models.Product, error)
 
-	// Any returned error should be of type [*NikeAPIError].
+	// Any returned error should be of type [*StorageError].
 	GetProductAmount(userId string, tid string, mid string) (uint8, error)
 
-	// Any returned error should be of type [*NikeAPIError].
+	// Any returned error should be of type [*StorageError].
 	IncreaseProduct(userId string, tid string, mid string) (uint8, error)
 
-	// Any returned error should be of type [*NikeAPIError].
+	// Any returned error should be of type [*StorageError].
 	DecreaseProduct(userId string, tid string, mid string) (uint8, error)
 
-	// Any returned error should be of type [*NikeAPIError].
+	// Any returned error should be of type [*StorageError].
 	DeleteProduct(userId string, tid string, mid string) error
 
 	Close()
