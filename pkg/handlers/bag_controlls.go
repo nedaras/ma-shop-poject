@@ -33,6 +33,7 @@ func HandleProduct(c echo.Context) error {
 	case http.MethodPut:
 		if err := storage.AddProduct(session.UserId, product.ThreadId, product.Mid); err != nil {
 			if errors.Is(err, ErrAlreadySet) {
+				// todo: display the product with conflict content
 				return newHTTPError(http.StatusConflict, fmt.Sprintf("product with thread id '%s' and mid '%s' is already in the bag", product.ThreadId, product.Mid))
 			}
 			return err
@@ -66,7 +67,8 @@ func HandleIncrement(c echo.Context) error {
 	amount, err := storage.IncreaseProduct(session.UserId, product.ThreadId, product.Mid)
 	if err != nil {
 		if errors.Is(err, ErrRowNotFound) {
-			return newHTTPError(http.StatusNotFound, fmt.Sprintf("product with thread id '%s' and mid '%s' is not in the bag", product.ThreadId, product.Mid))
+			//return newHTTPError(http.StatusNotFound, fmt.Sprintf("product with thread id '%s' and mid '%s' is not in the bag", product.ThreadId, product.Mid))
+			return c.NoContent(http.StatusNotFound)
 		}
 		return err
 	}
@@ -94,7 +96,8 @@ func HandleDecrement(c echo.Context) error {
 	amount, err := storage.DecreaseProduct(session.UserId, product.ThreadId, product.Mid)
 	if err != nil {
 		if errors.Is(err, ErrRowNotFound) {
-			return newHTTPError(http.StatusNotFound, fmt.Sprintf("product with thread id '%s' and mid '%s' is not in the bag", product.ThreadId, product.Mid))
+			//return newHTTPError(http.StatusNotFound, fmt.Sprintf("product with thread id '%s' and mid '%s' is not in the bag", product.ThreadId, product.Mid))
+			return c.NoContent(http.StatusNotFound)
 		}
 		return err
 	}

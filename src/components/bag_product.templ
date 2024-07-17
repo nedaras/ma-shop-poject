@@ -1,13 +1,16 @@
 package components
 
-import "strconv"
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
 type BagProductContext struct {
 	Product Product
 	Amount  uint8
 }
 
+// todo: gray out shit when doing shit
 templ BagProduct(c BagProductContext) {
 	<li class="grid grid-cols-[40%_auto] gap-4">
 		<a href={ templ.SafeURL("/" + c.Product.ThreadId + "/" + c.Product.Mid) } class="row-span-2 bg-gray-50 grid place-items-center">
