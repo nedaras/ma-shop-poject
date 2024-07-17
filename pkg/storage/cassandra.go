@@ -148,9 +148,12 @@ func (c *Cassandra) GetProductAmount(userId string, tid string, mid string) (uin
 	iter := query.Iter()
 	if iter.NumRows() == 0 {
 		if err := iter.Close(); err != nil {
+			if errors.Is(err, gocql.ErrNotFound) {
+				err = ErrNotFound
+			}
 			return 0, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
 		}
-		return 0, nil
+		return 0, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: ErrNotFound}
 	}
 
 	if ok := iter.Scan(&amount); !ok {
@@ -166,6 +169,30 @@ func (c *Cassandra) GetProductAmount(userId string, tid string, mid string) (uin
 	}
 
 	return amount, nil
+}
+
+func (c *Cassandra) AddProduct(userId string, tid string, mid string) error {
+	assert(userId != "", "user id is empty")
+	assert(tid != "", "thread id is empty")
+	assert(mid != "", "mid is empty")
+
+	productId := tid + ":" + mid
+	query := c.session.Query(
+		"INSERT INTO products (user_id, product_id, amount) VALUES (?, ?, 1) IF NOT EXISTS",
+		userId,
+		productId,
+	)
+
+	applied, err := query.ScanCAS(nil, nil, nil)
+	if err != nil {
+		return &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
+	}
+
+	if !applied {
+		return &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: ErrAlreadySet}
+	}
+
+	return nil
 }
 
 func (c *Cassandra) IncreaseProduct(userId string, tid string, mid string) (uint8, error) {

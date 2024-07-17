@@ -37,7 +37,7 @@ templ BagProduct(c BagProductContext) {
 				<button
 					class="fa-solid fa-trash"
 					class="text-sm fa-solid fa-plus"
-					hx-post={ fmt.Sprintf("/htmx/product/delete?tid=%s&mid=%s", c.Product.ThreadId, c.Product.Mid) }
+					hx-delete={ fmt.Sprintf("/htmx/product?tid=%s&mid=%s", c.Product.ThreadId, c.Product.Mid) }
 					hx-target="closest li"
 					hx-swap="outerHTML"
 				></button>
