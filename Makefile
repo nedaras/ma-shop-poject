@@ -1,6 +1,6 @@
 run: esbuild
 	@templ generate
-	@npx tailwind -i src/styles/styles.css -o public/styles.css
+	@npx tailwind -i src/styles/styles.css -o public/styles.css -m
 	@go build -o tmp/main cmd/main.go
 
 esbuild:

@@ -19,8 +19,8 @@ templ Sneaker(product Product, sizes []string) {
 		<div class="flex gap-2">
 			<h3 class="text-gray-800">£{ strconv.FormatFloat(product.Price, 'f', 2, 32) }</h3>
 			<a
-				class="text-amber-500"
 				href={ templ.SafeURL("https://www.nike.com/gb/u/" + product.Slug + "?mid=" + product.Mid) }
+				class="text-amber-500"
 				target="_blank"
 				rel="noreferrer noopener"
 			>
