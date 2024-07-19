@@ -2,22 +2,32 @@ package storage
 
 import (
 	"errors"
+	"log"
 	"math"
 	"nedas/shop/pkg/models"
+	"os"
 
 	"github.com/gocql/gocql"
 )
 
-// thread safe
 type Cassandra struct {
 	cluster *gocql.ClusterConfig
 	session *gocql.Session
 }
 
-// todo: env
 func NewCassandra() (*Cassandra, error) {
-	cluster := gocql.NewCluster("127.0.0.1")
-	cluster.Keyspace = "ma_shop"
+	address := os.Getenv("CASSANDRA_ADDRESS")
+	if address == "" {
+		log.Fatal("CASSANDRA_ADDRESS not found in .env")
+	}
+
+	keyspace := os.Getenv("CASSANDRA_KEYSPACE")
+	if keyspace == "" {
+		log.Fatal("CASSANDRA_KEYSPACE not found in .env")
+	}
+
+	cluster := gocql.NewCluster(address)
+	cluster.Keyspace = keyspace
 
 	session, err := cluster.CreateSession()
 	if err != nil {

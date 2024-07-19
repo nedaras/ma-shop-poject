@@ -41,6 +41,7 @@ func main() {
 	e.GET("/:thread_id/:mid", handlers.HandleSneaker)
 
 	e.POST("/htmx/search", handlers.HandleSearch)
+	e.POST("/htmx/add_to_bag", handlers.AddToBag)
 	e.POST("/htmx/address/validate", handlers.HandleAddressValidate)
 	e.POST("/htmx/product/decrement", handlers.HandleDecrement)
 	e.POST("/htmx/product/increment", handlers.HandleIncrement)

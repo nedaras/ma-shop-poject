@@ -19,6 +19,7 @@ type ErrResult[T any] struct {
 
 // optional
 func getSession(c echo.Context) *Session {
+	// mb return the *Session and ok so we would know that *Session can be nil or som
 	val, ok := c.Get("auth-session").(*Session)
 	if !ok {
 		return nil

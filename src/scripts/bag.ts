@@ -1,4 +1,4 @@
-// todo copy goes status enums
+// todo: copy goes status enums
 document.body.addEventListener('htmx:beforeSwap', (e) => {
   if (!e.detail.pathInfo.requestPath.startsWith('/htmx/product')) return
   switch (e.detail.xhr.status) {

@@ -2,7 +2,6 @@ package components
 
 import "strconv"
 
-// start using ptr 104 byte is huge
 type Product struct {
 	Title    string
 	Price    float64
@@ -30,5 +29,15 @@ templ Sneaker(product Product, sizes []string) {
 		</div>
 	</div>
 	<img alt={ product.Title } src={ string(templ.URL(product.Image + "&wid=768")) }/>
-	@Sizes(sizes, product.PathName, true)
+	<form
+		class="p-2"
+		hx-post={ string(templ.SafeURL("/htmx/add_to_bag?tid=" + product.ThreadId + "&mid=" + product.Mid)) }
+		hx-target="button[type='submit']"
+		hx-swap="outerHTML"
+	>
+		@Sizes(sizes, product.PathName, true)
+		<button type="submit" class="bg-black text-white w-full p-2 mt-4">
+			Add to Bag
+		</button>
+	</form>
 }
