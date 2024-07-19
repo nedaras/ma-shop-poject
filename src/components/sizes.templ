@@ -28,7 +28,7 @@ templ Sizes(sizes []string, path string, men bool) {
 			for _, s := range sizes {
 				<li>
 					<input class="peer appearance-none absolute outline-none" id={ "size-" + s } type="radio" name="size" value={ s } required/>
-					<label class="block w-full border border-gray-200 peer-checked:border-black rounded p-2 text-center cursor-pointer" for={ "size-" + s }>
+					<label class="block w-full border border-gray-200 peer-checked:border-black rounded p-2 text-center cursor-pointer hover:border-black" for={ "size-" + s }>
 						UK { s }
 					</label>
 				</li>

@@ -189,24 +189,33 @@ func (c *Cassandra) AddProduct(userId string, tid string, mid string, size strin
 	assert(mid != "", "mid is empty")
 	assert(size != "", "size is empty")
 
-	// todo: it should be like increment but u know would not err if not item
 	productId := tid + ":" + mid
-	query := c.session.Query(
-		"INSERT INTO products (user_id, product_id, size, amount) VALUES (?, ?, ?, 1) IF NOT EXISTS",
-		userId,
-		productId,
-		size,
-	)
+	var query *gocql.Query
 
-	applied, err := query.ScanCAS(nil, nil, nil, nil)
+	amount, err := c.GetProductAmount(userId, tid, mid, size)
 	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			query = c.session.Query(
+				"INSERT INTO products (user_id, product_id, size, amount) VALUES (?, ?, ?, 1)",
+				userId,
+				productId,
+				size,
+			)
+		}
+		return err
+	} else {
+		query = c.session.Query(
+			"UPDATE products SET amount = ? WHERE user_id = ? AND product_id = ? AND size = ?",
+			amount+1,
+			userId,
+			productId,
+			size,
+		)
+	}
+
+	if err := query.Exec(); err != nil {
 		return &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
 	}
-
-	if !applied {
-		return &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: ErrAlreadySet}
-	}
-
 	return nil
 }
 
