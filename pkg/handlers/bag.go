@@ -204,24 +204,23 @@ func getProducts(userId string, storage storage.Storage) ([]components.BagProduc
 		return []components.BagProductContext{}, err
 	}
 
-	p := make([]string, len(storageProducts))
-	for i, sp := range storageProducts {
-		p[i] = sp.ProductId
-	}
+	if len(storageProducts) == 1 {
+		product := storageProducts[0]
+		// todo: fr add validate product
+		p, err := getProduct(product.ProductId)
 
-	if len(p) == 1 {
-		p, err := getProduct(p[0])
 		if err != nil {
 			return []components.BagProductContext{}, err
 		}
 
-		amount, err := storage.GetProductAmount(userId, p.ThreadId, p.Mid)
+		amount, err := storage.GetProductAmount(userId, p.ThreadId, p.Mid, product.Size)
 		if err != nil {
 			return []components.BagProductContext{}, err
 		}
 
 		return []components.BagProductContext{{
 			Product: p,
+			Size:    product.Size,
 			Amount:  amount,
 		}}, nil
 	}
@@ -229,40 +228,46 @@ func getProducts(userId string, storage storage.Storage) ([]components.BagProduc
 	ch := make(chan struct {
 		i       int
 		product components.Product
+		size    string
 		amount  uint8
 		err     error
-	}, len(p))
+	}, len(storageProducts))
 
-	products := make([]components.BagProductContext, len(p))
+	products := make([]components.BagProductContext, len(storageProducts))
 	size := 0
 
-	for i, id := range p {
+	for i, product := range storageProducts {
 		go func() {
-			val, err := getProduct(id)
+			// todo: frr add validate
+			val, err := getProduct(product.ProductId)
 			if err != nil {
 				ch <- struct {
 					i       int
 					product components.Product
+					size    string
 					amount  uint8
 					err     error
 				}{
 					i:       i,
 					product: components.Product{},
+					size:    product.Size,
 					amount:  0,
 					err:     err,
 				}
 				return
 			}
 
-			amount, err := storage.GetProductAmount(userId, val.ThreadId, val.Mid)
+			amount, err := storage.GetProductAmount(userId, val.ThreadId, val.Mid, product.Size)
 			ch <- struct {
 				i       int
 				product components.Product
+				size    string
 				amount  uint8
 				err     error
 			}{
 				i:       i,
 				product: val,
+				size:    product.Size,
 				amount:  amount,
 				err:     err,
 			}
@@ -270,7 +275,7 @@ func getProducts(userId string, storage storage.Storage) ([]components.BagProduc
 		}()
 	}
 
-	for range p {
+	for range storageProducts {
 		res := <-ch
 		if res.err != nil {
 			if errors.Is(res.err, ErrNotFound) {
@@ -280,12 +285,13 @@ func getProducts(userId string, storage storage.Storage) ([]components.BagProduc
 		}
 		products[res.i] = components.BagProductContext{
 			Product: res.product,
+			Size:    res.size,
 			Amount:  res.amount,
 		}
 		size++
 	}
 
-	if size == len(p) {
+	if size == len(storageProducts) {
 		return products, nil
 	}
 

@@ -25,19 +25,19 @@ type Storage interface {
 	GetProducts(userId string) ([]models.Product, error)
 
 	// Any returned error should be of type [*StorageError].
-	GetProductAmount(userId string, tid string, mid string) (uint8, error)
+	GetProductAmount(userId string, tid string, mid string, size string) (uint8, error)
 
 	// Any returned error should be of type [*StorageError].
-	AddProduct(userId string, tid string, mid string) error
+	AddProduct(userId string, tid string, mid string, size string) error
 
 	// Any returned error should be of type [*StorageError].
-	IncreaseProduct(userId string, tid string, mid string) (uint8, error)
+	IncreaseProduct(userId string, tid string, mid string, size string) (uint8, error)
 
 	// Any returned error should be of type [*StorageError].
-	DecreaseProduct(userId string, tid string, mid string) (uint8, error)
+	DecreaseProduct(userId string, tid string, mid string, size string) (uint8, error)
 
 	// Any returned error should be of type [*StorageError].
-	DeleteProduct(userId string, tid string, mid string) error
+	DeleteProduct(userId string, tid string, mid string, size string) error
 
 	Close()
 }

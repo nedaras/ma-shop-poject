@@ -24,29 +24,45 @@ func HandleProduct(c echo.Context) error {
 		return newHTTPError(http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
 	}
 
+	size := c.QueryParam("size")
+
+	if size == "" {
+		return newHTTPError(http.StatusBadRequest, "query param 'size' is not specified")
+	}
+
 	product, err := getQueryProduct(c)
 	if err != nil {
 		return err
 	}
 
+	ok, err := validateSize(product.PathName, size)
+	if err != nil {
+		return err
+	}
+
+	if !ok {
+		return newHTTPError(http.StatusBadRequest, "query param 'size' is invalid")
+	}
+
 	switch c.Request().Method {
 	case http.MethodPut:
-		if err := storage.AddProduct(session.UserId, product.ThreadId, product.Mid); err != nil {
+		if err := storage.AddProduct(session.UserId, product.ThreadId, product.Mid, size); err != nil {
 			if errors.Is(err, ErrAlreadySet) {
-				amount, err := storage.GetProductAmount(session.UserId, product.ThreadId, product.Mid)
+				amount, err := storage.GetProductAmount(session.UserId, product.ThreadId, product.Mid, size)
 				if err != nil {
 					return err
 				}
 				// cuz u know its not rly an error
 				return renderWithStatus(http.StatusAccepted, c, components.BagProduct(components.BagProductContext{
 					Product: product,
+					Size:    size,
 					Amount:  amount,
 				}))
 			}
 			return err
 		}
 	case http.MethodDelete:
-		if err := storage.DeleteProduct(session.UserId, product.ThreadId, product.Mid); err != nil {
+		if err := storage.DeleteProduct(session.UserId, product.ThreadId, product.Mid, size); err != nil {
 			return err
 		}
 	default:
@@ -66,12 +82,26 @@ func HandleIncrement(c echo.Context) error {
 		return newHTTPError(http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
 	}
 
+	size := c.QueryParam("size")
+	if size == "" {
+		return newHTTPError(http.StatusBadRequest, "query param 'size' is not specified")
+	}
+
 	product, err := getQueryProduct(c)
 	if err != nil {
 		return err
 	}
 
-	amount, err := storage.IncreaseProduct(session.UserId, product.ThreadId, product.Mid)
+	ok, err := validateSize(product.PathName, size)
+	if err != nil {
+		return err
+	}
+
+	if !ok {
+		return newHTTPError(http.StatusBadRequest, "query param 'size' is invalid")
+	}
+
+	amount, err := storage.IncreaseProduct(session.UserId, product.ThreadId, product.Mid, size)
 	if err != nil {
 		if errors.Is(err, ErrRowNotFound) {
 			//return newHTTPError(http.StatusNotFound, fmt.Sprintf("product with thread id '%s' and mid '%s' is not in the bag", product.ThreadId, product.Mid))
@@ -82,6 +112,7 @@ func HandleIncrement(c echo.Context) error {
 
 	return render(c, components.BagProduct(components.BagProductContext{
 		Product: product,
+		Size:    size,
 		Amount:  amount,
 	}))
 }
@@ -95,12 +126,26 @@ func HandleDecrement(c echo.Context) error {
 		return newHTTPError(http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
 	}
 
+	size := c.QueryParam("size")
+	if size == "" {
+		return newHTTPError(http.StatusBadRequest, "query param 'size' is not specified")
+	}
+
 	product, err := getQueryProduct(c)
 	if err != nil {
 		return err
 	}
 
-	amount, err := storage.DecreaseProduct(session.UserId, product.ThreadId, product.Mid)
+	ok, err := validateSize(product.PathName, size)
+	if err != nil {
+		return err
+	}
+
+	if !ok {
+		return newHTTPError(http.StatusBadRequest, "query param 'size' is invalid")
+	}
+
+	amount, err := storage.DecreaseProduct(session.UserId, product.ThreadId, product.Mid, size)
 	if err != nil {
 		if errors.Is(err, ErrRowNotFound) {
 			//return newHTTPError(http.StatusNotFound, fmt.Sprintf("product with thread id '%s' and mid '%s' is not in the bag", product.ThreadId, product.Mid))
@@ -115,6 +160,7 @@ func HandleDecrement(c echo.Context) error {
 
 	return render(c, components.BagProduct(components.BagProductContext{
 		Product: product,
+		Size:    size,
 		Amount:  amount,
 	}))
 }

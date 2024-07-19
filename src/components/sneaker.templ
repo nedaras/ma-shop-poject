@@ -32,7 +32,6 @@ templ Sneaker(product Product, sizes []string) {
 	<form
 		class="p-2"
 		hx-post={ string(templ.SafeURL("/htmx/add_to_bag?tid=" + product.ThreadId + "&mid=" + product.Mid)) }
-		hx-target="button[type='submit']"
 		hx-swap="outerHTML"
 	>
 		@Sizes(sizes, product.PathName, true)

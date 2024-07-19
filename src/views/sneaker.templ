@@ -9,7 +9,7 @@ import (
 templ Sneaker(product components.Product, sizes []string) {
 	@layouts.Layout(product.Title) {
 		@components.Header()
-		<main class="hover:opacity-75 opacity-50 hover:scale-150 scale-125">
+		<main>
 			@components.Sneaker(product, sizes)
 		</main>
 	}

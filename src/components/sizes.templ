@@ -35,22 +35,12 @@ templ Sizes(sizes []string, path string, men bool) {
 			}
 		</ul>
 	</div>
-	<input
-		id="gender-input"
-		hx-swap-oob="true"
-		type="hidden"
-		name="gender"
-		value={ getGenderString(men) }
-	/>
-}
-
-func getGenderString(men bool) string {
-	if men {
-		return "men"
-	}
-	return "women"
 }
 
 func getSizesURL(path string, men bool) string {
-	return string(templ.URL(fmt.Sprintf("/htmx/sizes/%s?gender=%s", path, getGenderString(men))))
+	gs := "women"
+	if men {
+		gs = "men"
+	}
+	return string(templ.URL(fmt.Sprintf("/htmx/sizes/%s?gender=%s", path, gs)))
 }
