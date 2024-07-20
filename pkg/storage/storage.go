@@ -28,7 +28,7 @@ type Storage interface {
 	GetProductAmount(userId string, tid string, mid string, size string) (uint8, error)
 
 	// Any returned error should be of type [*StorageError].
-	AddProduct(userId string, tid string, mid string, size string) error
+	AddProduct(userId string, tid string, mid string, size string) (uint8, error)
 
 	// Any returned error should be of type [*StorageError].
 	IncreaseProduct(userId string, tid string, mid string, size string) (uint8, error)

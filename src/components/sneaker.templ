@@ -14,6 +14,8 @@ type Product struct {
 
 templ Sneaker(product Product, sizes []string) {
 	<title>{ product.Title }</title>
+  <style>
+  </style>
 	<div class="p-4">
 		<h1 class="text-2xl font-semibold mb-2">{ product.Title }</h1>
 		<div class="flex gap-2">
@@ -30,13 +32,17 @@ templ Sneaker(product Product, sizes []string) {
 	</div>
 	<img alt={ product.Title } src={ string(templ.URL(product.Image + "&wid=768")) }/>
 	<form
-		class="p-2"
+		class="p-2 relative overflow-y-hidden"
 		hx-post={ string(templ.SafeURL("/htmx/add_to_bag?tid=" + product.ThreadId + "&mid=" + product.Mid)) }
-		hx-swap="outerHTML"
+    hx-target="#placeholder ul"
 	>
 		@Sizes(sizes, product.PathName, true)
 		<button type="submit" class="bg-black text-white w-full p-2 mt-4">
 			Add to Bag
 		</button>
+    <div id="placeholder">
+      <ul>
+      </ul>
+    </div>
 	</form>
 }

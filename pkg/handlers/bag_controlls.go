@@ -46,31 +46,23 @@ func HandleProduct(c echo.Context) error {
 
 	switch c.Request().Method {
 	case http.MethodPut:
-		if err := storage.AddProduct(session.UserId, product.ThreadId, product.Mid, size); err != nil {
-			if errors.Is(err, ErrAlreadySet) {
-				amount, err := storage.GetProductAmount(session.UserId, product.ThreadId, product.Mid, size)
-				if err != nil {
-					return err
-				}
-				// cuz u know its not rly an error
-				return renderWithStatus(http.StatusAccepted, c, components.BagProduct(components.BagProductContext{
-					Product: product,
-					Size:    size,
-					Amount:  amount,
-				}))
-			}
+		amount, err := storage.AddProduct(session.UserId, product.ThreadId, product.Mid, size)
+		if err != nil {
 			return err
 		}
+		return renderWithStatus(http.StatusAccepted, c, components.BagProduct(components.BagProductContext{
+			Product: product,
+			Size:    size,
+			Amount:  amount,
+		}))
 	case http.MethodDelete:
 		if err := storage.DeleteProduct(session.UserId, product.ThreadId, product.Mid, size); err != nil {
 			return err
 		}
+    return c.NoContent(http.StatusOK)
 	default:
 		panic("got unexpected method")
 	}
-
-	return c.NoContent(http.StatusOK)
-
 }
 
 func HandleIncrement(c echo.Context) error {

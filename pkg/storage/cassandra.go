@@ -183,7 +183,7 @@ func (c *Cassandra) GetProductAmount(userId string, tid string, mid string, size
 	return amount, nil
 }
 
-func (c *Cassandra) AddProduct(userId string, tid string, mid string, size string) error {
+func (c *Cassandra) AddProduct(userId string, tid string, mid string, size string) (uint8, error) {
 	assert(userId != "", "user id is empty")
 	assert(tid != "", "thread id is empty")
 	assert(mid != "", "mid is empty")
@@ -202,7 +202,7 @@ func (c *Cassandra) AddProduct(userId string, tid string, mid string, size strin
 				size,
 			)
 		}
-		return err
+		return 0, err
 	} else {
 		query = c.session.Query(
 			"UPDATE products SET amount = ? WHERE user_id = ? AND product_id = ? AND size = ?",
@@ -214,9 +214,9 @@ func (c *Cassandra) AddProduct(userId string, tid string, mid string, size strin
 	}
 
 	if err := query.Exec(); err != nil {
-		return &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
+		return 0, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
 	}
-	return nil
+	return amount + 1, nil
 }
 
 func (c *Cassandra) IncreaseProduct(userId string, tid string, mid string, size string) (uint8, error) {

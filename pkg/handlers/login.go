@@ -124,9 +124,9 @@ func getGoogleAuthData(code string) (*GoogleAuthData, error) {
 	}
 
 	url := fmt.Sprintf("https://oauth2.googleapis.com/token?redirect_uri=%s&client_id=%s&client_secret=%s&code=%s&grant_type=authorization_code",
-		os.Getenv("GOOGLE_REDIRECT_URL"),
-		os.Getenv("GOOGLE_CLIENT_ID"),
-		os.Getenv("GOOGLE_CLIENT_SECRET"),
+		getenv("GOOGLE_REDIRECT_URL"),
+		getenv("GOOGLE_CLIENT_ID"),
+		getenv("GOOGLE_CLIENT_SECRET"),
 		code,
 	)
 
@@ -172,8 +172,8 @@ func getGoogleAuthData(code string) (*GoogleAuthData, error) {
 
 func getGoogleLoginURL(scopes string) string {
 	return fmt.Sprintf("https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=%s&response_type=code&include_granted_scopes=true&access_type=offline&promt=consent&client_id=%s&scope=%s",
-		os.Getenv("GOOGLE_REDIRECT_URL"),
-		os.Getenv("GOOGLE_CLIENT_ID"),
+		getenv("GOOGLE_REDIRECT_URL"),
+		getenv("GOOGLE_CLIENT_ID"),
 		scopes,
 	)
 }
@@ -190,4 +190,12 @@ func (e *OAuth2Error) Error() string {
 
 func (e *OAuth2Error) Unwrap() error {
 	return e.Err
+}
+
+func getenv(key string) string {
+  value := os.Getenv(key)
+  if value == "" {
+    panic(key + " is not set")
+  }
+  return value
 }
