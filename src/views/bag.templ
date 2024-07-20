@@ -9,8 +9,6 @@ templ Bag(products []components.BagProductContext) {
 	@layouts.Layout("Bag") {
 		@components.Header()
 		<main>
-			// todo: in bag.ts add a check like beforeRequest if there is like ongoing request for this item just stop
-			// i dont like how it resets the cusrsor
 			<style>
         ul > .htmx-request {
           pointer-events: none;

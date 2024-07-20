@@ -193,9 +193,9 @@ func (e *OAuth2Error) Unwrap() error {
 }
 
 func getenv(key string) string {
-  value := os.Getenv(key)
-  if value == "" {
-    panic(key + " is not set")
-  }
-  return value
+	value := os.Getenv(key)
+	if value == "" {
+		panic(key + " is not set")
+	}
+	return value
 }

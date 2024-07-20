@@ -14,7 +14,17 @@ type Product struct {
 
 templ Sneaker(product Product, sizes []string) {
 	<title>{ product.Title }</title>
-  <style>
+	<style>
+    #placeholder ul > .htmx-request {
+      pointer-events: none;
+    }
+    #placeholder ul > .htmx-request .product-indicator {
+      opacity: 0.5;
+    }
+    .htmx-request button[type="submit"] {
+      pointer-events: none;
+      opacity: 0.9;
+    }
   </style>
 	<div class="p-4">
 		<h1 class="text-2xl font-semibold mb-2">{ product.Title }</h1>
@@ -32,17 +42,23 @@ templ Sneaker(product Product, sizes []string) {
 	</div>
 	<img alt={ product.Title } src={ string(templ.URL(product.Image + "&wid=768")) }/>
 	<form
-		class="p-2 relative overflow-y-hidden"
+		class="p-2"
 		hx-post={ string(templ.SafeURL("/htmx/add_to_bag?tid=" + product.ThreadId + "&mid=" + product.Mid)) }
-    hx-target="#placeholder ul"
+		hx-target="#placeholder ul"
+		hx-indicator="this"
 	>
 		@Sizes(sizes, product.PathName, true)
 		<button type="submit" class="bg-black text-white w-full p-2 mt-4">
 			Add to Bag
 		</button>
-    <div id="placeholder">
-      <ul>
-      </ul>
-    </div>
 	</form>
+	<div id="placeholder" class="bg-white fixed bottom-0 right-0 translate-y-full transition-transform duration-200 shadow-flipped">
+		<h1 class="m-2 relative text-center">
+			Added to Bag
+			<button id="placeholder-close" class="absolute right-0">
+				<i class="fa fa-times"></i>
+			</button>
+		</h1>
+		<ul></ul>
+	</div>
 }

@@ -201,8 +201,9 @@ func (c *Cassandra) AddProduct(userId string, tid string, mid string, size strin
 				productId,
 				size,
 			)
+		} else {
+			return 0, err
 		}
-		return 0, err
 	} else {
 		query = c.session.Query(
 			"UPDATE products SET amount = ? WHERE user_id = ? AND product_id = ? AND size = ?",

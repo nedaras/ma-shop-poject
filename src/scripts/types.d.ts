@@ -2,6 +2,7 @@ type HTMXBeforeSwap = {
   xhr: XMLHttpRequest
   shouldSwap: boolean
   isError: boolean
+  serverResponse: string
   pathInfo: {
     finalRequestPath: string
     requestPath: string
@@ -11,6 +12,7 @@ type HTMXBeforeSwap = {
 
 type HTMXAfterSwap = {
   xhr: XMLHttpRequest
+  failed: boolean
   pathInfo: {
     finalRequestPath: string
     requestPath: string

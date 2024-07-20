@@ -59,7 +59,7 @@ func HandleProduct(c echo.Context) error {
 		if err := storage.DeleteProduct(session.UserId, product.ThreadId, product.Mid, size); err != nil {
 			return err
 		}
-    return c.NoContent(http.StatusOK)
+		return c.NoContent(http.StatusOK)
 	default:
 		panic("got unexpected method")
 	}

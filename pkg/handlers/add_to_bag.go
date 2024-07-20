@@ -34,16 +34,16 @@ func AddToBag(c echo.Context) error {
 		return newHTTPError(http.StatusBadRequest, "query param 'size' is invalid")
 	}
 
-  amount, err := storage.AddProduct(session.UserId, product.ThreadId, product.Mid, size)
-  if err != nil {
-    return err
-  }
+	amount, err := storage.AddProduct(session.UserId, product.ThreadId, product.Mid, size)
+	if err != nil {
+		return err
+	}
 
 	return render(c, components.BagProduct(components.BagProductContext{
-    Product: product,
-    Size: size,
-    Amount: amount,
-  }))
+		Product: product,
+		Size:    size,
+		Amount:  amount,
+	}))
 }
 
 func validateSize(path string, size string) (bool, error) {

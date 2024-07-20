@@ -16,7 +16,7 @@ templ BagProduct(c BagProductContext) {
 		<a href={ templ.SafeURL("/" + c.Product.ThreadId + "/" + c.Product.Mid) } class="row-span-2 bg-gray-50 grid place-items-center">
 			<img class="w-full" alt={ c.Product.Title } src={ string(templ.URL(c.Product.Image + "&wid=512")) }/>
 		</a>
-		<div class="product-indicator mt-2 mr-2">
+		<div class="mt-2 mr-2">
 			<h1>{ c.Product.Title }</h1>
 			<h2 class="text-xs text-gray-800">£{ strconv.FormatFloat(c.Product.Price, 'f', 2, 32) } / UK { c.Size }</h2>
 		</div>

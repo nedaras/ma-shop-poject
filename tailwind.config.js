@@ -2,7 +2,11 @@
 module.exports = {
   content: ["**/*.templ"],
   theme: {
-    extend: {},
+    extend: {
+      boxShadow: {
+        'flipped': '0 -1px 3px 0px rgb(0 0 0 / 0.1), 0 -1px 2px -1px rgb(0 0 0 / 0.1)',
+      },
+    },  
   },
   plugins: [],
 }
