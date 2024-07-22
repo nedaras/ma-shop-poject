@@ -120,7 +120,7 @@ func GetSizes(path string, men bool) ([]string, error) {
 						}
 						for _, kv := range a2.KeyValues {
 							if kv.Key == "uk" {
-								sizes[i] = strings.Trim(kv.Value, " \n\r\t")
+								sizes[i] = strings.Trim(kv.Value, " ")
 								i++
 							}
 						}
@@ -217,7 +217,7 @@ func GetAllSizes(path string) ([]string, error) {
 							}
 							for _, kv := range a2.KeyValues {
 								if kv.Key == "uk" {
-									sizes[len(sizes)-length] = strings.Trim(kv.Value, " \n\r\t")
+									sizes[len(sizes)-length] = kv.Value
 									length--
 								}
 							}

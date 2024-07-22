@@ -7,8 +7,8 @@ import (
 	"nedas/shop/pkg/models"
 	"nedas/shop/pkg/session"
 	"nedas/shop/src/views"
+	"nedas/shop/utils"
 	"net/http"
-	"os"
 
 	"github.com/labstack/echo/v4"
 )
@@ -22,13 +22,12 @@ type GoogleAuthData struct {
 
 var (
 	ErrInvalidCode = errors.New("provided code is invalid")
-	scopes         = "https://www.googleapis.com/auth/userinfo.email+https://www.googleapis.com/auth/userinfo.profile"
 )
 
 func HandleLogin(c echo.Context) error {
 	session := getSession(c)
 	if session == nil {
-		return render(c, views.Login(getGoogleLoginURL(scopes)))
+		return render(c, views.Login())
 	}
 	return renderSimpleError(c, http.StatusNotFound)
 }
@@ -124,9 +123,9 @@ func getGoogleAuthData(code string) (*GoogleAuthData, error) {
 	}
 
 	url := fmt.Sprintf("https://oauth2.googleapis.com/token?redirect_uri=%s&client_id=%s&client_secret=%s&code=%s&grant_type=authorization_code",
-		getenv("GOOGLE_REDIRECT_URL"),
-		getenv("GOOGLE_CLIENT_ID"),
-		getenv("GOOGLE_CLIENT_SECRET"),
+		utils.Getenv("GOOGLE_REDIRECT_URL"),
+		utils.Getenv("GOOGLE_CLIENT_ID"),
+		utils.Getenv("GOOGLE_CLIENT_SECRET"),
 		code,
 	)
 
@@ -170,14 +169,6 @@ func getGoogleAuthData(code string) (*GoogleAuthData, error) {
 	return data, nil
 }
 
-func getGoogleLoginURL(scopes string) string {
-	return fmt.Sprintf("https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=%s&response_type=code&include_granted_scopes=true&access_type=offline&promt=consent&client_id=%s&scope=%s",
-		getenv("GOOGLE_REDIRECT_URL"),
-		getenv("GOOGLE_CLIENT_ID"),
-		scopes,
-	)
-}
-
 type OAuth2Error struct {
 	Provider string
 	URL      string
@@ -190,12 +181,4 @@ func (e *OAuth2Error) Error() string {
 
 func (e *OAuth2Error) Unwrap() error {
 	return e.Err
-}
-
-func getenv(key string) string {
-	value := os.Getenv(key)
-	if value == "" {
-		panic(key + " is not set")
-	}
-	return value
 }

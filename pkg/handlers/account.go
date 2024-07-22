@@ -12,8 +12,8 @@ func HandleAccount(c echo.Context) error {
 	storage := getStorage(c)
 
 	if session == nil {
-		// render login bla bla bla...
-		return renderSimpleError(c, http.StatusNotFound)
+		c.Response().Header().Add("HX-Push-url", "/login")
+		return renderWithStatus(http.StatusSeeOther, c, views.Login())
 	}
 
 	user, err := storage.GetUser(session.UserId)

@@ -10,7 +10,7 @@ templ Sizes(sizes []string, path string, men bool) {
 				disabled?={ men }
 				hx-get={ getSizesURL(path, true) }
 				hx-target="#sizes"
-				hx-swap="outerHTML"
+				hx-swap="outerHTML settle:0ms show:top"
 			>
 				Men's
 			</button>
@@ -19,7 +19,7 @@ templ Sizes(sizes []string, path string, men bool) {
 				disabled?={ !men }
 				hx-get={ getSizesURL(path, false) }
 				hx-target="#sizes"
-				hx-swap="outerHTML"
+				hx-swap="outerHTML settle:0ms show:top"
 			>
 				Women's
 			</button>

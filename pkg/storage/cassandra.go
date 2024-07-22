@@ -2,10 +2,9 @@ package storage
 
 import (
 	"errors"
-	"log"
 	"math"
 	"nedas/shop/pkg/models"
-	"os"
+	"nedas/shop/utils"
 
 	"github.com/gocql/gocql"
 )
@@ -16,15 +15,8 @@ type Cassandra struct {
 }
 
 func NewCassandra() (*Cassandra, error) {
-	address := os.Getenv("CASSANDRA_ADDRESS")
-	if address == "" {
-		log.Fatal("CASSANDRA_ADDRESS not found in .env")
-	}
-
-	keyspace := os.Getenv("CASSANDRA_KEYSPACE")
-	if keyspace == "" {
-		log.Fatal("CASSANDRA_KEYSPACE not found in .env")
-	}
+	address := utils.Getenv("CASSANDRA_ADDRESS")
+	keyspace := utils.Getenv("CASSANDRA_KEYSPACE")
 
 	cluster := gocql.NewCluster(address)
 	cluster.Keyspace = keyspace
@@ -41,8 +33,8 @@ func NewCassandra() (*Cassandra, error) {
 }
 
 func (c *Cassandra) AddUser(user models.User) error {
-	assert(user.UserID != "", "user id is empty")
-	assert(user.Email != "", "user email is empty")
+	utils.Assert(user.UserID != "", "user id is empty")
+	utils.Assert(user.Email != "", "user email is empty")
 
 	query := c.session.Query(
 		"INSERT INTO users(user_id, email) VALUES (?, ?)",
@@ -58,7 +50,7 @@ func (c *Cassandra) AddUser(user models.User) error {
 }
 
 func (c *Cassandra) RemoveUser(userId string) error {
-	assert(userId != "", "user id is empty")
+	utils.Assert(userId != "", "user id is empty")
 
 	query := c.session.Query(
 		"DELETE FROM users WHERE user_id = ?",
@@ -69,7 +61,7 @@ func (c *Cassandra) RemoveUser(userId string) error {
 }
 
 func (c *Cassandra) GetUser(userId string) (models.User, error) {
-	assert(userId != "", "user id is empty")
+	utils.Assert(userId != "", "user id is empty")
 
 	query := c.session.Query(
 		"SELECT * FROM users WHERE user_id = ?",
@@ -106,7 +98,7 @@ func (c *Cassandra) GetUser(userId string) (models.User, error) {
 }
 
 func (c *Cassandra) GetProducts(userId string) ([]models.Product, error) {
-	assert(userId != "", "user id is empty")
+	utils.Assert(userId != "", "user id is empty")
 
 	query := c.session.Query(
 		"SELECT * FROM products WHERE user_id = ?",
@@ -142,10 +134,10 @@ func (c *Cassandra) GetProducts(userId string) ([]models.Product, error) {
 }
 
 func (c *Cassandra) GetProductAmount(userId string, tid string, mid string, size string) (uint8, error) {
-	assert(userId != "", "user id is empty")
-	assert(tid != "", "thread id is empty")
-	assert(mid != "", "mid is empty")
-	assert(size != "", "size is empty")
+	utils.Assert(userId != "", "user id is empty")
+	utils.Assert(tid != "", "thread id is empty")
+	utils.Assert(mid != "", "mid is empty")
+	utils.Assert(size != "", "size is empty")
 
 	var amount uint8
 
@@ -184,10 +176,10 @@ func (c *Cassandra) GetProductAmount(userId string, tid string, mid string, size
 }
 
 func (c *Cassandra) AddProduct(userId string, tid string, mid string, size string) (uint8, error) {
-	assert(userId != "", "user id is empty")
-	assert(tid != "", "thread id is empty")
-	assert(mid != "", "mid is empty")
-	assert(size != "", "size is empty")
+	utils.Assert(userId != "", "user id is empty")
+	utils.Assert(tid != "", "thread id is empty")
+	utils.Assert(mid != "", "mid is empty")
+	utils.Assert(size != "", "size is empty")
 
 	productId := tid + ":" + mid
 	var query *gocql.Query
@@ -221,10 +213,10 @@ func (c *Cassandra) AddProduct(userId string, tid string, mid string, size strin
 }
 
 func (c *Cassandra) IncreaseProduct(userId string, tid string, mid string, size string) (uint8, error) {
-	assert(userId != "", "user id is empty")
-	assert(tid != "", "thread id is empty")
-	assert(mid != "", "mid is empty")
-	assert(size != "", "size is empty")
+	utils.Assert(userId != "", "user id is empty")
+	utils.Assert(tid != "", "thread id is empty")
+	utils.Assert(mid != "", "mid is empty")
+	utils.Assert(size != "", "size is empty")
 
 	amount, err := c.GetProductAmount(userId, tid, mid, size)
 	if err != nil {
@@ -251,10 +243,10 @@ func (c *Cassandra) IncreaseProduct(userId string, tid string, mid string, size 
 }
 
 func (c *Cassandra) DecreaseProduct(userId string, tid string, mid string, size string) (uint8, error) {
-	assert(userId != "", "user id is empty")
-	assert(tid != "", "thread id is empty")
-	assert(mid != "", "mid is empty")
-	assert(size != "", "size is empty")
+	utils.Assert(userId != "", "user id is empty")
+	utils.Assert(tid != "", "thread id is empty")
+	utils.Assert(mid != "", "mid is empty")
+	utils.Assert(size != "", "size is empty")
 
 	amount, err := c.GetProductAmount(userId, tid, mid, size)
 	if err != nil {
@@ -288,10 +280,10 @@ func (c *Cassandra) DecreaseProduct(userId string, tid string, mid string, size 
 }
 
 func (c *Cassandra) DeleteProduct(userId string, tid string, mid string, size string) error {
-	assert(userId != "", "user id is empty")
-	assert(tid != "", "thread id is empty")
-	assert(mid != "", "mid is empty")
-	assert(size != "", "size is empty")
+	utils.Assert(userId != "", "user id is empty")
+	utils.Assert(tid != "", "thread id is empty")
+	utils.Assert(mid != "", "mid is empty")
+	utils.Assert(size != "", "size is empty")
 
 	productId := tid + ":" + mid
 	query := c.session.Query(
@@ -310,10 +302,4 @@ func (c *Cassandra) DeleteProduct(userId string, tid string, mid string, size st
 
 func (c *Cassandra) Close() {
 	c.session.Close()
-}
-
-func assert(ok bool, msg string) {
-	if !ok {
-		panic(msg)
-	}
 }

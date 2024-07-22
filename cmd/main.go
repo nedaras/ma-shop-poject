@@ -50,7 +50,9 @@ func main() {
 	e.PUT("/htmx/product", handlers.HandleProduct)
 	e.DELETE("/htmx/product", handlers.HandleProduct)
 
-	// change echo error handler would better error pages
+	// todo: we need like meta tags for some nive embeds
+	// todo: we prob will drop cassandra it aint a db for cuz we kinda will be doing joins manually
+	// todo: change echo error handler would better error pages
 
 	e.Logger.Fatal(e.Start(":3000"))
 }

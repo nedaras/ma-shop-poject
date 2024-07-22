@@ -1,15 +1,25 @@
 package views
 
 import (
+	"fmt"
 	"nedas/shop/src/components"
 	"nedas/shop/src/layouts"
+	"nedas/shop/utils"
 )
 
-templ Login(url string) {
+templ Login() {
 	@layouts.Layout("Login") {
 		@components.Header()
-		<a href={ templ.SafeURL(url) }>
+		<a href={ templ.SafeURL(getGoogleLoginURL()) }>
 			Google
 		</a>
 	}
+}
+
+func getGoogleLoginURL() string {
+	return fmt.Sprintf("https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=%s&response_type=code&include_granted_scopes=true&access_type=offline&promt=consent&client_id=%s&scope=%s",
+		utils.Getenv("GOOGLE_REDIRECT_URL"),
+		utils.Getenv("GOOGLE_CLIENT_ID"),
+		utils.Getenv("GOOGLE_SCOPES"),
+	)
 }

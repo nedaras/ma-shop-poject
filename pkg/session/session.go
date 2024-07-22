@@ -6,8 +6,8 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"io"
+	"nedas/shop/utils"
 	"net/http"
-	"os"
 )
 
 // one problem if someone gets the session it will be valid for life
@@ -43,10 +43,7 @@ func (s *Session) Cookie() *http.Cookie {
 }
 
 func NewSession(userId string) *Session {
-	secret := os.Getenv("SESSION_SECRET")
-	if secret == "" {
-		panic("SESSION_SECRET is not set")
-	}
+	secret := utils.Getenv("SESSION_SECRET")
 
 	key, err := hex.DecodeString(secret)
 	if err != nil {
@@ -87,10 +84,7 @@ func SessionFromHash(sessionHash string) (*Session, bool) {
 		return nil, false
 	}
 
-	secret := os.Getenv("SESSION_SECRET")
-	if secret == "" {
-		panic("SESSION_SECRET is not set")
-	}
+	secret := utils.Getenv("SESSION_SECRET")
 
 	key, err := hex.DecodeString(secret)
 	if err != nil {

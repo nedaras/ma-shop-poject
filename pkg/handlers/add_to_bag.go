@@ -57,7 +57,7 @@ func validateSize(path string, size string) (bool, error) {
 	}
 
 	for _, s := range sizes {
-		if size == s {
+		if s == size {
 			return true, nil
 		}
 	}

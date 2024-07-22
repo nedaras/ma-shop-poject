@@ -21,7 +21,7 @@ templ Sneaker(product Product, sizes []string) {
     #placeholder ul > .htmx-request .product-indicator {
       opacity: 0.5;
     }
-    .htmx-request button[type="submit"] {
+    .htmx-request #bag-button {
       pointer-events: none;
       opacity: 0.9;
     }
@@ -48,7 +48,7 @@ templ Sneaker(product Product, sizes []string) {
 		hx-indicator="this"
 	>
 		@Sizes(sizes, product.PathName, true)
-		<button type="submit" class="bg-black text-white w-full p-2 mt-4">
+		<button id="bag-button" type="submit" class="bg-black text-white w-full p-2 mt-4">
 			Add to Bag
 		</button>
 	</form>
