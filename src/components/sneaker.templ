@@ -42,15 +42,17 @@ templ Sneaker(product Product, sizes []string) {
 	</div>
 	<img alt={ product.Title } src={ string(templ.URL(product.Image + "&wid=768")) }/>
 	<form
-		class="p-2"
 		hx-post={ string(templ.SafeURL("/htmx/add_to_bag?tid=" + product.ThreadId + "&mid=" + product.Mid)) }
 		hx-target="#placeholder ul"
 		hx-indicator="this"
 	>
-		@Sizes(sizes, product.PathName, true)
-		<button id="bag-button" type="submit" class="bg-black text-white w-full p-2 mt-4">
-			Add to Bag
-		</button>
+    <div class="p-2">
+      @Sizes(sizes, product.PathName, true)
+    </div>
+    <button id="bag-button" type="submit" class="bg-black text-white w-full p-4 mt-2">
+      // show only when signed in or sum
+      Add to Bag
+    </button>
 	</form>
 	<div id="placeholder" class="bg-white fixed bottom-0 right-0 translate-y-full transition-transform duration-200 shadow-flipped">
 		<h1 class="m-2 relative text-center">
