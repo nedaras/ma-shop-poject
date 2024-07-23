@@ -6,11 +6,11 @@ import (
 )
 
 // on ma phone onload does not work
-templ Sneaker(product components.Product, sizes []string) {
+templ Sneaker(product components.Product, sizes []string, loggedIn bool) {
 	@layouts.Layout(product.Title) {
 		@components.Header()
 		<main>
-			@components.Sneaker(product, sizes)
+			@components.Sneaker(product, sizes, loggedIn)
 		</main>
 	}
 }

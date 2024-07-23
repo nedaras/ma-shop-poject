@@ -116,7 +116,7 @@ func HandleSearch(c echo.Context) error {
 	}
 
 	c.Response().Header().Add("HX-Push-Url", "/"+data.ThreadId+"/"+data.Mid)
-	return render(c, components.Sneaker(product, sizes))
+	return render(c, components.Sneaker(product, sizes, getSession(c) != nil))
 }
 
 // Any returned error will be of type [*NikeAPIError].

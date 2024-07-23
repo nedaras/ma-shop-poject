@@ -12,7 +12,7 @@ type Product struct {
 	Slug     string
 }
 
-templ Sneaker(product Product, sizes []string) {
+templ Sneaker(product Product, sizes []string, loggedIn bool) {
 	<title>{ product.Title }</title>
 	<div class="p-4">
 		<h1 class="text-2xl font-semibold mb-2">{ product.Title }</h1>
@@ -28,20 +28,25 @@ templ Sneaker(product Product, sizes []string) {
 			</a>
 		</div>
 	</div>
-	<img alt={ product.Title } src={ string(templ.URL(product.Image + "&wid=768")) }/>
-	<form
-		hx-post={ string(templ.SafeURL("/htmx/add_to_bag?tid=" + product.ThreadId + "&mid=" + product.Mid)) }
-		hx-target="#placeholder ul"
-		hx-indicator="this"
-	>
+	<img alt={ product.Title } src={ string(templ.URL(product.Image)) }/>
+  @sneakerForm(product, loggedIn) {
 		<div class="p-2">
 			@Sizes(sizes, product.PathName, true)
 		</div>
-		<button id="bag-button" type="submit" class="opacity-indicator bg-black text-white w-full p-4 mt-2">
-			// show only when signed in or sum
-			Add to Bag
-		</button>
-	</form>
+    if loggedIn {
+      <button id="bag-button" type="submit" class="opacity-indicator bg-black text-white w-full p-4 mt-2">
+        Add to Bag
+      </button>
+    }
+    else {
+      <a href="/login" hx-boost="true">
+        // need todo add rediret query so we would not loose our paths and stuff
+        <button id="bag-button" class="opacity-indicator bg-black text-white w-full p-4 mt-2">
+          Sign in to Buy
+        </button>
+      </a>
+    }
+  }
 	<div id="placeholder" class="bg-white fixed bottom-0 right-0 translate-y-full transition-transform duration-200 shadow-flipped">
 		<h1 class="m-2 relative text-center">
 			Added to Bag
@@ -49,6 +54,23 @@ templ Sneaker(product Product, sizes []string) {
 				<i class="fa fa-times"></i>
 			</button>
 		</h1>
+    // todo: make it when we press in the img it would go to bag
 		<ul></ul>
 	</div>
+}
+
+templ sneakerForm(product Product, loggedIn bool) {
+  if loggedIn {
+	  <form
+		  hx-post={ string(templ.SafeURL("/htmx/add_to_bag?tid=" + product.ThreadId + "&mid=" + product.Mid)) }
+		  hx-target="#placeholder ul"
+		  hx-indicator="this"
+	  >
+    { children... }
+    </form>
+  } else {
+    <div hx-indicator="this">
+      { children... }
+    </div>
+  }
 }

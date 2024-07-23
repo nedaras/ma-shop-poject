@@ -31,5 +31,5 @@ func HandleSneaker(c echo.Context) error {
 		return renderSimpleError(c, http.StatusInternalServerError)
 	}
 
-	return render(c, views.Sneaker(product, sizes))
+	return render(c, views.Sneaker(product, sizes, getSession(c) != nil))
 }
