@@ -9,3 +9,33 @@
   color: transparent;
   -webkit-text-fill-color: transparent;
 }
+/* todo: make pointer events it its other class would be better to add indicator: in tailwind would be best */
+.htmx-request .opacity-indicator {
+  pointer-events: none;
+  opacity: 0.90;
+}
+
+.htmx-request .opacity-indicator-200 {
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.htmx-request .opacity-indicator-500 {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.htmx-request.opacity-indicator {
+  pointer-events: none;
+  opacity: 0.90;
+}
+
+.htmx-request.opacity-indicator-200 {
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.htmx-request.opacity-indicator-500 {
+  pointer-events: none;
+  opacity: 0.5;
+}

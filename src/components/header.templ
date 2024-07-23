@@ -3,14 +3,19 @@ package components
 templ Header() {
 	<nav class="p-4 flex justify-between items-center shadow" hx-boost="true">
 		<div>
-			<a href="/">BRAND</a>
+			<a href="/" hx-indicator="this" class="opacity-indicator-200">BRAND</a>
 		</div>
 		<ul class="flex gap-4">
 			<li>
-				<a href="/account"><i class="fa-solid fa-user"></i></a>
+				// would be cool tbh if we could add like indicator: in tailwind
+				<a href="/account" hx-indicator="this" class="opacity-indicator-200">
+					<i class="fa-solid fa-user"></i>
+				</a>
 			</li>
 			<li>
-				<a href="/bag"><i class="fa-solid fa-bag-shopping"></i></a>
+				<a href="/bag" hx-indicator="this" class="opacity-indicator-200">
+					<i class="fa-solid fa-bag-shopping"></i>
+				</a>
 			</li>
 		</ul>
 	</nav>

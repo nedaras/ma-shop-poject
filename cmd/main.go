@@ -42,6 +42,7 @@ func main() {
 
 	e.POST("/htmx/search", handlers.HandleSearch)
 	e.POST("/htmx/add_to_bag", handlers.AddToBag)
+	e.POST("/htmx/logout", handlers.HandleLogout)
 	e.POST("/htmx/address/validate", handlers.HandleAddressValidate)
 	e.POST("/htmx/product/decrement", handlers.HandleDecrement)
 	e.POST("/htmx/product/increment", handlers.HandleIncrement)

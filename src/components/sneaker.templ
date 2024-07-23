@@ -14,18 +14,6 @@ type Product struct {
 
 templ Sneaker(product Product, sizes []string) {
 	<title>{ product.Title }</title>
-	<style>
-    #placeholder ul > .htmx-request {
-      pointer-events: none;
-    }
-    #placeholder ul > .htmx-request .product-indicator {
-      opacity: 0.5;
-    }
-    .htmx-request #bag-button {
-      pointer-events: none;
-      opacity: 0.9;
-    }
-  </style>
 	<div class="p-4">
 		<h1 class="text-2xl font-semibold mb-2">{ product.Title }</h1>
 		<div class="flex gap-2">
@@ -46,13 +34,13 @@ templ Sneaker(product Product, sizes []string) {
 		hx-target="#placeholder ul"
 		hx-indicator="this"
 	>
-    <div class="p-2">
-      @Sizes(sizes, product.PathName, true)
-    </div>
-    <button id="bag-button" type="submit" class="bg-black text-white w-full p-4 mt-2">
-      // show only when signed in or sum
-      Add to Bag
-    </button>
+		<div class="p-2">
+			@Sizes(sizes, product.PathName, true)
+		</div>
+		<button id="bag-button" type="submit" class="opacity-indicator bg-black text-white w-full p-4 mt-2">
+			// show only when signed in or sum
+			Add to Bag
+		</button>
 	</form>
 	<div id="placeholder" class="bg-white fixed bottom-0 right-0 translate-y-full transition-transform duration-200 shadow-flipped">
 		<h1 class="m-2 relative text-center">

@@ -10,6 +10,13 @@ templ Account(email string) {
 		@components.Header()
 		<main>
 			<p>Ur email is { email }</p>
+			<button
+				hx-post="/htmx/logout"
+				hx-replace-url="/"
+				hx-target="body"
+			>
+				Logout
+			</button>
 		</main>
 	}
 }

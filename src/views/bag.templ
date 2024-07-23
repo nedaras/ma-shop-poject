@@ -9,14 +9,6 @@ templ Bag(products []components.BagProductContext) {
 	@layouts.Layout("Bag") {
 		@components.Header()
 		<main>
-			<style>
-        ul > .htmx-request {
-          pointer-events: none;
-        }
-        ul > .htmx-request .product-indicator {
-          opacity: 0.5;
-        }
-      </style>
 			<ul hx-boost="true" class="flex flex-col gap-4 p-4">
 				for _, p := range products {
 					@components.BagProduct(p)

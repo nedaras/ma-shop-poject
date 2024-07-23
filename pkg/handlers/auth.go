@@ -9,6 +9,7 @@ import (
 	"nedas/shop/src/views"
 	"nedas/shop/utils"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 )
@@ -30,6 +31,22 @@ func HandleLogin(c echo.Context) error {
 		return render(c, views.Login())
 	}
 	return renderSimpleError(c, http.StatusNotFound)
+}
+
+func HandleLogout(c echo.Context) error {
+	session := getSession(c)
+
+	if session == nil {
+		return newHTTPError(http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
+	}
+
+	cookie := session.Cookie()
+	cookie.Value = ""
+	cookie.MaxAge = 0
+	cookie.Expires = time.Unix(0, 0)
+
+	c.SetCookie(cookie)
+	return render(c, views.Index())
 }
 
 func HandleGoogleLogin(c echo.Context) error {
