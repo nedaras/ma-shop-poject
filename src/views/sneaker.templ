@@ -1,16 +1,84 @@
 package views 
 
 import (
+	"nedas/shop/pkg/models"
 	"nedas/shop/src/components"
 	"nedas/shop/src/layouts"
+	"strconv"
 )
 
-// on ma phone onload does not work
-templ Sneaker(product components.Product, sizes []string, loggedIn bool) {
-	@layouts.Layout(product.Title) {
+type SneakerContext struct {
+	Product  models.Product
+	Sizes    []string
+	LoggedIn bool
+}
+
+templ Sneaker(c SneakerContext) {
+	@layouts.Layout(c.Product.Title) {
 		@components.Header()
 		<main>
-			@components.Sneaker(product, sizes, loggedIn)
+			<div class="p-4">
+				<h1 class="text-2xl font-semibold mb-2">{ c.Product.Title }</h1>
+				<div class="flex gap-2">
+					<h3 class="text-gray-800">£{ strconv.FormatFloat(c.Product.Price, 'f', 2, 32) }</h3>
+					<a
+						href={ templ.SafeURL("https://www.nike.com/gb/u/" + c.Product.Slug + "?mid=" + c.Product.Mid) }
+						class="text-amber-500"
+						target="_blank"
+						rel="noreferrer noopener"
+					>
+						<i class="fa-solid fa-link"></i>
+					</a>
+				</div>
+			</div>
+			<img alt={ c.Product.Title } src={ string(templ.URL(c.Product.Image)) }/>
+			@sneakerForm(c.Product, c.LoggedIn) {
+				<div class="p-2">
+					@components.Sizes(c.Sizes, c.Product.PathName, true)
+				</div>
+				if c.LoggedIn {
+					<button id="bag-button" type="submit" class="opacity-indicator bg-black text-white w-full p-4 mt-2">
+						Add to Bag
+					</button>
+				} else {
+					<button
+						id="bag-button"
+						class="opacity-indicator bg-black text-white w-full p-4 mt-2"
+						hx-post="/htmx/login"
+						hx-vals={ "{\"fallback\":\"" + string(templ.URL("/"+c.Product.ThreadId+"/"+c.Product.Mid)) + "\"}" }
+						hx-push-url="/login"
+						hx-target="body"
+					>
+						Sign in to Buy
+					</button>
+				}
+			}
+			<div id="placeholder" class="bg-white fixed bottom-0 right-0 translate-y-full transition-transform duration-200 shadow-flipped">
+				<h1 class="m-2 relative text-center">
+					Added to Bag
+					<button id="placeholder-close" class="absolute right-0">
+						<i class="fa fa-times"></i>
+					</button>
+				</h1>
+				// todo: make it when we press in the img it would go to bag
+				<ul></ul>
+			</div>
 		</main>
+	}
+}
+
+templ sneakerForm(product models.Product, loggedIn bool) {
+	if loggedIn {
+		<form
+			hx-post={ string(templ.SafeURL("/htmx/add_to_bag?tid=" + product.ThreadId + "&mid=" + product.Mid)) }
+			hx-target="#placeholder ul"
+			hx-indicator="this"
+		>
+			{ children... }
+		</form>
+	} else {
+		<div hx-indicator="this">
+			{ children... }
+		</div>
 	}
 }

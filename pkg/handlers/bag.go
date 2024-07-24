@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"nedas/shop/pkg/models"
 	"nedas/shop/pkg/storage"
 	"nedas/shop/src/components"
 	"nedas/shop/src/views"
@@ -111,7 +112,7 @@ func getProductFeedData(tid string) (*ProductFeedData, error) {
 }
 
 // Any returned error will be of type [*NikeAPIError].
-func getProduct(id string) (components.Product, error) {
+func getProduct(id string) (models.Product, error) {
 	arr := strings.SplitN(id, ":", 2)
 	if len(arr) != 2 {
 		panic("passed string is not split by ':'")
@@ -144,7 +145,7 @@ func getProduct(id string) (components.Product, error) {
 	for range 2 {
 		res := <-ch
 		if res.Err != nil {
-			return components.Product{}, res.Err
+			return models.Product{}, res.Err
 		}
 		switch v := res.Val.(type) {
 		case *NikeConsumerData:
@@ -158,7 +159,7 @@ func getProduct(id string) (components.Product, error) {
 
 	img := getImageByID(cd, "B")
 	if img == "" {
-		return components.Product{}, &NikeAPIError{
+		return models.Product{}, &NikeAPIError{
 			URL: "https://api.nike.com/customization/consumer_designs/v1?filter=shortId(" + mid + ")",
 			Err: ErrNotFound,
 		}
@@ -179,7 +180,7 @@ func getProduct(id string) (components.Product, error) {
 					slug += "-" + g.Legacy.PIID
 				}
 
-				return components.Product{
+				return models.Product{
 					Title:    p.ProductContent.Title,
 					Price:    p.MerchPrice.CurrentPrice,
 					Image:    img,
@@ -192,7 +193,7 @@ func getProduct(id string) (components.Product, error) {
 		}
 	}
 
-	return components.Product{}, &NikeAPIError{
+	return models.Product{}, &NikeAPIError{
 		URL: "https://api.nike.com/product_feed/rollup_threads/v2?filter=marketplace(GB)&filter=language(en-GB)&filter=employeePrice(true)&filter=id(" + tid + ")&consumerChannelId=d9a5bc42-4b9c-4976-858a-f159cf99c647",
 		Err: ErrNotFound,
 	}
@@ -227,7 +228,7 @@ func getProducts(userId string, storage storage.Storage) ([]components.BagProduc
 
 	ch := make(chan struct {
 		i       int
-		product components.Product
+		product models.Product
 		size    string
 		amount  uint8
 		err     error
@@ -243,13 +244,13 @@ func getProducts(userId string, storage storage.Storage) ([]components.BagProduc
 			if err != nil {
 				ch <- struct {
 					i       int
-					product components.Product
+					product models.Product
 					size    string
 					amount  uint8
 					err     error
 				}{
 					i:       i,
-					product: components.Product{},
+					product: models.Product{},
 					size:    product.Size,
 					amount:  0,
 					err:     err,
@@ -260,7 +261,7 @@ func getProducts(userId string, storage storage.Storage) ([]components.BagProduc
 			amount, err := storage.GetProductAmount(userId, val.ThreadId, val.Mid, product.Size)
 			ch <- struct {
 				i       int
-				product components.Product
+				product models.Product
 				size    string
 				amount  uint8
 				err     error

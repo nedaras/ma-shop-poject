@@ -2,11 +2,12 @@ package components
 
 import (
 	"fmt"
+	"nedas/shop/pkg/models"
 	"strconv"
 )
 
 type BagProductContext struct {
-	Product Product
+	Product models.Product
 	Size    string
 	Amount  uint8
 }

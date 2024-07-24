@@ -6,10 +6,9 @@ import (
 	"fmt"
 	"nedas/shop/pkg/models"
 	"nedas/shop/pkg/session"
-	"nedas/shop/src/views"
 	"nedas/shop/pkg/utils"
+	"nedas/shop/src/views"
 	"net/http"
-	"time"
 
 	"github.com/labstack/echo/v4"
 )
@@ -28,40 +27,48 @@ var (
 func HandleLogin(c echo.Context) error {
 	session := getSession(c)
 	if session != nil {
-    return renderSimpleError(c, http.StatusNotFound)
+		return renderSimpleError(c, http.StatusNotFound)
 	}
 
-  fallback := c.FormValue("fallback")
-  if fallback != "" {
-    c.SetCookie(&http.Cookie{
-      Name: "fallback",
-      Value: fallback,
-      Path: "/",
-      SameSite: http.SameSiteLaxMode,
-    })
-  }
+	fallback := c.FormValue("fallback")
+	cookie, err := c.Cookie("fallback")
 
-  return render(c, views.Login())
+	if fallback != "" {
+		c.SetCookie(&http.Cookie{
+			Name:     "fallback",
+			Value:    fallback,
+			Path:     "/",
+			MaxAge:   60 * 5,
+			Secure:   false,
+			HttpOnly: true,
+			SameSite: http.SameSiteLaxMode,
+		})
+	} else if err == nil {
+		cookie.Value = ""
+		cookie.MaxAge = -1
+
+		c.SetCookie(cookie)
+	}
+
+	return render(c, views.Login())
 }
 
 func HandleLogout(c echo.Context) error {
 	session := getSession(c)
-   
+
 	if session == nil {
 		return newHTTPError(http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
 	}
 
 	cookie := session.Cookie()
 	cookie.Value = ""
-	cookie.MaxAge = 0
-	cookie.Expires = time.Unix(0, 0)
+	cookie.MaxAge = -1
 
 	c.SetCookie(cookie)
 	return render(c, views.Index())
 }
 
 func HandleGoogleLogin(c echo.Context) error {
-  fmt.Println(c.Cookies())
 	code := c.QueryParam("code")
 	if code == "" {
 		return renderSimpleError(c, http.StatusNotFound)
@@ -91,37 +98,39 @@ func HandleGoogleLogin(c echo.Context) error {
 	session := session.NewSession(user.UserID)
 	c.SetCookie(session.Cookie())
 
-  cookie, err := c.Cookie("fallback")
-  if err != nil {
-    return c.Redirect(http.StatusMovedPermanently, "/")
-  }
+	cookie, err := c.Cookie("fallback")
+	if err != nil {
+		return c.Redirect(http.StatusMovedPermanently, "/")
+	}
 
-  redirect := cookie.Value
+	c.SetCookie(&http.Cookie{
+		Name:     "fallback",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		Secure:   cookie.Secure,
+		HttpOnly: cookie.HttpOnly,
+		SameSite: cookie.SameSite,
+	})
 
-  // todo: how the heck delete cookies
-	cookie.Value = ""
-	cookie.MaxAge = 0
-	cookie.Expires = time.Unix(0, 0)
-  c.SetCookie(cookie)
-
-  return c.Redirect(http.StatusMovedPermanently, redirect)
+	return c.Redirect(http.StatusMovedPermanently, cookie.Value)
 }
 
 // Any returned error will be of type [*OAuth2Error].
-func getGoogleUser(d *GoogleAuthData) (models.User, error) {
+func getGoogleUser(d *GoogleAuthData) (models.StorageUser, error) {
 	// we coould decode jwt but idk idk to much work or we can do unsafe way but idk idk
 	// for 0 users dont get over my self
 	url := "https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=" + d.AccessToken
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		return models.User{}, &OAuth2Error{Provider: "GOOGLE", URL: url, Err: err}
+		return models.StorageUser{}, &OAuth2Error{Provider: "GOOGLE", URL: url, Err: err}
 	}
 
 	req.Header.Set("Authorization", "Bearer "+d.IDToken)
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return models.User{}, &OAuth2Error{Provider: "GOOGLE", URL: url, Err: err}
+		return models.StorageUser{}, &OAuth2Error{Provider: "GOOGLE", URL: url, Err: err}
 	}
 	defer res.Body.Close()
 
@@ -134,25 +143,25 @@ func getGoogleUser(d *GoogleAuthData) (models.User, error) {
 	if res.StatusCode != 200 {
 		switch res.StatusCode {
 		case 401:
-			return models.User{}, &OAuth2Error{Provider: "GOOGLE", URL: url, Err: ErrInvalidCode} // mb remame this error idk
+			return models.StorageUser{}, &OAuth2Error{Provider: "GOOGLE", URL: url, Err: ErrInvalidCode} // mb remame this error idk
 		default:
-			return models.User{}, &OAuth2Error{Provider: "GOOGLE", URL: url, Err: fmt.Errorf("got unexpected response code '%d'", res.StatusCode)}
+			return models.StorageUser{}, &OAuth2Error{Provider: "GOOGLE", URL: url, Err: fmt.Errorf("got unexpected response code '%d'", res.StatusCode)}
 		}
 	}
 
 	if res.Header.Get("Content-Type") != "application/json; charset=UTF-8" {
-		return models.User{}, &OAuth2Error{Provider: "GOOGLE", URL: url, Err: errors.New("responded content is not in UTF-8 json form")}
+		return models.StorageUser{}, &OAuth2Error{Provider: "GOOGLE", URL: url, Err: errors.New("responded content is not in UTF-8 json form")}
 	}
 
 	if err := decoder.Decode(data); err != nil {
-		return models.User{}, &OAuth2Error{Provider: "GOOGLE", URL: url, Err: err}
+		return models.StorageUser{}, &OAuth2Error{Provider: "GOOGLE", URL: url, Err: err}
 	}
 
 	if data.ID == "" || data.Email == "" {
-		return models.User{}, &OAuth2Error{Provider: "GOOGLE", URL: url, Err: errors.New("user has some missing fields")}
+		return models.StorageUser{}, &OAuth2Error{Provider: "GOOGLE", URL: url, Err: errors.New("user has some missing fields")}
 	}
 
-	return models.User{
+	return models.StorageUser{
 		UserID: data.ID,
 		Email:  data.Email,
 	}, nil

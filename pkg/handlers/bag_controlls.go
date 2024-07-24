@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"nedas/shop/pkg/models"
 	"nedas/shop/pkg/storage"
 	"nedas/shop/src/components"
 	"net/http"
@@ -157,21 +158,21 @@ func HandleDecrement(c echo.Context) error {
 	}))
 }
 
-func getQueryProduct(c echo.Context) (components.Product, error) {
+func getQueryProduct(c echo.Context) (models.Product, error) {
 	tid, mid := c.QueryParam("tid"), c.QueryParam("mid")
 	if tid == "" {
-		return components.Product{}, newHTTPError(http.StatusBadRequest, "query param 'tid' is not specified")
+		return models.Product{}, newHTTPError(http.StatusBadRequest, "query param 'tid' is not specified")
 	}
 	if mid == "" {
-		return components.Product{}, newHTTPError(http.StatusBadRequest, "query param 'mid' is not specified")
+		return models.Product{}, newHTTPError(http.StatusBadRequest, "query param 'mid' is not specified")
 	}
 
 	product, err := getProduct(tid + ":" + mid)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
-			return components.Product{}, newHTTPError(http.StatusNotFound, fmt.Sprintf("product not found with thread id '%s' and mid '%s'", tid, mid))
+			return models.Product{}, newHTTPError(http.StatusNotFound, fmt.Sprintf("product not found with thread id '%s' and mid '%s'", tid, mid))
 		}
-		return components.Product{}, err
+		return models.Product{}, err
 	}
 	return product, nil
 }

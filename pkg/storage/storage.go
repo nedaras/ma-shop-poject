@@ -13,16 +13,16 @@ var (
 type Storage interface {
 
 	// Any returned error should be of type [*StorageError].
-	AddUser(user models.User) error
+	AddUser(user models.StorageUser) error
 
 	// Any returned error should be of type [*StorageError].
 	RemoveUser(userId string) error
 
 	// Any returned error should be of type [*StorageError].
-	GetUser(userId string) (models.User, error)
+	GetUser(userId string) (models.StorageUser, error)
 
 	// Any returned error should be of type [*StorageError].
-	GetProducts(userId string) ([]models.Product, error)
+	GetProducts(userId string) ([]models.StorageProduct, error)
 
 	// Any returned error should be of type [*StorageError].
 	GetProductAmount(userId string, tid string, mid string, size string) (uint8, error)

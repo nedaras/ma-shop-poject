@@ -18,6 +18,7 @@ func HandleSneaker(c echo.Context) error {
 		if errors.Is(err, ErrNotFound) {
 			return renderSimpleError(c, http.StatusNotFound)
 		}
+		// todo: all them loggers where idk whats the error
 		c.Logger().Error(err)
 		return renderSimpleError(c, http.StatusInternalServerError)
 	}
@@ -31,5 +32,9 @@ func HandleSneaker(c echo.Context) error {
 		return renderSimpleError(c, http.StatusInternalServerError)
 	}
 
-	return render(c, views.Sneaker(product, sizes, getSession(c) != nil))
+	return render(c, views.Sneaker(views.SneakerContext{
+		Product:  product,
+		Sizes:    sizes,
+		LoggedIn: getSession(c) != nil,
+	}))
 }

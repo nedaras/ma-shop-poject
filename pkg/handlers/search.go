@@ -6,7 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"nedas/shop/pkg/models"
 	"nedas/shop/src/components"
+	"nedas/shop/src/views"
 	"net/http"
 	"regexp"
 	"strings"
@@ -105,7 +107,7 @@ func HandleSearch(c echo.Context) error {
 		}
 	}
 
-	product := components.Product{
+	product := models.Product{
 		Title:    data.Title,
 		Price:    data.Price,
 		PathName: data.PathName,
@@ -116,7 +118,11 @@ func HandleSearch(c echo.Context) error {
 	}
 
 	c.Response().Header().Add("HX-Push-Url", "/"+data.ThreadId+"/"+data.Mid)
-	return render(c, components.Sneaker(product, sizes, getSession(c) != nil))
+	return render(c, views.Sneaker(views.SneakerContext{
+		Product:  product,
+		Sizes:    sizes,
+		LoggedIn: getSession(c) != nil,
+	}))
 }
 
 // Any returned error will be of type [*NikeAPIError].

@@ -32,7 +32,7 @@ func NewCassandra() (*Cassandra, error) {
 	}, nil
 }
 
-func (c *Cassandra) AddUser(user models.User) error {
+func (c *Cassandra) AddUser(user models.StorageUser) error {
 	utils.Assert(user.UserID != "", "user id is empty")
 	utils.Assert(user.Email != "", "user email is empty")
 
@@ -60,7 +60,7 @@ func (c *Cassandra) RemoveUser(userId string) error {
 	return query.Exec()
 }
 
-func (c *Cassandra) GetUser(userId string) (models.User, error) {
+func (c *Cassandra) GetUser(userId string) (models.StorageUser, error) {
 	utils.Assert(userId != "", "user id is empty")
 
 	query := c.session.Query(
@@ -68,7 +68,7 @@ func (c *Cassandra) GetUser(userId string) (models.User, error) {
 		userId,
 	)
 
-	user := models.User{}
+	user := models.StorageUser{}
 	iter := query.Iter()
 
 	if iter.NumRows() == 0 {
@@ -77,9 +77,9 @@ func (c *Cassandra) GetUser(userId string) (models.User, error) {
 			if errors.Is(err, gocql.ErrNotFound) {
 				err = ErrNotFound
 			}
-			return models.User{}, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
+			return models.StorageUser{}, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
 		}
-		return models.User{}, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: ErrNotFound}
+		return models.StorageUser{}, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: ErrNotFound}
 	}
 
 	ok := iter.Scan(&user.UserID, &user.Email)
@@ -87,17 +87,17 @@ func (c *Cassandra) GetUser(userId string) (models.User, error) {
 		if errors.Is(err, gocql.ErrNotFound) {
 			err = ErrNotFound
 		}
-		return models.User{}, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
+		return models.StorageUser{}, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
 	}
 
 	if !ok {
-		return models.User{}, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: ErrNotFound}
+		return models.StorageUser{}, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: ErrNotFound}
 	}
 
 	return user, nil
 }
 
-func (c *Cassandra) GetProducts(userId string) ([]models.Product, error) {
+func (c *Cassandra) GetProducts(userId string) ([]models.StorageProduct, error) {
 	utils.Assert(userId != "", "user id is empty")
 
 	query := c.session.Query(
@@ -109,12 +109,12 @@ func (c *Cassandra) GetProducts(userId string) ([]models.Product, error) {
 
 	if iter.NumRows() == 0 {
 		if err := iter.Close(); err != nil {
-			return []models.Product{}, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
+			return []models.StorageProduct{}, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
 		}
-		return []models.Product{}, nil
+		return []models.StorageProduct{}, nil
 	}
 
-	products := make([]models.Product, iter.NumRows())
+	products := make([]models.StorageProduct, iter.NumRows())
 	for i := range iter.NumRows() {
 		product := &products[i]
 		if ok := iter.Scan(&product.UserID, &product.ProductId, &product.Size, &product.Amount); !ok {
@@ -122,12 +122,12 @@ func (c *Cassandra) GetProducts(userId string) ([]models.Product, error) {
 			if err != nil {
 				panic("no err and not ok!!!!")
 			}
-			return []models.Product{}, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
+			return []models.StorageProduct{}, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
 		}
 	}
 
 	if err := iter.Close(); err != nil {
-		return []models.Product{}, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
+		return []models.StorageProduct{}, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
 	}
 
 	return products, nil
