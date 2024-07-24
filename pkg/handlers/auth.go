@@ -7,7 +7,7 @@ import (
 	"nedas/shop/pkg/models"
 	"nedas/shop/pkg/session"
 	"nedas/shop/src/views"
-	"nedas/shop/utils"
+	"nedas/shop/pkg/utils"
 	"net/http"
 	"time"
 
@@ -27,15 +27,26 @@ var (
 
 func HandleLogin(c echo.Context) error {
 	session := getSession(c)
-	if session == nil {
-		return render(c, views.Login())
+	if session != nil {
+    return renderSimpleError(c, http.StatusNotFound)
 	}
-	return renderSimpleError(c, http.StatusNotFound)
+
+  fallback := c.FormValue("fallback")
+  if fallback != "" {
+    c.SetCookie(&http.Cookie{
+      Name: "fallback",
+      Value: fallback,
+      Path: "/",
+      SameSite: http.SameSiteLaxMode,
+    })
+  }
+
+  return render(c, views.Login())
 }
 
 func HandleLogout(c echo.Context) error {
 	session := getSession(c)
-
+   
 	if session == nil {
 		return newHTTPError(http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
 	}
@@ -50,6 +61,7 @@ func HandleLogout(c echo.Context) error {
 }
 
 func HandleGoogleLogin(c echo.Context) error {
+  fmt.Println(c.Cookies())
 	code := c.QueryParam("code")
 	if code == "" {
 		return renderSimpleError(c, http.StatusNotFound)
@@ -79,7 +91,20 @@ func HandleGoogleLogin(c echo.Context) error {
 	session := session.NewSession(user.UserID)
 	c.SetCookie(session.Cookie())
 
-	return c.Redirect(http.StatusMovedPermanently, "/")
+  cookie, err := c.Cookie("fallback")
+  if err != nil {
+    return c.Redirect(http.StatusMovedPermanently, "/")
+  }
+
+  redirect := cookie.Value
+
+  // todo: how the heck delete cookies
+	cookie.Value = ""
+	cookie.MaxAge = 0
+	cookie.Expires = time.Unix(0, 0)
+  c.SetCookie(cookie)
+
+  return c.Redirect(http.StatusMovedPermanently, redirect)
 }
 
 // Any returned error will be of type [*OAuth2Error].

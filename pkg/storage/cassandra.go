@@ -4,7 +4,7 @@ import (
 	"errors"
 	"math"
 	"nedas/shop/pkg/models"
-	"nedas/shop/utils"
+	"nedas/shop/pkg/utils"
 
 	"github.com/gocql/gocql"
 )

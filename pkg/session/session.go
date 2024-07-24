@@ -6,7 +6,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"io"
-	"nedas/shop/utils"
+	"nedas/shop/pkg/utils"
 	"net/http"
 )
 

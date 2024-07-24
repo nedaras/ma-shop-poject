@@ -39,12 +39,16 @@ templ Sneaker(product Product, sizes []string, loggedIn bool) {
       </button>
     }
     else {
-      <a href="/login" hx-boost="true">
-        // need todo add rediret query so we would not loose our paths and stuff
-        <button id="bag-button" class="opacity-indicator bg-black text-white w-full p-4 mt-2">
-          Sign in to Buy
-        </button>
-      </a>
+      <button
+        id="bag-button" 
+        class="opacity-indicator bg-black text-white w-full p-4 mt-2"
+        hx-post="/htmx/login"
+        hx-vals={"{\"fallback\":\"" + string(templ.URL("/" + product.ThreadId + "/" + product.Mid)) + "\"}"}
+        hx-push-url="/login"
+        hx-target="body"
+      >
+        Sign in to Buy
+      </button>
     }
   }
 	<div id="placeholder" class="bg-white fixed bottom-0 right-0 translate-y-full transition-transform duration-200 shadow-flipped">

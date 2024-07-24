@@ -12,6 +12,7 @@ func AddToBag(c echo.Context) error {
 	storage := getStorage(c)
 
 	if session == nil {
+    // todo: move to login field then
 		return newHTTPError(http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
 	}
 
