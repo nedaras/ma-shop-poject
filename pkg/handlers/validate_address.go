@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"nedas/shop/src/views"
 	"net/http"
 	"net/url"
@@ -26,8 +27,10 @@ func HandleAddressValidate(c echo.Context) error {
 		return err
 	}
 
-	// i cant make cloud account for now
-	_ = addressData
+	fmt.Println(addressData)
+
+	// todo: like i have phone numbers saved i need to save provinces too
+	// fuck google i cant add address validation api cuz my card is prepaid or sum f them
 	return render(c, views.Index())
 
 }
@@ -70,65 +73,64 @@ func checkValue(f url.Values, v string) (string, error) {
 
 func getAddressData(c echo.Context) (AddressData, error) {
 	form, err := c.FormParams()
-	addressData := AddressData{}
 
 	if err != nil {
-		return addressData, err
+		return AddressData{}, err
 	}
 
 	country, err := checkValue(form, "country")
 	if err != nil {
-		return addressData, err
+		return AddressData{}, err
 	}
 
 	contact, err := checkValue(form, "contact")
 	if err != nil {
-		return addressData, err
+		return AddressData{}, err
 	}
 
 	phone, err := checkValue(form, "phone")
 	if err != nil {
-		return addressData, err
+		return AddressData{}, err
 	}
 
 	address1, err := checkValue(form, "address_1")
 	if err != nil {
-		return addressData, err
+		return AddressData{}, err
 	}
 
 	address2, err := checkValue(form, "address_2")
 	if err != nil {
-		return addressData, err
+		return AddressData{}, err
 	}
 
 	region, err := checkValue(form, "region")
 	if err != nil {
-		return addressData, err
+		return AddressData{}, err
 	}
 
 	city, err := checkValue(form, "city")
 	if err != nil {
-		return addressData, err
+		return AddressData{}, err
 	}
 
 	zipcode, err := checkValue(form, "zipcode")
 	if err != nil {
-		return addressData, err
+		return AddressData{}, err
 	}
 
 	countryCode, ok := getCountryCode(country)
 	if !ok {
-		return addressData, newHTTPError(http.StatusBadRequest, "received invalid 'country' field")
+		return AddressData{}, newHTTPError(http.StatusBadRequest, "received invalid 'country' field")
 	}
 
-	addressData.Country = country
-	addressData.Contact = contact
-	addressData.Phone = countryCode + phone
-	addressData.Address1 = address1
-	addressData.Address2 = address2
-	addressData.Region = region
-	addressData.City = city
-	addressData.Zipcode = zipcode
-
-	return addressData, nil
+	return AddressData{
+		Country:  country,
+		Contact:  contact,
+		Phone:    countryCode + phone,
+		Address1: address1,
+		Address2: address2,
+		Region:   region,
+		City:     city,
+		Zipcode:  zipcode,
+	}, nil
 }

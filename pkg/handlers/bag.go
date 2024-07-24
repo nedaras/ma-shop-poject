@@ -68,6 +68,7 @@ func HandleBag(c echo.Context) error {
 	// err can be from nike api or from storage
 	products, err := getProducts(session.UserId, storage)
 	if err != nil {
+		c.Logger().Error(err)
 		return err
 	}
 

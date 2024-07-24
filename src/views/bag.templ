@@ -14,6 +14,14 @@ templ Bag(products []components.BagProductContext) {
 					@components.BagProduct(p)
 				}
 			</ul>
+			<button
+				hx-post="/htmx/checkout"
+				hx-target="body"
+				hx-push-url="/address"
+				hx-swap="innerHTML show:window:top"
+			>
+				Checkout
+			</button>
 		</main>
 	}
 }

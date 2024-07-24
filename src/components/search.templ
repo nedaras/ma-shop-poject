@@ -6,6 +6,7 @@ templ Search(err string) {
 		action="#"
 		hx-post="/htmx/search"
 		hx-target="body"
+		hx-swap="innerHTML show:window:top"
 	>
 		<input
 			class="border border-gray-400 w-full bg-white rounded-2xl placeholder-gray-400 p-2 outline-none"
