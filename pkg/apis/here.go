@@ -9,7 +9,6 @@ import (
 	"net/url"
 )
 
-// todo: where is address line 2?
 // todo: we need to check the scoring and stuff...
 type HereData struct {
 	Items []struct {
@@ -28,7 +27,7 @@ type Here struct{}
 
 func (h *Here) ValidateAddress(address Address) (Address, error) {
 	utils.Assert(address.Country != "", "country is empty")
-	utils.Assert(address.AddressLine1 != "", "address line is empty")
+	utils.Assert(address.Street != "", "address line is empty")
 	utils.Assert(address.Region != "", "regionis is empty")
 	utils.Assert(address.City != "", "city is empty")
 	utils.Assert(address.Zipcode != "", "zipcode is empty")
@@ -64,11 +63,10 @@ func (h *Here) ValidateAddress(address Address) (Address, error) {
 
 	// todo: check if fields not null or sum
 	return Address{
-		Country:      data.Items[0].Address.CountryName,
-		AddressLine1: data.Items[0].Address.Street + " " + data.Items[0].Address.HouseNumber,
-		AddressLine2: "", // AAAAAA
-		Region:       data.Items[0].Address.State,
-		City:         data.Items[0].Address.City,
-		Zipcode:      data.Items[0].Address.PostalCode,
+		Country: data.Items[0].Address.CountryName,
+		Street:  data.Items[0].Address.Street + " " + data.Items[0].Address.HouseNumber,
+		Region:  data.Items[0].Address.State,
+		City:    data.Items[0].Address.City,
+		Zipcode: data.Items[0].Address.PostalCode,
 	}, nil
 }

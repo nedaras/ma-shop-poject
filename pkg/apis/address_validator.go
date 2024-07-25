@@ -2,7 +2,6 @@ package apis
 
 import (
 	"errors"
-	"strings"
 )
 
 var (
@@ -16,31 +15,17 @@ type AddressValidator interface {
 }
 
 type Address struct {
-	Country      string
-	AddressLine1 string
-	AddressLine2 string // optional
-	Region       string
-	City         string
-	Zipcode      string
+	Country string
+	Street  string
+	Region  string
+	City    string
+	Zipcode string
 }
 
 // todo: bench this string function cuz i dont know how what '+' works does it like allocate a new string
-//
-//	or go somehow idk puts it insidade builder its intresting
+// or go somehow idk puts it insidade builder its intresting
 func (a Address) String() string {
-	builder := strings.Builder{}
-	builder.WriteString(a.AddressLine1 + " ")
-
-	if a.AddressLine2 != "" {
-		builder.WriteString(a.AddressLine2 + " ")
-	}
-
-	builder.WriteString(a.City + ", ")
-	builder.WriteString(a.Region + ", ")
-	builder.WriteString(a.Country + ", ")
-	builder.WriteString(a.Zipcode)
-
-	return builder.String()
+	return a.Street + " " + a.City + ", " + a.Region + ", " + a.Country + ", " + a.Zipcode
 }
 
 type AddressValidationError struct {

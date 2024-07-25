@@ -11,14 +11,13 @@ import (
 )
 
 type AddressData struct {
-	Country  string
-	Contact  string
-	Phone    string
-	Address1 string
-	Address2 string
-	Region   string
-	City     string
-	Zipcode  string
+	Country string
+	Contact string
+	Phone   string
+	Street  string
+	Region  string
+	City    string
+	Zipcode string
 }
 
 // if error return 400 err code and html to update addressData or sum
@@ -30,12 +29,11 @@ func HandleAddressValidate(c echo.Context) error {
 
 	h := &apis.Here{}
 	adddress, err := h.ValidateAddress(apis.Address{
-		Country:      addressData.Country,
-		AddressLine1: addressData.Address1,
-		AddressLine2: addressData.Address2,
-		Region:       addressData.Region,
-		City:         addressData.City,
-		Zipcode:      addressData.Zipcode,
+		Country: addressData.Country,
+		Street:  addressData.Street,
+		Region:  addressData.Region,
+		City:    addressData.City,
+		Zipcode: addressData.Zipcode,
 	})
 	if err != nil {
 		return err
@@ -107,12 +105,7 @@ func getAddressData(c echo.Context) (AddressData, error) {
 		return AddressData{}, err
 	}
 
-	address1, err := checkValue(form, "address_1")
-	if err != nil {
-		return AddressData{}, err
-	}
-
-	address2, err := checkValue(form, "address_2")
+	street, err := checkValue(form, "street")
 	if err != nil {
 		return AddressData{}, err
 	}
@@ -138,13 +131,12 @@ func getAddressData(c echo.Context) (AddressData, error) {
 	}
 
 	return AddressData{
-		Country:  country,
-		Contact:  contact,
-		Phone:    countryCode + phone,
-		Address1: address1,
-		Address2: address2,
-		Region:   region,
-		City:     city,
-		Zipcode:  zipcode,
+		Country: country,
+		Contact: contact,
+		Phone:   countryCode + phone,
+		Street:  street,
+		Region:  region,
+		City:    city,
+		Zipcode: zipcode,
 	}, nil
 }
