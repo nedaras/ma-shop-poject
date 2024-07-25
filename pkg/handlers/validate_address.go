@@ -20,15 +20,18 @@ type AddressData struct {
 	Zipcode string
 }
 
+// pattern ^[A-Za-zÄÖÜäöüßĄČĘĖĮŠŲŪŽąčęėįšųūž ]+$
 // if error return 400 err code and html to update addressData or sum
 func HandleAddressValidate(c echo.Context) error {
 	addressData, err := getAddressData(c)
 	if err != nil {
 		return err
 	}
+	// we need to sanatize and validate the shit out of this cuz what the user writes here will go to and database
+	// would be crazy if an user writed in like 1k long names or idk phone number without numbers
 
-	h := &apis.Here{}
-	adddress, err := h.ValidateAddress(apis.Address{
+	// todo: idk how we need to use an interface no?
+	adddress, err := apis.ValidateAddress(apis.Address{
 		Country: addressData.Country,
 		Street:  addressData.Street,
 		Region:  addressData.Region,

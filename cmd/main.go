@@ -7,6 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
+	"nedas/shop/pkg/apis"
 	"nedas/shop/pkg/handlers"
 	"nedas/shop/pkg/middlewares"
 	"nedas/shop/pkg/storage"
@@ -23,6 +24,8 @@ func main() {
 		log.Fatal(err)
 	}
 	defer storage.Close()
+
+	apis.SetAddressValidator(&apis.Here{})
 
 	e := echo.New()
 

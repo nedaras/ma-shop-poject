@@ -2,16 +2,28 @@ package apis
 
 import (
 	"errors"
+	"nedas/shop/pkg/utils"
 )
 
 var (
 	ErrNotFound = errors.New("address not found")
+	vlidator    AddressValidator
 )
+
+func ValidateAddress(address Address) (Address, error) {
+	utils.Assert(vlidator != nil, "address validator is not set")
+	return vlidator.ValidateAddress(address)
+}
+
+func SetAddressValidator(v AddressValidator) {
+	utils.Assert(vlidator == nil, "address validator is already set")
+	vlidator = v
+}
 
 type AddressValidator interface {
 
 	// Any returned error should be of type [*AddressValidationError].
-	VaidateAddress(adress Address) (Address, error)
+	ValidateAddress(adress Address) (Address, error)
 }
 
 type Address struct {

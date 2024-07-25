@@ -31,15 +31,15 @@ templ Address() {
 				<input name="contact" class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" required type="text" placeholder="Contact name*"/>
 				<div class="inline-flex gap-4">
 					<div id="country_code" class="w-max select-none whitespace-nowrap border border-gray-400 rounded outline-none p-2" style="color:#9ca3af;">Country code*</div>
-					<input name="phone" class="w-full border border-gray-400 rounded outline-none placeholder-gray-400 p-2" required type="text" placeholder="Mobile number*"/>
+					<input name="phone" class="w-full border border-gray-400 rounded outline-none placeholder-gray-400 p-2 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" required type="number" placeholder="Mobile number*"/>
 				</div>
 			</li>
 			<li class="bg-white p-4 flex flex-col gap-4">
 				<h2 class="font-semibold">Address</h2>
 				<input name="street" class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" required type="text" placeholder="Street, house/apartment/unit*"/>
-				<input name="region" class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" required type="text" placeholder="Province*"/>
-				<input name="city" class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" required type="text" placeholder="City*"/>
-				<input name="zipcode" class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" required type="text" placeholder="ZIP code*"/>
+				<input name="region" class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" pattern="^[A-Za-zÄÖÜäöüßĄČĘĖĮŠŲŪŽąčęėįšųūž ]+$" title="Alphabetic characters only" required type="text" placeholder="Province*"/>
+				<input name="city" class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" pattern="^[A-Za-zÄÖÜäöüßĄČĘĖĮŠŲŪŽąčęėįšųūž ]+$" title="Alphabetic characters only" required type="text" placeholder="City*"/>
+				<input name="zipcode" class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" required type="number" placeholder="ZIP code*"/>
 			</li>
 		</ul>
 		<button class="bg-black text-white w-full p-4" type="submit">
