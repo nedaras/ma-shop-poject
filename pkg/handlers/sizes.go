@@ -67,9 +67,9 @@ func GetSizes(path string, men bool) ([]string, error) {
 	}
 	defer res.Body.Close()
 
-	if res.StatusCode != 200 {
+	if res.StatusCode != http.StatusOK {
 		switch res.StatusCode {
-		case 404:
+		case http.StatusNotFound:
 			return []string{}, &NikeAPIError{URL: url, Err: ErrNotFound}
 		default:
 			return []string{}, &NikeAPIError{URL: url, Err: fmt.Errorf("got unexpected response code '%d'", res.StatusCode)}
