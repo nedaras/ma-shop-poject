@@ -1,22 +1,48 @@
 package views
 
 import (
+	"nedas/shop/pkg/models"
 	"nedas/shop/src/components"
 	"nedas/shop/src/layouts"
+	"strconv"
 )
 
-templ Account(email string) {
-	@layouts.Layout("Account") {
+type AccountContext struct {
+	User      models.StorageUser
+	Addresses []models.Address
+}
+
+templ Account(c AccountContext) {
+	@layouts.Layout("Account | Shop") {
 		@components.Header()
-		<main>
-			<p>Ur email is { email }</p>
-			<button
-				hx-post="/htmx/logout"
-				hx-replace-url="/"
-				hx-target="body"
-			>
-				Logout
-			</button>
+		<main class="p-4">
+			<section>
+				<h1 class="font-semibold text-xl">Account details</h1>
+				<ul class="mt-4">
+					<li>
+						if len(c.Addresses) > 0 {
+							<a href="/addresses" hx-boost="true">
+								<h2 class="text-gray-800">View addresses ({ strconv.Itoa(len(c.Addresses)) })</h2>
+							</a>
+						} else {
+							<button>
+								<h2 class="text-gray-800">Add address</h2>
+							</button>
+						}
+					</li>
+					<li>
+						<button
+							class="text-gray-800"
+							hx-post="/htmx/logout"
+							hx-replace-url="/"
+							hx-target="body"
+							hx-swap="innerHTML show:window:top"
+						>
+							Log out
+						</button>
+					</li>
+				</ul>
+			</section>
 		</main>
 	}
 }

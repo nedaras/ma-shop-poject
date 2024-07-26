@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"nedas/shop/pkg/models"
 	"nedas/shop/src/views"
 	"net/http"
 
@@ -21,5 +22,24 @@ func HandleAccount(c echo.Context) error {
 		return err
 	}
 
-	return render(c, views.Account(user.Email))
+	return render(c, views.Account(views.AccountContext{
+		User: user,
+		Addresses: []models.Address{{
+			Contact: "Nedas Pranskunas",
+			Phone:   "+370 4635697",
+			Street:  "Sarkuvos gatve 10",
+			City:    "Kaunas",
+			Region:  "Kauno apskritis",
+			Country: "Lietuva",
+			Zipcode: "12345",
+		}, {
+			Contact: "Lauras Pranskunas",
+			Phone:   "+370 4635697",
+			Street:  "Sarkuvos gatve 10",
+			City:    "Kaunas",
+			Region:  "Kauno apskritis",
+			Country: "Lietuva",
+			Zipcode: "54321",
+		}},
+	}))
 }

@@ -25,7 +25,9 @@ type HereData struct {
 
 type Here struct{}
 
-func (h *Here) ValidateAddress(address Address) (Address, error) {
+// add logic for rate limiting like hold a request in a day we can have 1k requests so we need to calculate like how many requests can be handled
+// from given time to 12h or we could like suffle with api keys, idk if that even legal but in sense we could get like 2k requests a day
+func (h *Here) ValidateAddress(address Address) (Address, error) { // todo: like idk use multiple addresses
 	utils.Assert(address.Country != "", "country is empty")
 	utils.Assert(address.Street != "", "address line is empty")
 	utils.Assert(address.Region != "", "regionis is empty")
@@ -42,7 +44,10 @@ func (h *Here) ValidateAddress(address Address) (Address, error) {
 	}
 	defer res.Body.Close()
 
-	if res.StatusCode != http.StatusOK {
+	if res.StatusCode != http.StatusOK { // todo: check for rate limiting
+		if res.StatusCode == http.StatusTooManyRequests {
+			return Address{}, &AddressValidationError{Address: address, Err: ErrRateLimited}
+		}
 		return Address{}, &AddressValidationError{Address: address, Err: fmt.Errorf("got unexpected response code '%d'", res.StatusCode)}
 	}
 
@@ -61,12 +66,42 @@ func (h *Here) ValidateAddress(address Address) (Address, error) {
 		return Address{}, &AddressValidationError{Address: address, Err: ErrNotFound}
 	}
 
-	// todo: check if fields not null or sum
+	if len(data.Items) > 1 {
+		// todo add logger or sum idk
+		fmt.Println(&AddressValidationError{Address: address, Err: errors.New("got multiple addresses")})
+	}
+
+	item := data.Items[0]
+
+	if item.Address.CountryName == "" {
+		return Address{}, &AddressValidationError{Address: address, Err: ErrNotFound}
+	}
+
+	if item.Address.Street == "" {
+		return Address{}, &AddressValidationError{Address: address, Err: ErrNotFound}
+	}
+
+	if item.Address.HouseNumber == "" {
+		return Address{}, &AddressValidationError{Address: address, Err: ErrNotFound}
+	}
+
+	if item.Address.State == "" {
+		return Address{}, &AddressValidationError{Address: address, Err: ErrNotFound}
+	}
+
+	if item.Address.City == "" {
+		return Address{}, &AddressValidationError{Address: address, Err: ErrNotFound}
+	}
+
+	if item.Address.PostalCode == "" {
+		return Address{}, &AddressValidationError{Address: address, Err: ErrNotFound}
+	}
+
 	return Address{
-		Country: data.Items[0].Address.CountryName,
-		Street:  data.Items[0].Address.Street + " " + data.Items[0].Address.HouseNumber,
-		Region:  data.Items[0].Address.State,
-		City:    data.Items[0].Address.City,
-		Zipcode: data.Items[0].Address.PostalCode,
+		Country: item.Address.CountryName,
+		Street:  item.Address.Street + " " + item.Address.HouseNumber,
+		Region:  item.Address.State,
+		City:    item.Address.City,
+		Zipcode: item.Address.PostalCode,
 	}, nil
 }

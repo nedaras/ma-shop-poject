@@ -1,9 +1,8 @@
 package handlers
 
 import (
-	"fmt"
+	"errors"
 	"nedas/shop/pkg/apis"
-	"nedas/shop/src/views"
 	"net/http"
 	"net/url"
 
@@ -39,15 +38,20 @@ func HandleAddressValidate(c echo.Context) error {
 		Zipcode: addressData.Zipcode,
 	})
 	if err != nil {
-		return err
+		switch {
+		case errors.Is(err, apis.ErrNotFound):
+			return err
+		case errors.Is(err, apis.ErrRateLimited):
+			return err
+		default:
+			c.Logger().Error(err)
+			return err
+		}
 	}
 
-	fmt.Println("adress issss:", adddress.String())
+	_ = adddress
 
-	// todo: like i have phone numbers saved i need to save provinces too
-	// fuck google i cant add address validation api cuz my card is prepaid or sum f them
-	return render(c, views.Index())
-
+	return c.NoContent(http.StatusNotFound)
 }
 
 func getCountryCode(country string) (string, bool) {
@@ -136,7 +140,7 @@ func getAddressData(c echo.Context) (AddressData, error) {
 	return AddressData{
 		Country: country,
 		Contact: contact,
-		Phone:   countryCode + phone,
+		Phone:   countryCode + " " + phone,
 		Street:  street,
 		Region:  region,
 		City:    city,

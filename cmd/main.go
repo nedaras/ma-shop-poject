@@ -40,7 +40,7 @@ func main() {
 	e.GET("/login/google", handlers.HandleGoogleLogin)
 	e.GET("/bag", handlers.HandleBag)
 	e.GET("/account", handlers.HandleAccount)
-	e.GET("/address", handlers.HandleAddress)
+	e.GET("/addresses", handlers.HandleAddresses)
 	e.GET("/:thread_id/:mid", handlers.HandleSneaker)
 
 	e.POST("/htmx/search", handlers.HandleSearch)
