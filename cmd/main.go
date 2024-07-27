@@ -51,6 +51,7 @@ func main() {
 	e.POST("/htmx/address/validate", handlers.HandleAddressValidate)
 	e.POST("/htmx/product/decrement", handlers.HandleDecrement)
 	e.POST("/htmx/product/increment", handlers.HandleIncrement)
+	e.GET("/htmx/address/form/:id", handlers.HandleFormAddress)
 	e.GET("/htmx/sizes/:path", handlers.HandleSizes)
 
 	e.PUT("/htmx/product", handlers.HandleProduct)

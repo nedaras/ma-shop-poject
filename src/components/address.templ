@@ -1,6 +1,9 @@
 package components
 
-import "nedas/shop/pkg/models"
+import (
+	"fmt"
+	"nedas/shop/pkg/models"
+)
 
 templ Address(address models.Address) {
 	<div class="rounded w-full p-2">
@@ -11,10 +14,13 @@ templ Address(address models.Address) {
 		<h2 class="text-xs text-gray-800">
 			{ address.Street }
 			<br/>
-			{ address.City }, { address.Region }, { address.Country }, { address.Zipcode }
+			{ address.City }, { address.Region }, { address.Country }, { address.CountryCode }-{ address.Zipcode }
 		</h2>
-		// todo: do smth on edit idk goto an page or idk use make smth like with bag produt popup
-		<button class="underline text-sm italic text-blue-400 mt-2">
+		<button
+			class="underline text-sm italic text-blue-400 mt-2"
+			hx-get={ string(templ.URL(fmt.Sprintf("/htmx/address/form/%d", address.AddressId))) }
+			hx-target="closest main"
+		>
 			Edit
 		</button>
 	</div>

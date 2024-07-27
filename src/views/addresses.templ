@@ -6,53 +6,6 @@ import (
 	"nedas/shop/src/layouts"
 )
 
-templ AddressForm() {
-	<form
-		class="bg-gray-200"
-		hx-post="/htmx/address/validate"
-		hx-swap="outerHTML"
-	>
-		<ul class="flex flex-col gap-4">
-			<li class="bg-white p-4 flex flex-col gap-4">
-				<h2 class="font-semibold">Country/region</h2>
-				@Select() {
-					// would be cooler if we tried to predict where dis dude lives
-					<option value="" selected disabled hidden>Country*</option>
-					<option value="AL">Albania</option>
-					<option value="BA">Bosnia and Herzegovina</option>
-					<option value="EE">Estonia</option>
-					<option value="XK">Kosovo</option>
-					<option value="LV">Latvia</option>
-					<option value="LI">Liechtenstein</option>
-					<option value="LT">Lithuania</option>
-					<option value="MD">Maldova</option>
-					<option value="ME">Montenegro</option>
-					<option value="MK">North Macedonia</option>
-					<option value="RS">Serbia</option>
-				}
-			</li>
-			<li class="bg-white p-4 flex flex-col gap-4">
-				<h2 class="font-semibold">Contact information</h2>
-				<input name="contact" class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" required type="text" placeholder="Contact name*"/>
-				<div class="inline-flex gap-4">
-					<div id="country_code" class="w-max select-none whitespace-nowrap border border-gray-400 rounded outline-none p-2" style="color:#9ca3af;">Country code*</div>
-					<input name="phone" class="w-full border border-gray-400 rounded outline-none placeholder-gray-400 p-2 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" required type="number" placeholder="Mobile number*"/>
-				</div>
-			</li>
-			<li class="bg-white p-4 flex flex-col gap-4">
-				<h2 class="font-semibold">Address</h2>
-				<input name="street" class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" required type="text" placeholder="Street, house/apartment/unit*"/>
-				<input name="region" class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" pattern="^[A-Za-zÄÖÜäöüßĄČĘĖĮŠŲŪŽąčęėįšųūž ]+$" title="Alphabetic characters only" required type="text" placeholder="Province*"/>
-				<input name="city" class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" pattern="^[A-Za-zÄÖÜäöüßĄČĘĖĮŠŲŪŽąčęėįšųūž ]+$" title="Alphabetic characters only" required type="text" placeholder="City*"/>
-				<input name="zipcode" class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" required type="number" placeholder="ZIP code*"/>
-			</li>
-		</ul>
-		<button class="bg-black text-white w-full p-4" type="submit">
-			Save
-		</button>
-	</form>
-}
-
 templ Addresses(addresses []models.Address) {
 	@layouts.Layout("Addresses | Shop") {
 		@components.Header()
@@ -66,38 +19,4 @@ templ Addresses(addresses []models.Address) {
 			</ul>
 		</main>
 	}
-}
-
-templ Select() {
-	<div class="relative">
-		<style type="text/css">
-      .display-arrows::before,
-      .display-arrows::after {
-        content: "";
-        position: absolute;
-        width: 0;
-        height: 0;
-        left: 50%;
-        transform: translate(-50%, -50%);
-      }
-
-      .display-arrows::before {
-        border-left: 0.5em solid transparent;
-        border-right: 0.5em solid transparent;
-        border-bottom: 0.5em solid #9ca3af;
-        top: 35%;
-      }
-
-      .display-arrows::after {
-        top: 65%;
-        border-left: 0.5em solid transparent;
-        border-right: 0.5em solid transparent;
-        border-top: 0.5em solid #9ca3af;
-      }
-    </style>
-		<select name="country" id="country_selector" class="w-full p-2 pr-12 bg-white appearance-none border border-gray-400 rounded outline-none" style="color:#9ca3af;" required>
-			{ children... }
-		</select>
-		<span class="display-arrows absolute block h-full w-10 top-0 right-0 pointer-events-none"></span>
-	</div>
 }

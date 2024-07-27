@@ -10,13 +10,13 @@ import (
 )
 
 type AddressData struct {
-	Country string
-	Contact string
-	Phone   string
-	Street  string
-	Region  string
-	City    string
-	Zipcode string
+	CountryCode string
+	Contact     string
+	Phone       string
+	Street      string
+	Region      string
+	City        string
+	Zipcode     string
 }
 
 // pattern ^[A-Za-zÄÖÜäöüßĄČĘĖĮŠŲŪŽąčęėįšųūž ]+$
@@ -31,7 +31,7 @@ func HandleAddressValidate(c echo.Context) error {
 
 	// todo: idk how we need to use an interface no?
 	adddress, err := apis.ValidateAddress(apis.Address{
-		Country: addressData.Country,
+		Country: addressData.CountryCode,
 		Street:  addressData.Street,
 		Region:  addressData.Region,
 		City:    addressData.City,
@@ -54,32 +54,12 @@ func HandleAddressValidate(c echo.Context) error {
 	return c.NoContent(http.StatusNotFound)
 }
 
-func getCountryCode(country string) (string, bool) {
-	switch country {
-	case "AL":
-		return "+355", true
-	case "LT":
-		return "+370", true
-	case "LV":
-		return "+371", true
-	case "EE":
-		return "+372", true
-	case "MD":
-		return "+373", true
-	case "RS":
-		return "+381", true
-	case "ME":
-		return "+382", true
-	case "XK":
-		return "+383", true
-	case "BA":
-		return "+387", true
-	case "MK":
-		return "+389", true
-	case "LI":
-		return "+423", true
+func isCountryCodeValid(code string) bool {
+	switch code {
+	case "AL", "LT", "LV", "EE", "MD", "RS", "ME", "XK", "BA", "MK", "LI":
+		return true
 	default:
-		return "", false
+		return false
 	}
 }
 
@@ -97,7 +77,7 @@ func getAddressData(c echo.Context) (AddressData, error) {
 		return AddressData{}, err
 	}
 
-	country, err := checkValue(form, "country")
+	code, err := checkValue(form, "code")
 	if err != nil {
 		return AddressData{}, err
 	}
@@ -132,18 +112,17 @@ func getAddressData(c echo.Context) (AddressData, error) {
 		return AddressData{}, err
 	}
 
-	countryCode, ok := getCountryCode(country)
-	if !ok {
+	if !isCountryCodeValid(code) {
 		return AddressData{}, newHTTPError(http.StatusBadRequest, "received invalid 'country' field")
 	}
 
 	return AddressData{
-		Country: country,
-		Contact: contact,
-		Phone:   countryCode + " " + phone,
-		Street:  street,
-		Region:  region,
-		City:    city,
-		Zipcode: zipcode,
+		CountryCode: code,
+		Contact:     contact,
+		Phone:       phone,
+		Street:      street,
+		Region:      region,
+		City:        city,
+		Zipcode:     zipcode,
 	}, nil
 }

@@ -11,12 +11,13 @@ type Product struct {
 }
 
 type Address struct {
-	AddressId uint8
-	Contact   string
-	Phone     string
-	Country   string
-	Street    string
-	Region    string
-	City      string
-	Zipcode   string
+	AddressId   uint8
+	Contact     string
+	CountryCode string
+	Phone       string
+	Country     string
+	Street      string
+	Region      string
+	City        string
+	Zipcode     string
 }
