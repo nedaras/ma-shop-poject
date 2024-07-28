@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"nedas/shop/pkg/models"
+	"errors"
 	"nedas/shop/src/views"
 	"net/http"
 
@@ -19,27 +19,13 @@ func HandleAccount(c echo.Context) error {
 
 	user, err := storage.GetUser(session.UserId)
 	if err != nil {
+		if errors.Is(err, StorageErrNotFound) {
+			// todo: if 404 always remoe the cookie
+			c.Response().Header().Add("HX-Push-url", "/login")
+			return renderWithStatus(http.StatusSeeOther, c, views.Login())
+		}
 		return err
 	}
 
-	return render(c, views.Account(views.AccountContext{
-		User: user,
-		Addresses: []models.Address{{
-			Contact: "Nedas Pranskunas",
-			Phone:   "+370 4635697",
-			Street:  "Sarkuvos gatve 10",
-			City:    "Kaunas",
-			Region:  "Kauno apskritis",
-			Country: "Lietuva",
-			Zipcode: "12345",
-		}, {
-			Contact: "Lauras Pranskunas",
-			Phone:   "+370 4635697",
-			Street:  "Sarkuvos gatve 10",
-			City:    "Kaunas",
-			Region:  "Kauno apskritis",
-			Country: "Lietuva",
-			Zipcode: "54321",
-		}},
-	}))
+	return render(c, views.Account(user))
 }

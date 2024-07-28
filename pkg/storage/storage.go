@@ -39,6 +39,9 @@ type Storage interface {
 	// Any returned error should be of type [*StorageError].
 	DeleteProduct(userId string, tid string, mid string, size string) error
 
+	// Any returned error should be of type [*StorageError].
+	AddAddress(userId string, address models.Address, isDefault bool) error
+
 	Close()
 }
 

@@ -1,12 +1,15 @@
 package components
 
-import "nedas/shop/pkg/models"
+import (
+	"fmt"
+	"nedas/shop/pkg/models"
+)
 
 templ AddressForm(address models.Address) {
 	// todo: remove that phone prefix cuz idk mb some random dude will try to order in serbia that has like uks phone
 	<form
 		class="bg-gray-200"
-		hx-post="/htmx/address/validate"
+		hx-put={ string(templ.URL(fmt.Sprintf("/htmx/address/%d", address.AddressId))) }
 		hx-swap="outerHTML"
 	>
 		<ul class="flex flex-col gap-4">

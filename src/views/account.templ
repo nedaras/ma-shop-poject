@@ -1,31 +1,32 @@
 package views
 
 import (
+	"fmt"
 	"nedas/shop/pkg/models"
 	"nedas/shop/src/components"
 	"nedas/shop/src/layouts"
 	"strconv"
 )
 
-type AccountContext struct {
-	User      models.StorageUser
-	Addresses []models.Address
-}
-
-templ Account(c AccountContext) {
+templ Account(user models.StorageUser) {
 	@layouts.Layout("Account | Shop") {
 		@components.Header()
 		<main class="p-4">
 			<section>
+				<p>{ user.Email }</p>
+				<p>{ strconv.Itoa(int(user.DefaultAddress)) }</p>
 				<h1 class="font-semibold text-xl">Account details</h1>
 				<ul class="mt-4">
 					<li>
-						if len(c.Addresses) > 0 {
+						if len(user.Addresses) > 0 {
 							<a href="/addresses" hx-boost="true">
-								<h2 class="text-gray-800">View addresses ({ strconv.Itoa(len(c.Addresses)) })</h2>
+								<h2 class="text-gray-800">View addresses ({ strconv.Itoa(len(user.Addresses)) })</h2>
 							</a>
 						} else {
-							<button>
+							<button
+								hx-get={ string(templ.URL(fmt.Sprintf("/htmx/address/form/%d", user.DefaultAddress))) }
+								hx-target="closest main"
+							>
 								<h2 class="text-gray-800">Add address</h2>
 							</button>
 						}

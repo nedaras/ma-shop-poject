@@ -3,8 +3,10 @@ package handlers
 import (
 	"errors"
 	"nedas/shop/pkg/apis"
+	"nedas/shop/pkg/models"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 )
@@ -21,16 +23,27 @@ type AddressData struct {
 
 // pattern ^[A-Za-zÄÖÜäöüßĄČĘĖĮŠŲŪŽąčęėįšųūž ]+$
 // if error return 400 err code and html to update addressData or sum
-func HandleAddressValidate(c echo.Context) error {
+func HandlePutAddress(c echo.Context) error {
+	session := getSession(c)
+	storage := getStorage(c)
+
+	if session == nil {
+		return newHTTPError(http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
+	}
+
+	id, err := strconv.ParseUint(c.Param("id"), 10, 8)
+	if err != nil {
+		return newHTTPError(http.StatusBadRequest, "param 'id' is not valid uint8")
+	}
+
 	addressData, err := getAddressData(c)
 	if err != nil {
 		return err
 	}
+
 	// we need to sanatize and validate the shit out of this cuz what the user writes here will go to and database
 	// would be crazy if an user writed in like 1k long names or idk phone number without numbers
-
-	// todo: idk how we need to use an interface no?
-	adddress, err := apis.ValidateAddress(apis.Address{
+	address, err := apis.ValidateAddress(apis.Address{
 		Country: addressData.CountryCode,
 		Street:  addressData.Street,
 		Region:  addressData.Region,
@@ -49,9 +62,21 @@ func HandleAddressValidate(c echo.Context) error {
 		}
 	}
 
-	_ = adddress
+	if err := storage.AddAddress(session.UserId, models.Address{
+		AddressId:   uint8(id),
+		Contact:     addressData.Contact,
+		CountryCode: addressData.CountryCode,
+		Phone:       addressData.Phone,
+		Country:     address.Country,
+		Street:      address.Street,
+		Region:      address.Region,
+		City:        address.City,
+		Zipcode:     address.Zipcode,
+	}, false); err != nil {
+		return err
+	}
 
-	return c.NoContent(http.StatusNotFound)
+	return c.NoContent(http.StatusOK)
 }
 
 func isCountryCodeValid(code string) bool {

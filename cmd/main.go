@@ -48,13 +48,13 @@ func main() {
 	e.POST("/htmx/checkout", handlers.HandleCheckout)
 	e.POST("/htmx/login", handlers.HandleLogin)
 	e.POST("/htmx/logout", handlers.HandleLogout)
-	e.POST("/htmx/address/validate", handlers.HandleAddressValidate)
 	e.POST("/htmx/product/decrement", handlers.HandleDecrement)
 	e.POST("/htmx/product/increment", handlers.HandleIncrement)
 	e.GET("/htmx/address/form/:id", handlers.HandleFormAddress)
 	e.GET("/htmx/sizes/:path", handlers.HandleSizes)
 
 	e.PUT("/htmx/product", handlers.HandleProduct)
+	e.PUT("/htmx/address/:id", handlers.HandlePutAddress)
 	e.DELETE("/htmx/product", handlers.HandleProduct)
 
 	// todo: we need like meta tags for some nive embeds

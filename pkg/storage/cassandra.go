@@ -37,7 +37,7 @@ func (c *Cassandra) AddUser(user models.StorageUser) error {
 	utils.Assert(user.Email != "", "user email is empty")
 
 	query := c.session.Query(
-		"INSERT INTO users(user_id, email) VALUES (?, ?)",
+		"INSERT INTO users(user_id, email, addresses, default_address) VALUES (?, ?, {}, 0)",
 		user.UserID,
 		user.Email,
 	)
@@ -50,21 +50,15 @@ func (c *Cassandra) AddUser(user models.StorageUser) error {
 }
 
 func (c *Cassandra) RemoveUser(userId string) error {
-	utils.Assert(userId != "", "user id is empty")
-
-	query := c.session.Query(
-		"DELETE FROM users WHERE user_id = ?",
-		userId,
-	)
-
-	return query.Exec()
+	// todo: implement
+	panic("not implemented")
 }
 
 func (c *Cassandra) GetUser(userId string) (models.StorageUser, error) {
 	utils.Assert(userId != "", "user id is empty")
 
 	query := c.session.Query(
-		"SELECT * FROM users WHERE user_id = ?",
+		"SELECT user_id, email, addresses, default_address FROM users WHERE user_id = ?",
 		userId,
 	)
 
@@ -82,7 +76,8 @@ func (c *Cassandra) GetUser(userId string) (models.StorageUser, error) {
 		return models.StorageUser{}, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: ErrNotFound}
 	}
 
-	ok := iter.Scan(&user.UserID, &user.Email)
+	var addresses []map[string]any
+	ok := iter.Scan(&user.UserID, &user.Email, &addresses, &user.DefaultAddress)
 	if err := iter.Close(); err != nil {
 		if errors.Is(err, gocql.ErrNotFound) {
 			err = ErrNotFound
@@ -92,6 +87,23 @@ func (c *Cassandra) GetUser(userId string) (models.StorageUser, error) {
 
 	if !ok {
 		return models.StorageUser{}, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: ErrNotFound}
+	}
+
+	if len(addresses) > 0 {
+		user.Addresses = make([]models.Address, len(addresses))
+		for i, address := range addresses {
+			user.Addresses[i] = models.Address{
+				AddressId:   uint8(address["address_id"].(int8)),
+				Contact:     address["contact"].(string),
+				CountryCode: address["country_code"].(string),
+				Phone:       address["phone"].(string),
+				Country:     address["country"].(string),
+				Street:      address["street"].(string),
+				Region:      address["region"].(string),
+				City:        address["city"].(string),
+				Zipcode:     address["zipcode"].(string),
+			}
+		}
 	}
 
 	return user, nil
@@ -294,6 +306,48 @@ func (c *Cassandra) DeleteProduct(userId string, tid string, mid string, size st
 	)
 
 	if err := query.Exec(); err != nil {
+		return &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
+	}
+
+	return nil
+}
+
+func (c *Cassandra) AddAddress(userId string, address models.Address, isDefault bool) error {
+	utils.Assert(userId != "", "user id is empty")
+	utils.Assert(address.Contact != "", "address contact is empty")
+	utils.Assert(address.CountryCode != "", "address country code is empty")
+	utils.Assert(address.Phone != "", "address phone is empty")
+	utils.Assert(address.Country != "", "address country is empty")
+	utils.Assert(address.Street != "", "address street is empty")
+	utils.Assert(address.Region != "", "address region is empty")
+	utils.Assert(address.City != "", "address city is empty")
+	utils.Assert(address.Zipcode != "", "address zipcode is empt")
+
+	cqlAddress := map[string]any{
+		"address_id":   address.AddressId,
+		"contact":      address.Contact,
+		"country_code": address.CountryCode,
+		"phone":        address.Phone,
+		"country":      address.Country,
+		"street":       address.Street,
+		"region":       address.Region,
+		"city":         address.City,
+		"zipcode":      address.Zipcode,
+	}
+
+	var query *gocql.Query
+	if isDefault {
+
+	} else {
+		query = c.session.Query(
+			"UPDATE users SET addresses = addresses + ? WHERE user_id = ?",
+			[]map[string]any{cqlAddress},
+			userId,
+		)
+	}
+
+	if err := query.Exec(); err != nil {
+		// todo: way to handle not found
 		return &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
 	}
 

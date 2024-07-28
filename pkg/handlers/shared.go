@@ -11,6 +11,10 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+var (
+	StorageErrNotFound = storage.ErrNotFound
+)
+
 type Session = session.Session
 type ErrResult[T any] struct {
 	Val T
