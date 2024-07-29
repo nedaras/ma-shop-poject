@@ -30,9 +30,20 @@ func HandleLogin(c echo.Context) error {
 		return renderSimpleError(c, http.StatusNotFound)
 	}
 
-	fallback := c.FormValue("fallback")
-	cookie, err := c.Cookie("fallback")
+	var (
+		fallback string
+	)
 
+	switch c.Request().Method {
+	case http.MethodGet:
+		fallback = c.QueryParam("fallback")
+	case http.MethodPost:
+		fallback = c.FormValue("fallback")
+	default:
+		panic("invalid HandleLogin method")
+	}
+
+	cookie, err := c.Cookie("fallback")
 	if fallback != "" {
 		c.SetCookie(&http.Cookie{
 			Name:     "fallback",
@@ -57,7 +68,7 @@ func HandleLogout(c echo.Context) error {
 	session := getSession(c)
 
 	if session == nil {
-		return newHTTPError(http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
+		return redirect(c, "/")
 	}
 
 	cookie := session.Cookie()
@@ -65,7 +76,7 @@ func HandleLogout(c echo.Context) error {
 	cookie.MaxAge = -1
 
 	c.SetCookie(cookie)
-	return render(c, views.Index())
+	return redirect(c, "/")
 }
 
 func HandleGoogleLogin(c echo.Context) error {

@@ -55,3 +55,21 @@ func renderSimpleError(c echo.Context, sc int) error {
 func newHTTPError(code int, format string, a ...any) *echo.HTTPError {
 	return echo.NewHTTPError(code, fmt.Sprintf(format, a...))
 }
+
+func redirect(c echo.Context, path string) error {
+	if c.Request().Header.Get("HX-Request") == "true" {
+		c.Response().Header().Add("HX-Location", path)
+		return c.NoContent(http.StatusSeeOther)
+	}
+	return c.Redirect(http.StatusSeeOther, "/login")
+}
+
+func unauthorized(c echo.Context) error {
+	if c.Request().Header.Get("HX-Request") == "true" {
+		// todo: think how to had a cookie
+		//c.Response().Header().Add("HX-Location", "{\"path\":\"/login\",\"values\":{\"fallback\":\""+fallback+"\"}}")
+		c.Response().Header().Add("HX-Location", "/login")
+		return c.NoContent(http.StatusUnauthorized)
+	}
+	return c.Redirect(http.StatusSeeOther, "/login")
+}

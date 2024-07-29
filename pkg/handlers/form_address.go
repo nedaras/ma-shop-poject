@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"nedas/shop/pkg/models"
 	"nedas/shop/src/components"
 	"net/http"
@@ -10,13 +11,11 @@ import (
 )
 
 func HandleFormAddress(c echo.Context) error {
-
 	session := getSession(c)
 	storage := getStorage(c)
 
 	if session == nil {
-		// todo: idk what todo
-		return c.NoContent(http.StatusUnauthorized)
+		return unauthorized(c)
 	}
 
 	id, err := strconv.ParseUint(c.Param("id"), 10, 8)
@@ -26,7 +25,9 @@ func HandleFormAddress(c echo.Context) error {
 
 	user, err := storage.GetUser(session.UserId)
 	if err != nil {
-		// todo: handle not found
+		if errors.Is(err, StorageErrNotFound) {
+			return unauthorized(c)
+		}
 		return err
 	}
 

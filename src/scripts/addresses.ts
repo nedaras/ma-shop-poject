@@ -1,3 +1,4 @@
+
 document.body.addEventListener('htmx:afterSwap', (e) => {
   if (e.detail.failed) return
   if (!e.detail.pathInfo.requestPath.startsWith("/htmx/address/")) return

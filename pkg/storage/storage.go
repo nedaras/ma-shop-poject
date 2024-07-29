@@ -6,8 +6,10 @@ import (
 )
 
 var (
-	ErrAlreadySet = errors.New("row already is set")
-	ErrNotFound   = errors.New("row not found")
+	ErrAlreadySet       = errors.New("row already is set")
+	ErrNotFound         = errors.New("row not found")
+	ErrUserNotFound     = errors.New("user not found")
+	ProductUserNotFound = errors.New("product not found")
 )
 
 type Storage interface {

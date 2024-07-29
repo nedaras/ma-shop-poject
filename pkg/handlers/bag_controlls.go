@@ -4,16 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"nedas/shop/pkg/models"
-	"nedas/shop/pkg/storage"
 	"nedas/shop/src/components"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-)
-
-var (
-	ErrRowNotFound = storage.ErrNotFound
-	ErrAlreadySet  = storage.ErrAlreadySet
 )
 
 func HandleProduct(c echo.Context) error {
@@ -21,8 +15,7 @@ func HandleProduct(c echo.Context) error {
 	storage := getStorage(c)
 
 	if session == nil {
-		// todo: do the cookie stuff
-		return newHTTPError(http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
+		return unauthorized(c)
 	}
 
 	size := c.QueryParam("size")
@@ -49,6 +42,9 @@ func HandleProduct(c echo.Context) error {
 	case http.MethodPut:
 		amount, err := storage.AddProduct(session.UserId, product.ThreadId, product.Mid, size)
 		if err != nil {
+			if errors.Is(err, ErrNotFound) {
+				return unauthorized(c)
+			}
 			return err
 		}
 		return renderWithStatus(http.StatusAccepted, c, components.BagProduct(components.BagProductContext{
@@ -58,6 +54,9 @@ func HandleProduct(c echo.Context) error {
 		}))
 	case http.MethodDelete:
 		if err := storage.DeleteProduct(session.UserId, product.ThreadId, product.Mid, size); err != nil {
+			if errors.Is(err, ErrNotFound) {
+				return unauthorized(c)
+			}
 			return err
 		}
 		return c.NoContent(http.StatusOK)
@@ -71,8 +70,7 @@ func HandleIncrement(c echo.Context) error {
 	storage := getStorage(c)
 
 	if session == nil {
-		// todo: do the cookie stuff
-		return newHTTPError(http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
+		return unauthorized(c)
 	}
 
 	size := c.QueryParam("size")
@@ -96,8 +94,7 @@ func HandleIncrement(c echo.Context) error {
 
 	amount, err := storage.IncreaseProduct(session.UserId, product.ThreadId, product.Mid, size)
 	if err != nil {
-		if errors.Is(err, ErrRowNotFound) {
-			//return newHTTPError(http.StatusNotFound, fmt.Sprintf("product with thread id '%s' and mid '%s' is not in the bag", product.ThreadId, product.Mid))
+		if errors.Is(err, StorageErrNotFound) {
 			return c.NoContent(http.StatusNotFound)
 		}
 		return err
@@ -115,7 +112,7 @@ func HandleDecrement(c echo.Context) error {
 	storage := getStorage(c)
 
 	if session == nil {
-		// todo: do the cookie stuff
+		// todo: sync
 		return newHTTPError(http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
 	}
 
@@ -140,8 +137,7 @@ func HandleDecrement(c echo.Context) error {
 
 	amount, err := storage.DecreaseProduct(session.UserId, product.ThreadId, product.Mid, size)
 	if err != nil {
-		if errors.Is(err, ErrRowNotFound) {
-			//return newHTTPError(http.StatusNotFound, fmt.Sprintf("product with thread id '%s' and mid '%s' is not in the bag", product.ThreadId, product.Mid))
+		if errors.Is(err, StorageErrNotFound) {
 			return c.NoContent(http.StatusNotFound)
 		}
 		return err

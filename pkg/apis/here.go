@@ -27,7 +27,7 @@ type Here struct{}
 
 // add logic for rate limiting like hold a request in a day we can have 1k requests so we need to calculate like how many requests can be handled
 // from given time to 12h or we could like suffle with api keys, idk if that even legal but in sense we could get like 2k requests a day
-func (h *Here) ValidateAddress(address Address) (Address, error) { // todo: like idk use multiple addresses
+func (h *Here) ValidateAddress(address Address) (Address, error) {
 	utils.Assert(address.Country != "", "country is empty")
 	utils.Assert(address.Street != "", "address line is empty")
 	utils.Assert(address.Region != "", "regionis is empty")

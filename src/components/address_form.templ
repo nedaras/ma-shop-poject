@@ -6,11 +6,11 @@ import (
 )
 
 templ AddressForm(address models.Address) {
-	// todo: remove that phone prefix cuz idk mb some random dude will try to order in serbia that has like uks phone
 	<form
 		class="bg-gray-200"
 		hx-put={ string(templ.URL(fmt.Sprintf("/htmx/address/%d", address.AddressId))) }
-		hx-swap="outerHTML"
+		hx-target="body"
+		hx-push-url="/addresses"
 	>
 		<ul class="flex flex-col gap-4">
 			<li class="bg-white p-4 flex flex-col gap-4">
@@ -32,8 +32,8 @@ templ AddressForm(address models.Address) {
 			</li>
 			<li class="bg-white p-4 flex flex-col gap-4">
 				<h2 class="font-semibold">Contact information</h2>
-				<input name="contact" class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" value={ address.Contact } required type="text" placeholder="Contact name*"/>
-				<input name="phone" class="w-full border border-gray-400 rounded outline-none placeholder-gray-400 p-2" value={ address.Phone } required type="text" placeholder="Mobile number*"/>
+				<input name="contact" class="border border-gray-400 rounded outline-none placeholder-gray-400 p-2" maxlength="64" value={ address.Contact } required type="text" placeholder="Contact name*"/>
+				<input name="phone" class="w-full border border-gray-400 rounded outline-none placeholder-gray-400 p-2" value={ address.Phone } required type="text" pattern="^\+?(\d\s*){7,14}$" title="Use valid number" placeholder="Mobile number*"/>
 			</li>
 			<li class="bg-white p-4 flex flex-col gap-4">
 				<h2 class="font-semibold">Address</h2>

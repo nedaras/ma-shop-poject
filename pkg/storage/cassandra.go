@@ -313,6 +313,7 @@ func (c *Cassandra) DeleteProduct(userId string, tid string, mid string, size st
 }
 
 func (c *Cassandra) AddAddress(userId string, address models.Address, isDefault bool) error {
+	// todo idk how we need to check if id is not colliding, just make addresses table f this shi we will postgressing
 	utils.Assert(userId != "", "user id is empty")
 	utils.Assert(address.Contact != "", "address contact is empty")
 	utils.Assert(address.CountryCode != "", "address country code is empty")
@@ -337,18 +338,27 @@ func (c *Cassandra) AddAddress(userId string, address models.Address, isDefault 
 
 	var query *gocql.Query
 	if isDefault {
-
+		query = c.session.Query(
+			"UPDATE users SET addresses = addresses + ?, default_address = ? WHERE user_id = ? IF EXISTS",
+			[]map[string]any{cqlAddress},
+			address.AddressId,
+			userId,
+		)
 	} else {
 		query = c.session.Query(
-			"UPDATE users SET addresses = addresses + ? WHERE user_id = ?",
+			"UPDATE users SET addresses = addresses + ? WHERE user_id = ? IF EXISTS",
 			[]map[string]any{cqlAddress},
 			userId,
 		)
 	}
 
-	if err := query.Exec(); err != nil {
-		// todo: way to handle not found
+	applied, err := query.ScanCAS(nil, nil, nil, nil)
+	if err != nil {
 		return &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
+	}
+
+	if !applied {
+		return &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: ErrNotFound}
 	}
 
 	return nil

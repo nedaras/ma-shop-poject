@@ -4,9 +4,10 @@ import (
 	"errors"
 	"nedas/shop/pkg/apis"
 	"nedas/shop/pkg/models"
+	"nedas/shop/src/views"
 	"net/http"
-	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 )
@@ -21,14 +22,12 @@ type AddressData struct {
 	Zipcode     string
 }
 
-// pattern ^[A-Za-zÄÖÜäöüßĄČĘĖĮŠŲŪŽąčęėįšųūž ]+$
-// if error return 400 err code and html to update addressData or sum
 func HandlePutAddress(c echo.Context) error {
 	session := getSession(c)
 	storage := getStorage(c)
 
 	if session == nil {
-		return newHTTPError(http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
+		return unauthorized(c)
 	}
 
 	id, err := strconv.ParseUint(c.Param("id"), 10, 8)
@@ -36,13 +35,11 @@ func HandlePutAddress(c echo.Context) error {
 		return newHTTPError(http.StatusBadRequest, "param 'id' is not valid uint8")
 	}
 
-	addressData, err := getAddressData(c)
+	addressData, err := validateAddressData(c)
 	if err != nil {
 		return err
 	}
 
-	// we need to sanatize and validate the shit out of this cuz what the user writes here will go to and database
-	// would be crazy if an user writed in like 1k long names or idk phone number without numbers
 	address, err := apis.ValidateAddress(apis.Address{
 		Country: addressData.CountryCode,
 		Street:  addressData.Street,
@@ -53,8 +50,10 @@ func HandlePutAddress(c echo.Context) error {
 	if err != nil {
 		switch {
 		case errors.Is(err, apis.ErrNotFound):
+			// todo: yee handle these
 			return err
 		case errors.Is(err, apis.ErrRateLimited):
+			// todo: yee handle these
 			return err
 		default:
 			c.Logger().Error(err)
@@ -62,7 +61,7 @@ func HandlePutAddress(c echo.Context) error {
 		}
 	}
 
-	if err := storage.AddAddress(session.UserId, models.Address{
+	err = storage.AddAddress(session.UserId, models.Address{
 		AddressId:   uint8(id),
 		Contact:     addressData.Contact,
 		CountryCode: addressData.CountryCode,
@@ -72,11 +71,23 @@ func HandlePutAddress(c echo.Context) error {
 		Region:      address.Region,
 		City:        address.City,
 		Zipcode:     address.Zipcode,
-	}, false); err != nil {
+	}, false)
+	if err != nil {
+		if errors.Is(err, StorageErrNotFound) {
+			return unauthorized(c)
+		}
 		return err
 	}
 
-	return c.NoContent(http.StatusOK)
+	user, err := storage.GetUser(session.UserId)
+	if err != nil {
+		if errors.Is(err, StorageErrNotFound) {
+			return unauthorized(c)
+		}
+		return err
+	}
+
+	return render(c, views.Addresses(user.Addresses))
 }
 
 func isCountryCodeValid(code string) bool {
@@ -88,57 +99,54 @@ func isCountryCodeValid(code string) bool {
 	}
 }
 
-func checkValue(f url.Values, v string) (string, error) {
-	if !f.Has(v) {
-		return "", newHTTPError(http.StatusBadRequest, "form has missing '%s' field", v)
-	}
-	return f.Get(v), nil
-}
-
-func getAddressData(c echo.Context) (AddressData, error) {
-	form, err := c.FormParams()
-
-	if err != nil {
-		return AddressData{}, err
-	}
-
-	code, err := checkValue(form, "code")
-	if err != nil {
-		return AddressData{}, err
-	}
-
-	contact, err := checkValue(form, "contact")
-	if err != nil {
-		return AddressData{}, err
-	}
-
-	phone, err := checkValue(form, "phone")
-	if err != nil {
-		return AddressData{}, err
-	}
-
-	street, err := checkValue(form, "street")
-	if err != nil {
-		return AddressData{}, err
-	}
-
-	region, err := checkValue(form, "region")
-	if err != nil {
-		return AddressData{}, err
-	}
-
-	city, err := checkValue(form, "city")
-	if err != nil {
-		return AddressData{}, err
-	}
-
-	zipcode, err := checkValue(form, "zipcode")
-	if err != nil {
-		return AddressData{}, err
+// todo: unit test this validator
+func validateAddressData(c echo.Context) (AddressData, error) {
+	code := c.FormValue("code")
+	if code == "" {
+		return AddressData{}, newHTTPError(http.StatusBadRequest, "form has missing 'code' field")
 	}
 
 	if !isCountryCodeValid(code) {
-		return AddressData{}, newHTTPError(http.StatusBadRequest, "received invalid 'country' field")
+		return AddressData{}, newHTTPError(http.StatusBadRequest, "received invalid 'code' field")
+	}
+
+	contact := c.FormValue("contact")
+	if contact == "" {
+		return AddressData{}, newHTTPError(http.StatusBadRequest, "form has missing 'contact' field")
+	}
+
+	if len(contact) > 64 {
+		return AddressData{}, newHTTPError(http.StatusBadRequest, "received invalid 'contact' field")
+	}
+
+	phone := c.FormValue("phone")
+	if phone == "" {
+		return AddressData{}, newHTTPError(http.StatusBadRequest, "form has missing 'phone' field")
+	}
+
+	phone, ok := validatePhone(phone)
+	if !ok {
+		return AddressData{}, newHTTPError(http.StatusBadRequest, "received invalid 'phone' field")
+	}
+
+	street := c.FormValue("street")
+	if street == "" {
+		return AddressData{}, newHTTPError(http.StatusBadRequest, "form has missing 'street' field")
+	}
+
+	region := c.FormValue("region")
+	if region == "" {
+		return AddressData{}, newHTTPError(http.StatusBadRequest, "form has missing 'region' field")
+	}
+
+	city := c.FormValue("city")
+	if city == "" {
+		return AddressData{}, newHTTPError(http.StatusBadRequest, "form has missing 'city' field")
+	}
+
+	zipcode := c.FormValue("zipcode")
+	if zipcode == "" {
+		return AddressData{}, newHTTPError(http.StatusBadRequest, "form has missing 'zipcode' field")
 	}
 
 	return AddressData{
@@ -150,4 +158,28 @@ func getAddressData(c echo.Context) (AddressData, error) {
 		City:        city,
 		Zipcode:     zipcode,
 	}, nil
+}
+
+func validatePhone(phone string) (string, bool) {
+	phone = strings.ReplaceAll(phone, " ", "")
+	if phone == "" {
+		return "", false
+	}
+
+	i := 0
+	if phone[0] == '+' {
+		i++
+	}
+
+	if len(phone[i:]) > 14 || len(phone[i:]) < 7 {
+		return "", false
+	}
+
+	for i < len(phone) {
+		if phone[i] < '0' || phone[i] > '9' {
+			return "", false
+		}
+		i++
+	}
+	return phone, true
 }
