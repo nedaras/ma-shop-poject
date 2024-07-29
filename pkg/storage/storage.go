@@ -6,10 +6,8 @@ import (
 )
 
 var (
-	ErrAlreadySet       = errors.New("row already is set")
-	ErrNotFound         = errors.New("row not found")
-	ErrUserNotFound     = errors.New("user not found")
-	ProductUserNotFound = errors.New("product not found")
+	ErrAlreadySet = errors.New("row already is set")
+	ErrNotFound   = errors.New("row not found")
 )
 
 type Storage interface {
@@ -42,7 +40,10 @@ type Storage interface {
 	DeleteProduct(userId string, tid string, mid string, size string) error
 
 	// Any returned error should be of type [*StorageError].
-	AddAddress(userId string, address models.Address, isDefault bool) error
+	AddAddress(userId string, address models.Address) error
+
+	// Any returned error should be of type [*StorageError].
+	GetAddresses(userId string) ([]models.Address, error)
 
 	Close()
 }

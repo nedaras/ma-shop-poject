@@ -1,11 +1,9 @@
 package handlers
 
 import (
-	"errors"
 	"nedas/shop/pkg/models"
 	"nedas/shop/src/components"
 	"net/http"
-	"strconv"
 
 	"github.com/labstack/echo/v4"
 )
@@ -18,25 +16,18 @@ func HandleFormAddress(c echo.Context) error {
 		return unauthorized(c)
 	}
 
-	id, err := strconv.ParseUint(c.Param("id"), 10, 8)
+	id := c.Param("id")
+	addresses, err := storage.GetAddresses(session.UserId)
 	if err != nil {
-		return newHTTPError(http.StatusBadRequest, "param 'id' is not valid uint8")
-	}
-
-	user, err := storage.GetUser(session.UserId)
-	if err != nil {
-		if errors.Is(err, StorageErrNotFound) {
-			return unauthorized(c)
-		}
 		return err
 	}
 
-	if len(user.Addresses) == 0 {
-		return render(c, components.AddressForm(models.Address{AddressId: uint8(id)}))
+	if len(addresses) == 0 {
+		return render(c, components.AddressForm(models.Address{AddressId: id}))
 	}
 
-	for _, adress := range user.Addresses {
-		if adress.AddressId == uint8(id) {
+	for _, adress := range addresses {
+		if adress.AddressId == id {
 			return render(c, components.AddressForm(adress))
 		}
 	}

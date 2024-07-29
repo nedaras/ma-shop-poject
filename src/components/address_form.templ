@@ -1,14 +1,11 @@
 package components
 
-import (
-	"fmt"
-	"nedas/shop/pkg/models"
-)
+import "nedas/shop/pkg/models"
 
 templ AddressForm(address models.Address) {
 	<form
 		class="bg-gray-200"
-		hx-put={ string(templ.URL(fmt.Sprintf("/htmx/address/%d", address.AddressId))) }
+		hx-put={ string(templ.URL("/htmx/address/" + address.AddressId)) }
 		hx-target="body"
 		hx-push-url="/addresses"
 	>

@@ -66,7 +66,7 @@ func redirect(c echo.Context, path string) error {
 
 func unauthorized(c echo.Context) error {
 	if c.Request().Header.Get("HX-Request") == "true" {
-		// todo: think how to had a cookie
+		// todo: i dont like the redirect when we can manipulate boost with headers
 		//c.Response().Header().Add("HX-Location", "{\"path\":\"/login\",\"values\":{\"fallback\":\""+fallback+"\"}}")
 		c.Response().Header().Add("HX-Location", "/login")
 		return c.NoContent(http.StatusUnauthorized)

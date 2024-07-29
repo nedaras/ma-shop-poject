@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"errors"
 	"nedas/shop/src/components"
 	"net/http"
 
@@ -37,9 +36,6 @@ func AddToBag(c echo.Context) error {
 
 	amount, err := storage.AddProduct(session.UserId, product.ThreadId, product.Mid, size)
 	if err != nil {
-		if errors.Is(err, StorageErrNotFound) {
-			return unauthorized(c)
-		}
 		return err
 	}
 

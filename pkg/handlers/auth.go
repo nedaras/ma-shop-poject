@@ -25,11 +25,6 @@ var (
 )
 
 func HandleLogin(c echo.Context) error {
-	session := getSession(c)
-	if session != nil {
-		return renderSimpleError(c, http.StatusNotFound)
-	}
-
 	var (
 		fallback string
 	)

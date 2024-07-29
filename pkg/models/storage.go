@@ -10,12 +10,11 @@ type StorageProduct struct {
 type StorageUser struct {
 	UserID         string
 	Email          string
-	Addresses      []Address
-	DefaultAddress uint8
+	DefaultAddress string
 }
 
 type Address struct {
-	AddressId   uint8
+	AddressId   string
 	Contact     string
 	CountryCode string
 	Phone       string

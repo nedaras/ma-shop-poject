@@ -60,11 +60,9 @@ func HandleBag(c echo.Context) error {
 	storage := getStorage(c)
 
 	if session == nil {
-		// products from cookies or sum
 		return render(c, views.Bag([]components.BagProductContext{}))
 	}
 
-	// this functio one day will just take in c and do its own shit
 	// err can be from nike api or from storage
 	products, err := getProducts(session.UserId, storage)
 	if err != nil {
@@ -204,6 +202,10 @@ func getProducts(userId string, storage storage.Storage) ([]components.BagProduc
 	storageProducts, err := storage.GetProducts(userId)
 	if err != nil {
 		return []components.BagProductContext{}, err
+	}
+
+	if len(storageProducts) == 0 {
+		return []components.BagProductContext{}, nil
 	}
 
 	if len(storageProducts) == 1 {

@@ -1,9 +1,6 @@
 package components
 
-import (
-	"fmt"
-	"nedas/shop/pkg/models"
-)
+import "nedas/shop/pkg/models"
 
 templ Address(address models.Address) {
 	<div class="rounded w-full p-2">
@@ -18,7 +15,7 @@ templ Address(address models.Address) {
 		</h2>
 		<button
 			class="underline text-sm italic text-blue-400 mt-2"
-			hx-get={ string(templ.URL(fmt.Sprintf("/htmx/address/form/%d", address.AddressId))) }
+			hx-get={ string(templ.URL("/htmx/address/form/" + address.AddressId)) }
 			hx-target="closest main"
 		>
 			Edit

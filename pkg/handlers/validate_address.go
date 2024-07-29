@@ -6,7 +6,6 @@ import (
 	"nedas/shop/pkg/models"
 	"nedas/shop/src/views"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -30,11 +29,7 @@ func HandlePutAddress(c echo.Context) error {
 		return unauthorized(c)
 	}
 
-	id, err := strconv.ParseUint(c.Param("id"), 10, 8)
-	if err != nil {
-		return newHTTPError(http.StatusBadRequest, "param 'id' is not valid uint8")
-	}
-
+	id := c.Param("id")
 	addressData, err := validateAddressData(c)
 	if err != nil {
 		return err
@@ -62,7 +57,7 @@ func HandlePutAddress(c echo.Context) error {
 	}
 
 	err = storage.AddAddress(session.UserId, models.Address{
-		AddressId:   uint8(id),
+		AddressId:   id,
 		Contact:     addressData.Contact,
 		CountryCode: addressData.CountryCode,
 		Phone:       addressData.Phone,
@@ -71,23 +66,18 @@ func HandlePutAddress(c echo.Context) error {
 		Region:      address.Region,
 		City:        address.City,
 		Zipcode:     address.Zipcode,
-	}, false)
+	})
 	if err != nil {
-		if errors.Is(err, StorageErrNotFound) {
-			return unauthorized(c)
-		}
 		return err
 	}
 
-	user, err := storage.GetUser(session.UserId)
+	// todo: we need to see if its better to get addresses and the append
+	addresses, err := storage.GetAddresses(session.UserId)
 	if err != nil {
-		if errors.Is(err, StorageErrNotFound) {
-			return unauthorized(c)
-		}
 		return err
 	}
 
-	return render(c, views.Addresses(user.Addresses))
+	return render(c, views.Addresses(addresses))
 }
 
 func isCountryCodeValid(code string) bool {

@@ -42,9 +42,6 @@ func HandleProduct(c echo.Context) error {
 	case http.MethodPut:
 		amount, err := storage.AddProduct(session.UserId, product.ThreadId, product.Mid, size)
 		if err != nil {
-			if errors.Is(err, ErrNotFound) {
-				return unauthorized(c)
-			}
 			return err
 		}
 		return renderWithStatus(http.StatusAccepted, c, components.BagProduct(components.BagProductContext{
@@ -54,9 +51,6 @@ func HandleProduct(c echo.Context) error {
 		}))
 	case http.MethodDelete:
 		if err := storage.DeleteProduct(session.UserId, product.ThreadId, product.Mid, size); err != nil {
-			if errors.Is(err, ErrNotFound) {
-				return unauthorized(c)
-			}
 			return err
 		}
 		return c.NoContent(http.StatusOK)
@@ -112,8 +106,7 @@ func HandleDecrement(c echo.Context) error {
 	storage := getStorage(c)
 
 	if session == nil {
-		// todo: sync
-		return newHTTPError(http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
+		return unauthorized(c)
 	}
 
 	size := c.QueryParam("size")

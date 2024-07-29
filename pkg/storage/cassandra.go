@@ -37,7 +37,7 @@ func (c *Cassandra) AddUser(user models.StorageUser) error {
 	utils.Assert(user.Email != "", "user email is empty")
 
 	query := c.session.Query(
-		"INSERT INTO users(user_id, email, addresses, default_address) VALUES (?, ?, {}, 0)",
+		"INSERT INTO users(user_id, email, default_address) VALUES (?, ?, '')",
 		user.UserID,
 		user.Email,
 	)
@@ -50,15 +50,17 @@ func (c *Cassandra) AddUser(user models.StorageUser) error {
 }
 
 func (c *Cassandra) RemoveUser(userId string) error {
-	// todo: implement
-	panic("not implemented")
+	// todo: check out another db the problem we're having is that we are making a relations and it just dont work well,
+	// biggest problem is with AddAddress we would want to pass bool isDefault,
+	// the problem is it will be 2 queries and what todo if one of them fails, we prob can just ignore the setting to default but still
+	panic("cassandra cant just remove user")
 }
 
 func (c *Cassandra) GetUser(userId string) (models.StorageUser, error) {
 	utils.Assert(userId != "", "user id is empty")
 
 	query := c.session.Query(
-		"SELECT user_id, email, addresses, default_address FROM users WHERE user_id = ?",
+		"SELECT user_id, email, default_address FROM users WHERE user_id = ?",
 		userId,
 	)
 
@@ -68,42 +70,18 @@ func (c *Cassandra) GetUser(userId string) (models.StorageUser, error) {
 	if iter.NumRows() == 0 {
 		err := iter.Close()
 		if err != nil {
-			if errors.Is(err, gocql.ErrNotFound) {
-				err = ErrNotFound
-			}
 			return models.StorageUser{}, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
 		}
 		return models.StorageUser{}, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: ErrNotFound}
 	}
 
-	var addresses []map[string]any
-	ok := iter.Scan(&user.UserID, &user.Email, &addresses, &user.DefaultAddress)
+	ok := iter.Scan(&user.UserID, &user.Email, &user.DefaultAddress)
 	if err := iter.Close(); err != nil {
-		if errors.Is(err, gocql.ErrNotFound) {
-			err = ErrNotFound
-		}
 		return models.StorageUser{}, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
 	}
 
 	if !ok {
-		return models.StorageUser{}, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: ErrNotFound}
-	}
-
-	if len(addresses) > 0 {
-		user.Addresses = make([]models.Address, len(addresses))
-		for i, address := range addresses {
-			user.Addresses[i] = models.Address{
-				AddressId:   uint8(address["address_id"].(int8)),
-				Contact:     address["contact"].(string),
-				CountryCode: address["country_code"].(string),
-				Phone:       address["phone"].(string),
-				Country:     address["country"].(string),
-				Street:      address["street"].(string),
-				Region:      address["region"].(string),
-				City:        address["city"].(string),
-				Zipcode:     address["zipcode"].(string),
-			}
-		}
+		panic("not ok and no err")
 	}
 
 	return user, nil
@@ -312,9 +290,9 @@ func (c *Cassandra) DeleteProduct(userId string, tid string, mid string, size st
 	return nil
 }
 
-func (c *Cassandra) AddAddress(userId string, address models.Address, isDefault bool) error {
-	// todo idk how we need to check if id is not colliding, just make addresses table f this shi we will postgressing
+func (c *Cassandra) AddAddress(userId string, address models.Address) error {
 	utils.Assert(userId != "", "user id is empty")
+	utils.Assert(address.AddressId != "", "address id is empty")
 	utils.Assert(address.Contact != "", "address contact is empty")
 	utils.Assert(address.CountryCode != "", "address country code is empty")
 	utils.Assert(address.Phone != "", "address phone is empty")
@@ -324,44 +302,61 @@ func (c *Cassandra) AddAddress(userId string, address models.Address, isDefault 
 	utils.Assert(address.City != "", "address city is empty")
 	utils.Assert(address.Zipcode != "", "address zipcode is empt")
 
-	cqlAddress := map[string]any{
-		"address_id":   address.AddressId,
-		"contact":      address.Contact,
-		"country_code": address.CountryCode,
-		"phone":        address.Phone,
-		"country":      address.Country,
-		"street":       address.Street,
-		"region":       address.Region,
-		"city":         address.City,
-		"zipcode":      address.Zipcode,
-	}
+	query := c.session.Query(
+		"INSERT INTO addresses (user_id, address_id, contact, country_code, phone, country, street, region, city, zipcode) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		userId,
+		address.AddressId,
+		address.Contact,
+		address.CountryCode,
+		address.Phone,
+		address.Country,
+		address.Street,
+		address.Region,
+		address.City,
+		address.Zipcode,
+	)
 
-	var query *gocql.Query
-	if isDefault {
-		query = c.session.Query(
-			"UPDATE users SET addresses = addresses + ?, default_address = ? WHERE user_id = ? IF EXISTS",
-			[]map[string]any{cqlAddress},
-			address.AddressId,
-			userId,
-		)
-	} else {
-		query = c.session.Query(
-			"UPDATE users SET addresses = addresses + ? WHERE user_id = ? IF EXISTS",
-			[]map[string]any{cqlAddress},
-			userId,
-		)
-	}
-
-	applied, err := query.ScanCAS(nil, nil, nil, nil)
-	if err != nil {
+	if err := query.Exec(); err != nil {
 		return &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
 	}
 
-	if !applied {
-		return &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: ErrNotFound}
+	return nil
+}
+
+func (c *Cassandra) GetAddresses(userId string) ([]models.Address, error) {
+	utils.Assert(userId != "", "user id is empty")
+
+	query := c.session.Query(
+		"SELECT address_id, contact, country_code, phone, country, street, region, city, zipcode FROM addresses WHERE user_id = ?",
+		userId,
+	)
+
+	iter := query.Iter()
+
+	if iter.NumRows() == 0 {
+		if err := iter.Close(); err != nil {
+			return []models.Address{}, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
+		}
+		return []models.Address{}, nil
 	}
 
-	return nil
+	products := make([]models.Address, iter.NumRows())
+	for i := range iter.NumRows() {
+		product := &products[i]
+		if ok := iter.Scan(&product.AddressId, &product.Contact, &product.CountryCode, &product.Phone, &product.Country, &product.Street, &product.Region, &product.City, &product.Zipcode); !ok {
+			err := iter.Close()
+			if err != nil {
+				panic("no err and not ok!!!!")
+			}
+			return []models.Address{}, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
+		}
+	}
+
+	if err := iter.Close(); err != nil {
+		return []models.Address{}, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
+	}
+
+	return products, nil
 }
 
 func (c *Cassandra) Close() {
