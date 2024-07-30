@@ -55,7 +55,9 @@ func main() {
 
 	e.PUT("/htmx/product", handlers.HandleProduct)
 	e.PUT("/htmx/address/:id", handlers.HandlePutAddress)
+
 	e.DELETE("/htmx/product", handlers.HandleProduct)
+	e.DELETE("/htmx/address/:id", handlers.HandleDeleteAddress)
 
 	// todo: we need like meta tags for some nive embeds
 	// todo: we prob will drop cassandra it aint a db for cuz we kinda will be doing joins manually

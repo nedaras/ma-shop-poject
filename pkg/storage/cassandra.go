@@ -1,6 +1,8 @@
 package storage
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"math"
 	"nedas/shop/pkg/models"
@@ -33,13 +35,15 @@ func NewCassandra() (*Cassandra, error) {
 }
 
 func (c *Cassandra) AddUser(user models.StorageUser) error {
+	// todo: dont remake default_address
 	utils.Assert(user.UserID != "", "user id is empty")
 	utils.Assert(user.Email != "", "user email is empty")
 
 	query := c.session.Query(
-		"INSERT INTO users(user_id, email, default_address) VALUES (?, ?, '')",
+		"INSERT INTO users(user_id, email, default_address) VALUES (?, ?, ?)",
 		user.UserID,
 		user.Email,
+		generateRandomId(),
 	)
 
 	if err := query.Exec(); err != nil {
@@ -47,6 +51,13 @@ func (c *Cassandra) AddUser(user models.StorageUser) error {
 	}
 
 	return nil
+}
+
+func generateRandomId() string {
+	bytes := make([]byte, 8)
+	rand.Read(bytes)
+
+	return hex.EncodeToString(bytes)
 }
 
 func (c *Cassandra) RemoveUser(userId string) error {
@@ -314,6 +325,23 @@ func (c *Cassandra) AddAddress(userId string, address models.Address) error {
 		address.Region,
 		address.City,
 		address.Zipcode,
+	)
+
+	if err := query.Exec(); err != nil {
+		return &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
+	}
+
+	return nil
+}
+
+func (c *Cassandra) DeleteAddress(userId string, addressId string) error {
+	utils.Assert(userId != "", "user id is empty")
+	utils.Assert(userId != "", "address id is empty")
+
+	query := c.session.Query(
+		"DELETE FROM addresses WHERE user_id = ? AND address_id = ?",
+		userId,
+		addressId,
 	)
 
 	if err := query.Exec(); err != nil {

@@ -43,6 +43,9 @@ type Storage interface {
 	AddAddress(userId string, address models.Address) error
 
 	// Any returned error should be of type [*StorageError].
+	DeleteAddress(userId string, addressId string) error
+
+	// Any returned error should be of type [*StorageError].
 	GetAddresses(userId string) ([]models.Address, error)
 
 	Close()

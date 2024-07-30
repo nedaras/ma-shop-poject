@@ -139,6 +139,16 @@ func validateAddressData(c echo.Context) (AddressData, error) {
 		return AddressData{}, newHTTPError(http.StatusBadRequest, "form has missing 'zipcode' field")
 	}
 
+	if len(zipcode) > 5 || len(zipcode) < 4 {
+		return AddressData{}, newHTTPError(http.StatusBadRequest, "received invalid 'zipcode' field")
+	}
+
+	for i := range zipcode {
+		if zipcode[i] > '9' || zipcode[i] < '0' {
+			return AddressData{}, newHTTPError(http.StatusBadRequest, "received invalid 'zipcode' field")
+		}
+	}
+
 	return AddressData{
 		CountryCode: code,
 		Contact:     contact,

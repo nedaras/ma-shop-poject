@@ -9,13 +9,18 @@ import (
 templ Addresses(addresses []models.Address) {
 	@layouts.Layout("Addresses | Shop") {
 		@components.Header()
-		<main class="p-4">
-			<ul class="flex flex-col gap-4">
+		<main>
+			<ul class="flex flex-col gap-4 h-[calc(100svh-56px)] pt-4">
 				for _, a := range addresses {
-					<li class="shadow border border-gray-200 rounded">
+					<li class="shadow border border-gray-200 rounded mx-4">
 						@components.Address(a)
 					</li>
 				}
+				<li class="mt-auto">
+					<button class="bg-black text-white text-center w-full p-4">
+						Add address
+					</button>
+				</li>
 			</ul>
 		</main>
 	}

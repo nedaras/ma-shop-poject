@@ -13,12 +13,21 @@ templ Address(address models.Address) {
 			<br/>
 			{ address.City }, { address.Region }, { address.Country }, { address.CountryCode }-{ address.Zipcode }
 		</h2>
-		<button
-			class="underline text-sm italic text-blue-400 mt-2"
-			hx-get={ string(templ.URL("/htmx/address/form/" + address.AddressId)) }
-			hx-target="closest main"
-		>
-			Edit
-		</button>
+		<div class="flex justify-between mt-2">
+			<button
+				class="underline text-sm italic text-blue-400"
+				hx-get={ string(templ.URL("/htmx/address/form/" + address.AddressId)) }
+				hx-target="closest main"
+			>
+				Edit
+			</button>
+			<button
+				hx-delete={ "/htmx/address/" + address.AddressId }
+				hx-target="closest li"
+				hx-swap="outerHTML"
+			>
+				<i class="fa-solid fa-trash"></i>
+			</button>
+		</div>
 	</div>
 }

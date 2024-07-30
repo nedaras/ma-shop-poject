@@ -28,7 +28,7 @@ templ Account(c AccountContext) {
 							</a>
 						} else {
 							<button
-								hx-get={ string(templ.URL("/htmx/address/form/" + "default_address")) }
+								hx-get={ string(templ.URL("/htmx/address/form/" + c.User.DefaultAddress)) }
 								hx-target="closest main"
 							>
 								<h2 class="text-gray-800">Add address</h2>
