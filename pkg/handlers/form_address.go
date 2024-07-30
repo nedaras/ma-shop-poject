@@ -3,7 +3,6 @@ package handlers
 import (
 	"nedas/shop/pkg/models"
 	"nedas/shop/src/components"
-	"net/http"
 
 	"github.com/labstack/echo/v4"
 )
@@ -22,15 +21,11 @@ func HandleFormAddress(c echo.Context) error {
 		return err
 	}
 
-	if len(addresses) == 0 {
-		return render(c, components.AddressForm(models.Address{AddressId: id}))
-	}
-
 	for _, adress := range addresses {
 		if adress.AddressId == id {
 			return render(c, components.AddressForm(adress))
 		}
 	}
 
-	return newHTTPError(http.StatusNotFound, http.StatusText(http.StatusNotFound))
+	return render(c, components.AddressForm(models.Address{AddressId: id}))
 }

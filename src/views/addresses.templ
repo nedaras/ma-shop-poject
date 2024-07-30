@@ -1,6 +1,8 @@
 package views
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"nedas/shop/pkg/models"
 	"nedas/shop/src/components"
 	"nedas/shop/src/layouts"
@@ -17,11 +19,24 @@ templ Addresses(addresses []models.Address) {
 					</li>
 				}
 				<li class="mt-auto">
-					<button class="bg-black text-white text-center w-full p-4">
+					<button
+						class="bg-black text-white text-center w-full p-4"
+						hx-get={ "/htmx/address/form/" + generateRandomId() }
+						hx-target="closest main"
+						hx-swap="outerHTML"
+					>
 						Add address
 					</button>
 				</li>
 			</ul>
 		</main>
 	}
+}
+
+// todo: ad this in form or smth idk
+func generateRandomId() string {
+	bytes := make([]byte, 8)
+	rand.Read(bytes)
+
+	return hex.EncodeToString(bytes)
 }
