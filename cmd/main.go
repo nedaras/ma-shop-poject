@@ -50,7 +50,8 @@ func main() {
 	e.POST("/htmx/logout", handlers.HandleLogout)
 	e.POST("/htmx/product/decrement", handlers.HandleDecrement)
 	e.POST("/htmx/product/increment", handlers.HandleIncrement)
-	e.GET("/htmx/address/form/:id", handlers.HandleFormAddress)
+	e.GET("/htmx/address", handlers.HandleAddressEditor)
+	e.GET("/htmx/address/:id", handlers.HandleAddressEditor)
 	e.GET("/htmx/sizes/:path", handlers.HandleSizes)
 
 	e.PUT("/htmx/product", handlers.HandleProduct)
