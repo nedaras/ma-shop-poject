@@ -13,7 +13,7 @@ type BagProductContext struct {
 }
 
 templ BagProduct(c BagProductContext) {
-	<li class="grid grid-cols-[40%_auto] gap-4">
+	<section class="grid grid-cols-[40%_auto] gap-4">
 		<a href={ templ.SafeURL("/" + c.Product.ThreadId + "/" + c.Product.Mid) } class="row-span-2 bg-gray-50 grid place-items-center">
 			<img class="w-full" alt={ c.Product.Title } src={ string(templ.URL(c.Product.Image + "&wid=512")) }/>
 		</a>
@@ -27,17 +27,17 @@ templ BagProduct(c BagProductContext) {
 					<button
 						class="text-sm fa-solid fa-minus"
 						hx-post={ fmt.Sprintf("/htmx/product/decrement?tid=%s&mid=%s&size=%s", c.Product.ThreadId, c.Product.Mid, c.Size) }
-						hx-target="closest li"
+						hx-target="closest section"
 						hx-swap="outerHTML"
-						hx-indicator="closest li"
+						hx-indicator="closest section"
 					></button>
 					{ strconv.Itoa(int(c.Amount)) }
 					<button
 						class="text-sm fa-solid fa-plus"
 						hx-post={ fmt.Sprintf("/htmx/product/increment?tid=%s&mid=%s&size=%s", c.Product.ThreadId, c.Product.Mid, c.Size) }
-						hx-target="closest li"
+						hx-target="closest section"
 						hx-swap="outerHTML"
-						hx-indicator="closest li"
+						hx-indicator="closest section"
 					></button>
 				</div>
 				<button
@@ -46,9 +46,9 @@ templ BagProduct(c BagProductContext) {
 					hx-delete={ fmt.Sprintf("/htmx/product?tid=%s&mid=%s&size=%s", c.Product.ThreadId, c.Product.Mid, c.Size) }
 					hx-target="closest li"
 					hx-swap="outerHTML"
-					hx-indicator="closest li"
+					hx-indicator="closest section"
 				></button>
 			</div>
 		</div>
-	</li>
+	</section>
 }

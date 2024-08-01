@@ -61,7 +61,7 @@ templ Sneaker(c SneakerContext) {
 					</button>
 				</h1>
 				// todo: make it when we press in the img it would go to bag
-				<ul></ul>
+				<div></div>
 			</div>
 		</main>
 	}
@@ -71,7 +71,7 @@ templ sneakerForm(product models.Product, loggedIn bool) {
 	if loggedIn {
 		<form
 			hx-post={ string(templ.SafeURL("/htmx/add_to_bag?tid=" + product.ThreadId + "&mid=" + product.Mid)) }
-			hx-target="#placeholder ul"
+			hx-target="#placeholder div"
 			hx-indicator="this"
 		>
 			{ children... }
