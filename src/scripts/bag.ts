@@ -1,8 +1,9 @@
-// todo: copy goes status enums
+import { StatusNotFound } from "./http"
+
 document.body.addEventListener('htmx:beforeSwap', (e) => {
   if (!e.detail.pathInfo.requestPath.startsWith('/htmx/product')) return
   switch (e.detail.xhr.status) {
-  case 404:
+  case StatusNotFound:
     break
   default:
     return

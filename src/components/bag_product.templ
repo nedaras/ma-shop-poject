@@ -10,11 +10,16 @@ type BagProductContext struct {
 	Product models.Product
 	Size    string
 	Amount  uint8
+  RedirectURL string
 }
 
 templ BagProduct(c BagProductContext) {
 	<section class="grid grid-cols-[40%_auto] gap-4">
-		<a href={ templ.SafeURL("/" + c.Product.ThreadId + "/" + c.Product.Mid) } class="row-span-2 bg-gray-50 grid place-items-center">
+		<a
+      hx-boost="true"
+      href={ templ.SafeURL(c.RedirectURL) }
+      class="row-span-2 bg-gray-50 grid place-items-center"
+    >
 			<img class="w-full" alt={ c.Product.Title } src={ string(templ.URL(c.Product.Image + "&wid=512")) }/>
 		</a>
 		<div class="mt-2 mr-2">

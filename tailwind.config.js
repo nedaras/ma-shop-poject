@@ -8,6 +8,10 @@ module.exports = {
       },
     },  
   },
-  plugins: [],
+  plugins: [
+    function ({ addVariant }) {
+      addVariant('indicator', ['.htmx-request&', '.htmx-request &'])
+    }
+  ],
 }
 

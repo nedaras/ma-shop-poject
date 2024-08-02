@@ -1,8 +1,10 @@
+import { StatusInternalServerError, StatusNotFound } from "./http"
+
 document.body.addEventListener('htmx:beforeSwap', (e) => {
   if (e.detail.pathInfo.requestPath !== '/htmx/search') return
   switch (e.detail.xhr.status) {
-  case 404:
-  case 500:
+  case StatusNotFound:
+  case StatusInternalServerError:
     break
   default:
     return

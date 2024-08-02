@@ -227,6 +227,7 @@ func getProducts(userId string, storage storage.Storage) ([]components.BagProduc
 			Product: p,
 			Size:    product.Size,
 			Amount:  amount,
+      RedirectURL: "/" + p.ThreadId + "/" + p.Mid,
 		}}, nil
 	}
 
@@ -292,6 +293,7 @@ func getProducts(userId string, storage storage.Storage) ([]components.BagProduc
 			Product: res.product,
 			Size:    res.size,
 			Amount:  res.amount,
+      RedirectURL: "/" + res.product.ThreadId + "/" + res.product.Mid,
 		}
 		size++
 	}

@@ -43,6 +43,7 @@ func AddToBag(c echo.Context) error {
 		Product: product,
 		Size:    size,
 		Amount:  amount,
+    RedirectURL: "/bag",
 	}))
 }
 

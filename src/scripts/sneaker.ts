@@ -1,10 +1,10 @@
 document.body.addEventListener('htmx:beforeSwap', (e) => {
   if (e.detail.isError) return
   if (!e.detail.pathInfo.requestPath.startsWith('/htmx/product')) return
-  if (e.detail.serverResponse != "") return
-
   const placeholder = document.getElementById('placeholder')
   if (!placeholder) return
+  if (e.detail.serverResponse != "") return
+
 
   clear(placeholder)
   e.detail.shouldSwap = false
@@ -39,8 +39,7 @@ document.body.addEventListener('htmx:afterSwap', (e) => {
 
 // todo: if we like clicked make it if we scroll close it
 function clickHandler(timeout: number) {
-  return (e: MouseEvent) => {
-    e.preventDefault()
+  return () => {
     clearTimeout(timeout)
   }
 }
@@ -48,7 +47,7 @@ function clickHandler(timeout: number) {
 function clear(placeholder: HTMLElement) {
   placeholder.style.transform = ''
   setTimeout(() => {
-    const ul = placeholder.querySelector('ul')
-    ul && (ul.innerHTML = '')
+    const div = placeholder.querySelector('div')
+    div && (div.innerHTML = '')
   }, 200)
 }
