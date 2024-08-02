@@ -1,13 +1,29 @@
 document.body.addEventListener('htmx:beforeSwap', (e) => {
   if (e.detail.isError) return
   if (!e.detail.pathInfo.requestPath.startsWith('/htmx/product')) return
+  if (e.detail.serverResponse !== "") return
+
   const placeholder = document.getElementById('placeholder')
   if (!placeholder) return
-  if (e.detail.serverResponse != "") return
-
 
   clear(placeholder)
   e.detail.shouldSwap = false
+})
+
+document.body.addEventListener('htmx:beforeSwap', (e) => {
+  if (e.detail.isError) return
+  if (e.detail.pathInfo.requestPath !== '/bag') return
+
+  const placeholder = document.getElementById('placeholder')
+  if (!placeholder) return
+
+  const div = placeholder.querySelector('div')
+  if (!div) return
+
+  placeholder.style.transitionDuration = '0ms'
+  placeholder.style.transform = ''
+
+  div.innerHTML = ''
 })
 
 // todo: add like attr wait for img to load or smth
@@ -27,6 +43,7 @@ document.body.addEventListener('htmx:afterSwap', (e) => {
       if (images.length != ++i) return
       const close = document.getElementById('placeholder-close')
 
+      placeholder.style.transitionDuration = ''
       placeholder.style.transform = 'translateY(0%)'
       placeholder.onclick = clickHandler(
         setTimeout(() => clear(placeholder), 2000)

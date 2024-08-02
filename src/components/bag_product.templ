@@ -7,19 +7,19 @@ import (
 )
 
 type BagProductContext struct {
-	Product models.Product
-	Size    string
-	Amount  uint8
-  RedirectURL string
+	Product     models.Product
+	Size        string
+	Amount      uint8
+	RedirectURL string
 }
 
 templ BagProduct(c BagProductContext) {
 	<section class="grid grid-cols-[40%_auto] gap-4">
 		<a
-      hx-boost="true"
-      href={ templ.SafeURL(c.RedirectURL) }
-      class="row-span-2 bg-gray-50 grid place-items-center"
-    >
+			hx-boost="true"
+			href={ templ.SafeURL(c.RedirectURL) }
+			class="row-span-2 bg-gray-50 grid place-items-center"
+		>
 			<img class="w-full" alt={ c.Product.Title } src={ string(templ.URL(c.Product.Image + "&wid=512")) }/>
 		</a>
 		<div class="mt-2 mr-2">
@@ -49,7 +49,7 @@ templ BagProduct(c BagProductContext) {
 					class="fa-solid fa-trash"
 					class="text-sm fa-solid fa-plus"
 					hx-delete={ fmt.Sprintf("/htmx/product?tid=%s&mid=%s&size=%s", c.Product.ThreadId, c.Product.Mid, c.Size) }
-					hx-target="closest li"
+					hx-target="closest section"
 					hx-swap="outerHTML"
 					hx-indicator="closest section"
 				></button>

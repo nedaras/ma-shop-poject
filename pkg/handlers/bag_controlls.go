@@ -45,10 +45,10 @@ func HandleProduct(c echo.Context) error {
 			return err
 		}
 		return renderWithStatus(http.StatusAccepted, c, components.BagProduct(components.BagProductContext{
-			Product: product,
-			Size:    size,
-			Amount:  amount,
-      RedirectURL: "/" + product.ThreadId + "/" + product.Mid,
+			Product:     product,
+			Size:        size,
+			Amount:      amount,
+			RedirectURL: "/" + product.ThreadId + "/" + product.Mid,
 		}))
 	case http.MethodDelete:
 		if err := storage.DeleteProduct(session.UserId, product.ThreadId, product.Mid, size); err != nil {
@@ -96,10 +96,10 @@ func HandleIncrement(c echo.Context) error {
 	}
 
 	return render(c, components.BagProduct(components.BagProductContext{
-		Product: product,
-		Size:    size,
-		Amount:  amount,
-    RedirectURL: "/" + product.ThreadId + "/" + product.Mid,
+		Product:     product,
+		Size:        size,
+		Amount:      amount,
+		RedirectURL: "/" + product.ThreadId + "/" + product.Mid,
 	}))
 }
 
@@ -143,10 +143,10 @@ func HandleDecrement(c echo.Context) error {
 	}
 
 	return render(c, components.BagProduct(components.BagProductContext{
-		Product: product,
-		Size:    size,
-		Amount:  amount,
-    RedirectURL: "/" + product.ThreadId + "/" + product.Mid,
+		Product:     product,
+		Size:        size,
+		Amount:      amount,
+		RedirectURL: "/" + product.ThreadId + "/" + product.Mid,
 	}))
 }
 

@@ -224,10 +224,10 @@ func getProducts(userId string, storage storage.Storage) ([]components.BagProduc
 		}
 
 		return []components.BagProductContext{{
-			Product: p,
-			Size:    product.Size,
-			Amount:  amount,
-      RedirectURL: "/" + p.ThreadId + "/" + p.Mid,
+			Product:     p,
+			Size:        product.Size,
+			Amount:      amount,
+			RedirectURL: "/" + p.ThreadId + "/" + p.Mid,
 		}}, nil
 	}
 
@@ -290,10 +290,10 @@ func getProducts(userId string, storage storage.Storage) ([]components.BagProduc
 			return []components.BagProductContext{}, res.err
 		}
 		products[res.i] = components.BagProductContext{
-			Product: res.product,
-			Size:    res.size,
-			Amount:  res.amount,
-      RedirectURL: "/" + res.product.ThreadId + "/" + res.product.Mid,
+			Product:     res.product,
+			Size:        res.size,
+			Amount:      res.amount,
+			RedirectURL: "/" + res.product.ThreadId + "/" + res.product.Mid,
 		}
 		size++
 	}

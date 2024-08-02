@@ -40,10 +40,10 @@ func AddToBag(c echo.Context) error {
 	}
 
 	return render(c, components.BagProduct(components.BagProductContext{
-		Product: product,
-		Size:    size,
-		Amount:  amount,
-    RedirectURL: "/bag",
+		Product:     product,
+		Size:        size,
+		Amount:      amount,
+		RedirectURL: "/bag",
 	}))
 }
 
