@@ -1,20 +1,30 @@
 package layouts
 
 templ Layout(title string) {
-	<!DOCTYPE html>
-	<html lang="en">
+	@HTML() {
 		<head>
-			<meta charset="UTF-8"/>
-			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			@HeadIncludes()
 			<title>{ title }</title>
-			<link rel="stylesheet" href="/styles.css"/>
-			<script src="https://unpkg.com/htmx.org@2.0.0" integrity="sha384-wS5l5IKJBvK6sPTKa2WZ1js3d947pvWXbPJ1OmWfEuxLgeHcEbjUUA5i9V5ZkpCw" crossorigin="anonymous"></script>
-			<script src="https://kit.fontawesome.com/05c3d06e3a.js" crossorigin="anonymous"></script>
-			<script src="/bundle.js" defer></script>
-			<link rel="icon" href="/favicon.ico" type="image/x-icon"/>
 		</head>
 		<body>
 			{ children... }
 		</body>
+	}
+}
+
+templ HTML() {
+	<!DOCTYPE html>
+	<html lang="en">
+		{ children... }
 	</html>
+}
+
+templ HeadIncludes() {
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<link rel="stylesheet" href="/styles.css"/>
+	<script src="https://unpkg.com/htmx.org@2.0.0" integrity="sha384-wS5l5IKJBvK6sPTKa2WZ1js3d947pvWXbPJ1OmWfEuxLgeHcEbjUUA5i9V5ZkpCw" crossorigin="anonymous"></script>
+	<script src="https://kit.fontawesome.com/05c3d06e3a.js" crossorigin="anonymous"></script>
+	<script src="/bundle.js" defer></script>
+	<link rel="icon" href="/favicon.ico" type="image/x-icon"/>
 }

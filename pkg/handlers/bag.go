@@ -21,8 +21,8 @@ type ProductFeedData struct {
 				CurrentPrice float64 `json:"currentPrice"`
 			} `json:"merchPrice"`
 			ProductContent struct {
-				Title string `json:"title"`
-				//Subtitle string `json:"subtitle"`
+				Title    string `json:"title"`
+				Subtitle string `json:"subtitle"`
 			} `json:"productContent"`
 			CustomizedPreBuild struct {
 				Groups []struct {
@@ -181,6 +181,7 @@ func getProduct(id string) (models.Product, error) {
 
 				return models.Product{
 					Title:    p.ProductContent.Title,
+					Subtitle: p.ProductContent.Subtitle,
 					Price:    p.MerchPrice.CurrentPrice,
 					Image:    img,
 					PathName: p.CustomizedPreBuild.Legacy.PathName,

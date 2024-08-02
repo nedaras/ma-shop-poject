@@ -14,56 +14,72 @@ type SneakerContext struct {
 }
 
 templ Sneaker(c SneakerContext) {
-	@layouts.Layout(c.Product.Title) {
-		@components.Header()
-		<main>
-			<div class="p-4">
-				<h1 class="text-2xl font-semibold mb-2">{ c.Product.Title }</h1>
-				<div class="flex gap-2">
-					<h3 class="text-gray-800">£{ strconv.FormatFloat(c.Product.Price, 'f', 2, 32) }</h3>
-					<a
-						href={ templ.SafeURL("https://www.nike.com/gb/u/" + c.Product.Slug + "?mid=" + c.Product.Mid) }
-						class="text-amber-500"
-						target="_blank"
-						rel="noreferrer noopener"
-					>
-						<i class="fa-solid fa-link"></i>
-					</a>
+	@layouts.HTML() {
+		<head>
+			<meta name="description" content={ c.Product.Title + " " + c.Product.Subtitle }/>
+			<meta name="theme-color" content="#60a5fa"/>
+			<meta property="og:type" content="website"/>
+			<meta property="og:site_name" content="Batas.gg"/>
+			<meta property="og:price:currency" content="GBP"/>
+			<meta property="og:price:amount" content={ strconv.FormatFloat(c.Product.Price, 'f', 2, 64) }/>
+			// todo: add like env for site or smth<meta property="og:url" content="">
+			<meta property="og:title" content={ c.Product.Title }/>
+			<meta property="og:description" content={ "Deliver the " + c.Product.Title + " to the Balkans and the Baltics." }/>
+			<meta property="og:image" content={ c.Product.Image + "&wid=1000" }/>
+			@layouts.HeadIncludes()
+			<title>{ c.Product.Title }</title>
+		</head>
+		<body>
+			@components.Header()
+			<main>
+				<div class="p-4">
+					<h1 class="text-2xl font-semibold mb-2">{ c.Product.Title }</h1>
+					<div class="flex gap-2">
+						<h3 class="text-gray-800">£{ strconv.FormatFloat(c.Product.Price, 'f', 2, 64) }</h3>
+						<a
+							href={ templ.SafeURL("https://www.nike.com/gb/u/" + c.Product.Slug + "?mid=" + c.Product.Mid) }
+							class="text-amber-500"
+							target="_blank"
+							rel="noreferrer noopener"
+						>
+							<i class="fa-solid fa-link"></i>
+						</a>
+					</div>
 				</div>
-			</div>
-			<img alt={ c.Product.Title } src={ string(templ.URL(c.Product.Image)) }/>
-			@sneakerForm(c.Product, c.LoggedIn) {
-				<div class="p-2">
-					@components.Sizes(c.Sizes, c.Product.PathName, true)
-				</div>
-				if c.LoggedIn {
-					<button id="bag-button" type="submit" class="opacity-indicator bg-black text-white w-full p-4 mt-2">
-						Add to Bag
-					</button>
-				} else {
-					<button
-						id="bag-button"
-						class="opacity-indicator bg-black text-white w-full p-4 mt-2"
-						hx-post="/htmx/login"
-						hx-vals={ "{\"fallback\":\"" + string(templ.URL("/"+c.Product.ThreadId+"/"+c.Product.Mid)) + "\"}" }
-						hx-push-url="/login"
-						hx-target="body"
-					>
-						Sign in to Buy
-					</button>
+				<img alt={ c.Product.Title } src={ string(templ.URL(c.Product.Image)) }/>
+				@sneakerForm(c.Product, c.LoggedIn) {
+					<div class="p-2">
+						@components.Sizes(c.Sizes, c.Product.PathName, true)
+					</div>
+					if c.LoggedIn {
+						<button id="bag-button" type="submit" class="opacity-indicator bg-black text-white w-full p-4 mt-2">
+							Add to Bag
+						</button>
+					} else {
+						<button
+							id="bag-button"
+							class="opacity-indicator bg-black text-white w-full p-4 mt-2"
+							hx-post="/htmx/login"
+							hx-vals={ "{\"fallback\":\"" + string(templ.URL("/"+c.Product.ThreadId+"/"+c.Product.Mid)) + "\"}" }
+							hx-push-url="/login"
+							hx-target="body"
+						>
+							Sign in to Buy
+						</button>
+					}
 				}
-			}
-			<div id="placeholder" class="bg-white fixed bottom-0 right-0 translate-y-full transition-transform duration-200 shadow-flipped">
-				<h1 class="m-2 relative text-center">
-					Added to Bag
-					<button id="placeholder-close" class="absolute right-0">
-						<i class="fa fa-times"></i>
-					</button>
-				</h1>
-				// todo: make it when we press in the img it would go to bag
-				<div></div>
-			</div>
-		</main>
+				<div id="placeholder" class="bg-white fixed bottom-0 right-0 translate-y-full transition-transform duration-200 shadow-flipped">
+					<h1 class="m-2 relative text-center">
+						Added to Bag
+						<button id="placeholder-close" class="absolute right-0">
+							<i class="fa fa-times"></i>
+						</button>
+					</h1>
+					// todo: make it when we press in the img it would go to bag
+					<div></div>
+				</div>
+			</main>
+		</body>
 	}
 }
 
