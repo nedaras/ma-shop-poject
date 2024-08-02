@@ -31,6 +31,7 @@ func main() {
 
 	e.Static("/", "public")
 
+	// todo: make my logger cuz i still need to know some errors and it should like write to file
 	e.Use(middleware.Logger())
 	e.Use(middlewares.StorageMiddleware(storage))
 	e.Use(middlewares.AuthMiddleware)
@@ -60,9 +61,8 @@ func main() {
 	e.DELETE("/htmx/product", handlers.HandleProduct)
 	e.DELETE("/htmx/address/:id", handlers.HandleDeleteAddress)
 
-	// doing: we need like meta tags for some nive embeds
 	// todo: we prob will drop cassandra it aint a db for cuz we kinda will be doing joins manually
-	// todo: change echo error handler would better error pages
 
+	e.HTTPErrorHandler = handlers.ErrorHandler
 	e.Logger.Fatal(e.Start(":3000"))
 }

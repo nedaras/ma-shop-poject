@@ -2,6 +2,7 @@ package views
 
 import (
 	"nedas/shop/pkg/models"
+	"nedas/shop/pkg/utils"
 	"nedas/shop/src/components"
 	"nedas/shop/src/layouts"
 	"strconv"
@@ -16,13 +17,14 @@ type SneakerContext struct {
 templ Sneaker(c SneakerContext) {
 	@layouts.HTML() {
 		<head>
-			<meta name="description" content={ c.Product.Title + " " + c.Product.Subtitle }/>
+			<meta name="description" content={ "Deliver the " + c.Product.Title + " to the Balkans and the Baltics." }/>
+			<meta name="keywords" content={ c.Product.Title + " " + c.Product.Subtitle }/>
 			<meta name="theme-color" content="#60a5fa"/>
 			<meta property="og:type" content="website"/>
 			<meta property="og:site_name" content="Batas.gg"/>
 			<meta property="og:price:currency" content="GBP"/>
 			<meta property="og:price:amount" content={ strconv.FormatFloat(c.Product.Price, 'f', 2, 64) }/>
-			// todo: add like env for site or smth<meta property="og:url" content="">
+			<meta property="og:url" content={ utils.Getenv("HOST") + "/" + c.Product.ThreadId + "/" + c.Product.Mid }/>
 			<meta property="og:title" content={ c.Product.Title }/>
 			<meta property="og:description" content={ "Deliver the " + c.Product.Title + " to the Balkans and the Baltics." }/>
 			<meta property="og:image" content={ c.Product.Image + "&wid=1000" }/>
