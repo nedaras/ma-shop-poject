@@ -14,7 +14,6 @@ import (
 )
 
 func main() {
-
 	if err := godotenv.Load(); err != nil {
 		log.Fatal(err)
 	}
@@ -25,13 +24,11 @@ func main() {
 	}
 	defer storage.Close()
 
-	apis.SetAddressValidator(&apis.Here{})
+	apis.SetAddressValidator(apis.NewHere(1000))
 
 	e := echo.New()
-
 	e.Static("/", "public")
 
-	// todo: make my logger cuz i still need to know some errors and it should like write to file
 	e.Use(middleware.Logger())
 	e.Use(middlewares.StorageMiddleware(storage))
 	e.Use(middlewares.AuthMiddleware)

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"nedas/shop/pkg/utils"
 	"nedas/shop/src/views"
 	"net/http"
 
@@ -18,8 +19,8 @@ func HandleSneaker(c echo.Context) error {
 		if errors.Is(err, ErrNotFound) {
 			return renderSimpleError(c, http.StatusNotFound)
 		}
-		// todo: all them loggers where idk whats the error
-		c.Logger().Error(err)
+		// doing: all them loggers where idk whats the error
+		utils.Logger().Error(err)
 		return renderSimpleError(c, http.StatusInternalServerError)
 	}
 
@@ -28,7 +29,7 @@ func HandleSneaker(c echo.Context) error {
 		if errors.Is(err, ErrNotFound) {
 			return renderSimpleError(c, http.StatusNotFound)
 		}
-		c.Logger().Error(err)
+		utils.Logger().Error(err)
 		return renderSimpleError(c, http.StatusInternalServerError)
 	}
 

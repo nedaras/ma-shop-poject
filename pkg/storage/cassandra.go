@@ -34,16 +34,25 @@ func NewCassandra() (*Cassandra, error) {
 	}, nil
 }
 
+// todo: mb store default_address on users local_storage it prob would even be better user exepriance
 func (c *Cassandra) AddUser(user models.StorageUser) error {
-	// todo: dont remake default_address
 	utils.Assert(user.UserID != "", "user id is empty")
 	utils.Assert(user.Email != "", "user email is empty")
 
 	query := c.session.Query(
-		"INSERT INTO users(user_id, email, default_address) VALUES (?, ?, ?)",
-		user.UserID,
+		"UPDATE users SET email = ? WHERE user_id = ?",
 		user.Email,
+		user.UserID,
+	)
+
+	if err := query.Exec(); err != nil {
+		return &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
+	}
+
+	query = c.session.Query(
+		"UPDATE users SET default_address = ? WHERE user_id = ? IF default_address = null",
 		generateRandomId(),
+		user.UserID,
 	)
 
 	if err := query.Exec(); err != nil {

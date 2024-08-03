@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"nedas/shop/pkg/models"
 	"nedas/shop/pkg/storage"
+	"nedas/shop/pkg/utils"
 	"nedas/shop/src/components"
 	"nedas/shop/src/views"
 	"net/http"
@@ -63,10 +64,9 @@ func HandleBag(c echo.Context) error {
 		return render(c, views.Bag([]components.BagProductContext{}))
 	}
 
-	// err can be from nike api or from storage
 	products, err := getProducts(session.UserId, storage)
 	if err != nil {
-		c.Logger().Error(err)
+		utils.Logger().Error(err)
 		return err
 	}
 

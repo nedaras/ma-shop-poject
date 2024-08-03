@@ -26,8 +26,8 @@ document.body.addEventListener('htmx:beforeSwap', (e) => {
   div.innerHTML = ''
 })
 
-// todo: add like attr wait for img to load or smth
 document.body.addEventListener('htmx:afterSwap', (e) => {
+  console.log(e)
   if (e.detail.failed) return
   if (!e.detail.pathInfo.requestPath.startsWith('/htmx/add_to_bag')) return
 
@@ -54,12 +54,12 @@ document.body.addEventListener('htmx:afterSwap', (e) => {
   }
 })
 
-// todo: if we like clicked make it if we scroll close it
 function clickHandler(timeout: number) {
   return () => {
     clearTimeout(timeout)
   }
 }
+// todo: we would need whole day to sit make that scroll fell right
 
 function clear(placeholder: HTMLElement) {
   placeholder.style.transform = ''

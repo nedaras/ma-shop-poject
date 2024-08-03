@@ -15,3 +15,8 @@ func Assert(ok bool, msg string) {
 		panic(msg)
 	}
 }
+
+func TLSEnabled() bool {
+	// we will do it by reading env vars and checking if there is certifiates
+	return false
+}

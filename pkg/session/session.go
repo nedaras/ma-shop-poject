@@ -36,7 +36,7 @@ func (s *Session) Cookie() *http.Cookie {
 		Value:    s.String(),
 		Path:     "/",
 		MaxAge:   60 * 60 * 24 * 200,
-		Secure:   false, // todo: how to know if we have ssh
+		Secure:   utils.TLSEnabled(),
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 	}

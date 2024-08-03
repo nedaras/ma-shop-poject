@@ -45,7 +45,7 @@ func HandleLogin(c echo.Context) error {
 			Value:    fallback,
 			Path:     "/",
 			MaxAge:   60 * 5,
-			Secure:   false,
+			Secure:   utils.TLSEnabled(),
 			HttpOnly: true,
 			SameSite: http.SameSiteLaxMode,
 		})

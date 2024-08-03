@@ -3,6 +3,7 @@ package apis
 import (
 	"errors"
 	"nedas/shop/pkg/utils"
+	"time"
 )
 
 var (
@@ -16,6 +17,10 @@ func ValidateAddress(address Address) (Address, error) {
 	return vlidator.ValidateAddress(address)
 }
 
+func GetTimeTillNextRequest() time.Duration {
+	return vlidator.GetTimeTillNextRequest()
+}
+
 func SetAddressValidator(v AddressValidator) {
 	utils.Assert(vlidator == nil, "address validator is already set")
 	vlidator = v
@@ -25,6 +30,8 @@ type AddressValidator interface {
 
 	// Any returned error should be of type [*AddressValidationError].
 	ValidateAddress(adress Address) (Address, error)
+
+	GetTimeTillNextRequest() time.Duration
 }
 
 type Address struct {
@@ -35,8 +42,6 @@ type Address struct {
 	Zipcode string
 }
 
-// todo: bench this string function cuz i dont know how what '+' works does it like allocate a new string
-// or go somehow idk puts it insidade builder its intresting
 func (a Address) String() string {
 	return a.Street + ", " + a.City + ", " + a.Region + ", " + a.Country + ", " + a.Zipcode
 }

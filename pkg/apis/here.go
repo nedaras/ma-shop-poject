@@ -7,9 +7,13 @@ import (
 	"nedas/shop/pkg/utils"
 	"net/http"
 	"net/url"
+	"sync"
+	"time"
 )
 
-// todo: we need to check the scoring and stuff...
+// todo: do we need to check the scoring and stuff??? it gives no addresses if addr is fake and idk if someone can even
+//
+//	f there address up
 type HereData struct {
 	Items []struct {
 		Address struct {
@@ -23,10 +27,19 @@ type HereData struct {
 	} `json:"items"`
 }
 
-type Here struct{}
+type Here struct {
+	mu          sync.Mutex
+	lastRequest time.Time
+	requests    uint32
+	maxRequests uint32
+}
 
-// add logic for rate limiting like hold a request in a day we can have 1k requests so we need to calculate like how many requests can be handled
-// from given time to 12h or we could like suffle with api keys, idk if that even legal but in sense we could get like 2k requests a day
+func NewHere(maxRequests uint32) *Here {
+	return &Here{
+		maxRequests: maxRequests,
+	}
+}
+
 func (h *Here) ValidateAddress(address Address) (Address, error) {
 	utils.Assert(address.Country != "", "country is empty")
 	utils.Assert(address.Street != "", "address line is empty")
@@ -38,18 +51,38 @@ func (h *Here) ValidateAddress(address Address) (Address, error) {
 	params.Add("q", address.String())
 	params.Add("apiKey", utils.Getenv("HERE_API_KEY"))
 
+	if h.GetTimeTillNextRequest() > 0 {
+		return Address{}, ErrRateLimited
+	}
+
 	res, err := http.Get("https://geocode.search.hereapi.com/v1/geocode?" + params.Encode())
 	if err != nil {
 		return Address{}, &AddressValidationError{Address: address, Err: err}
 	}
 	defer res.Body.Close()
 
-	if res.StatusCode != http.StatusOK { // todo: check for rate limiting
+	if res.StatusCode != http.StatusOK {
 		if res.StatusCode == http.StatusTooManyRequests {
+			h.mu.Lock()
+			utils.Logger().Warn(fmt.Sprintf("got rate limited by here when still have %d requests left", h.requests))
+			h.mu.Unlock()
+
 			return Address{}, &AddressValidationError{Address: address, Err: ErrRateLimited}
 		}
 		return Address{}, &AddressValidationError{Address: address, Err: fmt.Errorf("got unexpected response code '%d'", res.StatusCode)}
 	}
+
+	now := time.Now()
+	h.mu.Lock()
+
+	if now.Day() != h.lastRequest.Day() || now.Sub(h.lastRequest).Hours() > 24 {
+		h.requests = h.maxRequests
+	} else {
+		h.requests--
+	}
+
+	h.lastRequest = now
+	h.mu.Unlock()
 
 	if res.Header.Get("Content-Type") != "application/json" {
 		return Address{}, &AddressValidationError{Address: address, Err: errors.New("responded content is not in json form")}
@@ -67,8 +100,7 @@ func (h *Here) ValidateAddress(address Address) (Address, error) {
 	}
 
 	if len(data.Items) > 1 {
-		// todo add logger or sum idk
-		fmt.Println(&AddressValidationError{Address: address, Err: errors.New("got multiple addresses")})
+		utils.Logger().Warn("got multiple addresses", address, data.Items)
 	}
 
 	item := data.Items[0]
@@ -104,4 +136,36 @@ func (h *Here) ValidateAddress(address Address) (Address, error) {
 		City:    item.Address.City,
 		Zipcode: item.Address.PostalCode,
 	}, nil
+}
+
+// test it
+func (h *Here) GetTimeTillNextRequest() time.Duration {
+	now := time.Now()
+
+	beg := now.Truncate(time.Hour * 24)
+	end := beg.Add(time.Hour * 24)
+
+	h.mu.Lock()
+	lastRequest := h.lastRequest
+	requests := h.requests
+	h.mu.Unlock()
+
+	if (lastRequest == time.Time{}) {
+		return 0
+	}
+
+	if lastRequest.Sub(beg) < 0 {
+		return 0
+	}
+
+	timeLeft := end.Sub(now).Milliseconds()
+	requestsLeft := h.maxRequests - requests
+	rm := float64(requestsLeft) / float64(timeLeft)
+
+	if float64(now.Sub(lastRequest).Milliseconds())*rm > 1000.0 {
+		return 0
+	}
+
+	milliseconds := 1000.0 - float64(now.Sub(lastRequest).Microseconds())*rm
+	return time.Duration(time.Millisecond * time.Duration(milliseconds))
 }
