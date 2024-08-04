@@ -2,11 +2,11 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 	"nedas/shop/pkg/apis"
 	"nedas/shop/pkg/models"
 	"nedas/shop/src/components"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -36,20 +36,6 @@ func HandlePutAddress(c echo.Context) error {
 		return err
 	}
 
-  if true {
-			return renderWithStatus(http.StatusNotFound, c, components.AddressForm(models.Address{
-		AddressId:   id,
-		Contact:     addressData.Contact,
-		CountryCode: addressData.CountryCode,
-		Phone:       addressData.Phone,
-		Country:     addressData.CountryCode,
-		Street:      addressData.Street,
-		Region:      addressData.Region,
-		City:        addressData.City,
-		Zipcode:     addressData.Zipcode,
-      }, "not found amigo"))
-  }
-
 	// todo: like give a check if addr even changed
 	address, err := apis.ValidateAddress(apis.Address{
 		Country: addressData.CountryCode,
@@ -59,23 +45,23 @@ func HandlePutAddress(c echo.Context) error {
 		Zipcode: addressData.Zipcode,
 	})
 	if err != nil {
+		a := models.Address{
+			AddressId:   id,
+			Contact:     addressData.Contact,
+			CountryCode: addressData.CountryCode,
+			Phone:       addressData.Phone,
+			Country:     addressData.CountryCode,
+			Street:      addressData.Street,
+			Region:      addressData.Region,
+			City:        addressData.City,
+			Zipcode:     addressData.Zipcode,
+		}
 		switch {
 		case errors.Is(err, apis.ErrNotFound):
-			return renderWithStatus(http.StatusNotFound, c, components.AddressForm(models.Address{
-		AddressId:   id,
-		Contact:     addressData.Contact,
-		CountryCode: addressData.CountryCode,
-		Phone:       addressData.Phone,
-		Country:     addressData.CountryCode,
-		Street:      addressData.Street,
-		Region:      addressData.Region,
-		City:        addressData.City,
-		Zipcode:     addressData.Zipcode,
-      }, "not found amigo"))
+			return renderWithStatus(http.StatusNotFound, c, components.AddressForm(a, "Sorry, this address couldn't be be identified."))
 		case errors.Is(err, apis.ErrRateLimited):
-			fmt.Println("time till next req:", apis.GetTimeTillNextRequest())
-			// todo: yee handle these
-			return err
+			next := strconv.Itoa(int(apis.GetTimeTillNextRequest().Seconds()))
+			return renderWithStatus(http.StatusTooManyRequests, c, components.AddressForm(a, "Rate limiting one user is crazy, atleast allow to add unverified address. Request again after "+next+"s."))
 		default:
 			c.Logger().Error(err)
 			return err
@@ -139,6 +125,7 @@ func validateAddressData(c echo.Context) (AddressData, error) {
 		return AddressData{}, newHTTPError(http.StatusBadRequest, "received invalid 'phone' field")
 	}
 
+	// todo: why we're not validating the patterns?
 	street := c.FormValue("street")
 	if street == "" {
 		return AddressData{}, newHTTPError(http.StatusBadRequest, "form has missing 'street' field")

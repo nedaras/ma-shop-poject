@@ -73,12 +73,12 @@ func redirect(c echo.Context, path string) error {
 }
 
 func redirectB(c echo.Context, path string, comp templ.Component) error {
-  if isHTMX(c) {
+	if isHTMX(c) {
 		c.Response().Header().Add("HX-Push-Url", path)
 		c.Response().Header().Add("HX-Retarget", "body")
 		c.Response().Header().Add("HX-Reswap", "innerHTML")
-    return render(c, comp)
-  }
+		return render(c, comp)
+	}
 	return c.Redirect(http.StatusSeeOther, path)
 }
 
