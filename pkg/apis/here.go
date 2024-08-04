@@ -37,6 +37,7 @@ type Here struct {
 func NewHere(maxRequests uint32) *Here {
 	return &Here{
 		maxRequests: maxRequests,
+		requests:    0,
 	}
 }
 
@@ -75,12 +76,13 @@ func (h *Here) ValidateAddress(address Address) (Address, error) {
 	now := time.Now()
 	h.mu.Lock()
 
-	if now.Day() != h.lastRequest.Day() || now.Sub(h.lastRequest).Hours() > 24 {
-		h.requests = h.maxRequests
-	} else {
-		h.requests--
+	a := now.Truncate(time.Hour * 24)
+	b := h.lastRequest.Truncate(time.Hour * 24)
+	if a.Sub(b).Hours() >= 24 {
+		h.requests = 0
 	}
 
+	h.requests++
 	h.lastRequest = now
 	h.mu.Unlock()
 
@@ -162,10 +164,10 @@ func (h *Here) GetTimeTillNextRequest() time.Duration {
 	requestsLeft := h.maxRequests - requests
 	rm := float64(requestsLeft) / float64(timeLeft)
 
-	if float64(now.Sub(lastRequest).Milliseconds())*rm > 1000.0 {
+	if float64(now.Sub(lastRequest).Milliseconds())*rm > 1.0 {
 		return 0
 	}
 
-	milliseconds := 1000.0 - float64(now.Sub(lastRequest).Microseconds())*rm
-	return time.Duration(time.Millisecond * time.Duration(milliseconds))
+	nextRequest := lastRequest.Add(time.Millisecond * time.Duration(1.0/rm))
+	return nextRequest.Sub(now)
 }

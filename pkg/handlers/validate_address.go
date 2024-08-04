@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"nedas/shop/pkg/apis"
 	"nedas/shop/pkg/models"
 	"net/http"
@@ -34,6 +35,7 @@ func HandlePutAddress(c echo.Context) error {
 		return err
 	}
 
+	// todo: like give a check if addr even changed
 	address, err := apis.ValidateAddress(apis.Address{
 		Country: addressData.CountryCode,
 		Street:  addressData.Street,
@@ -47,6 +49,7 @@ func HandlePutAddress(c echo.Context) error {
 			// todo: yee handle these
 			return err
 		case errors.Is(err, apis.ErrRateLimited):
+			fmt.Println("time till next req:", apis.GetTimeTillNextRequest())
 			// todo: yee handle these
 			return err
 		default:
