@@ -23,7 +23,6 @@ type ErrResult[T any] struct {
 
 // optional
 func getSession(c echo.Context) *Session {
-	// mb return the *Session and ok so we would know that *Session can be nil or som
 	val, ok := c.Get("auth-session").(*Session)
 	if !ok {
 		return nil
@@ -60,16 +59,21 @@ func newHTTPError(code int, format string, a ...any) *echo.HTTPError {
 	return echo.NewHTTPError(code, fmt.Sprintf(format, a...))
 }
 
+func isHTMX(c echo.Context) bool {
+	return c.Request().Header.Get("HX-Request") == "true"
+}
+
 func redirect(c echo.Context, path string) error {
-	if c.Request().Header.Get("HX-Request") == "true" {
+	// todo: make rederect render a view i dont like the 2 trafic proxy like
+	if isHTMX(c) {
 		c.Response().Header().Add("HX-Location", path)
 		return c.NoContent(http.StatusSeeOther)
 	}
-	return c.Redirect(http.StatusSeeOther, "/login")
+	return c.Redirect(http.StatusSeeOther, path)
 }
 
 func unauthorized(c echo.Context) error {
-	if c.Request().Header.Get("HX-Request") == "true" {
+	if isHTMX(c) {
 		// todo: i dont like the redirect when we can manipulate boost with headers
 		//c.Response().Header().Add("HX-Location", "{\"path\":\"/login\",\"values\":{\"fallback\":\""+fallback+"\"}}")
 		c.Response().Header().Add("HX-Location", "/login")

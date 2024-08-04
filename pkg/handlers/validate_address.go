@@ -4,7 +4,6 @@ import (
 	"errors"
 	"nedas/shop/pkg/apis"
 	"nedas/shop/pkg/models"
-	"nedas/shop/src/views"
 	"net/http"
 	"strings"
 
@@ -71,13 +70,7 @@ func HandlePutAddress(c echo.Context) error {
 		return err
 	}
 
-	// todo: we need to see if its better to get addresses and the append
-	addresses, err := storage.GetAddresses(session.UserId)
-	if err != nil {
-		return err
-	}
-
-	return render(c, views.Addresses(addresses))
+	return redirect(c, "/addresses")
 }
 
 func isCountryCodeValid(code string) bool {

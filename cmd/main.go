@@ -40,6 +40,7 @@ func main() {
 	e.GET("/account", handlers.HandleAccount)
 	e.GET("/addresses", handlers.HandleAddresses)
 	e.GET("/:thread_id/:mid", handlers.HandleSneaker)
+	e.GET("/address/:id", handlers.HandleAddress)
 
 	e.POST("/htmx/search", handlers.HandleSearch)
 	e.POST("/htmx/add_to_bag", handlers.AddToBag)
@@ -48,9 +49,8 @@ func main() {
 	e.POST("/htmx/logout", handlers.HandleLogout)
 	e.POST("/htmx/product/decrement", handlers.HandleDecrement)
 	e.POST("/htmx/product/increment", handlers.HandleIncrement)
-	e.GET("/htmx/address", handlers.HandleAddressEditor)
-	e.GET("/htmx/address/:id", handlers.HandleAddressEditor)
 	e.GET("/htmx/sizes/:path", handlers.HandleSizes)
+	e.GET("/htmx/address", handlers.HandleCreateAddress)
 
 	e.PUT("/htmx/product", handlers.HandleProduct)
 	e.PUT("/htmx/address/:id", handlers.HandlePutAddress)

@@ -35,6 +35,7 @@ func NewCassandra() (*Cassandra, error) {
 }
 
 // todo: mb store default_address on users local_storage it prob would even be better user exepriance
+// tood: rmmm default address from exsistance
 func (c *Cassandra) AddUser(user models.StorageUser) error {
 	utils.Assert(user.UserID != "", "user id is empty")
 	utils.Assert(user.Email != "", "user email is empty")

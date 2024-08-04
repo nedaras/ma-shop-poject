@@ -27,7 +27,6 @@ document.body.addEventListener('htmx:beforeSwap', (e) => {
 })
 
 document.body.addEventListener('htmx:afterSwap', (e) => {
-  console.log(e)
   if (e.detail.failed) return
   if (!e.detail.pathInfo.requestPath.startsWith('/htmx/add_to_bag')) return
 

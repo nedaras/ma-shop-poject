@@ -20,9 +20,7 @@ templ Addresses(addresses []models.Address) {
 					<button
 						class="bg-black text-white text-center w-full p-4"
 						hx-get="/htmx/address"
-						hx-target="closest main"
-						hx-swap="outerHTML"
-						hx-push-url="/address"
+						hx-target="body"
 					>
 						Add address
 					</button>

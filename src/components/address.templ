@@ -14,15 +14,11 @@ templ Address(address models.Address) {
 			{ address.City }, { address.Region }, { address.Country }, { address.CountryCode }-{ address.Zipcode }
 		</h2>
 		<div class="flex justify-between mt-2">
-			<button
-				class="underline text-sm italic text-blue-400"
-				hx-get={ string(templ.URL("/htmx/address/" + address.AddressId)) }
-				hx-target="closest main"
-				hx-swap="outerHTML"
-				hx-push-url="/address"
-			>
-				Edit
-			</button>
+			<a hx-boost="true" href={ templ.URL("/address/" + address.AddressId) }>
+				<button class="underline text-sm italic text-blue-400">
+					Edit
+				</button>
+			</a>
 			<button
 				hx-delete={ "/htmx/address/" + address.AddressId }
 				hx-target="closest li"
