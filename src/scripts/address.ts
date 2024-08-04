@@ -1,4 +1,4 @@
-import { StatusNotFound, StatusTooManyRequests } from "./http"
+import { StatusInternalServerError, StatusNotFound, StatusTooManyRequests } from "./http"
 
 document.body.addEventListener('htmx:beforeSwap', (e) => {
   if (!e.detail.isError) return
@@ -7,6 +7,7 @@ document.body.addEventListener('htmx:beforeSwap', (e) => {
   switch (e.detail.xhr.status) {
   case StatusNotFound:
   case StatusTooManyRequests:
+  case StatusInternalServerError:
     break
   default:
     return

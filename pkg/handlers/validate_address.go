@@ -4,6 +4,7 @@ import (
 	"errors"
 	"nedas/shop/pkg/apis"
 	"nedas/shop/pkg/models"
+	"nedas/shop/pkg/utils"
 	"nedas/shop/src/components"
 	"net/http"
 	"strconv"
@@ -44,18 +45,20 @@ func HandlePutAddress(c echo.Context) error {
 		City:    addressData.City,
 		Zipcode: addressData.Zipcode,
 	})
+
+	a := models.Address{
+		AddressId:   id,
+		Contact:     addressData.Contact,
+		CountryCode: addressData.CountryCode,
+		Phone:       addressData.Phone,
+		Country:     addressData.CountryCode,
+		Street:      addressData.Street,
+		Region:      addressData.Region,
+		City:        addressData.City,
+		Zipcode:     addressData.Zipcode,
+	}
+
 	if err != nil {
-		a := models.Address{
-			AddressId:   id,
-			Contact:     addressData.Contact,
-			CountryCode: addressData.CountryCode,
-			Phone:       addressData.Phone,
-			Country:     addressData.CountryCode,
-			Street:      addressData.Street,
-			Region:      addressData.Region,
-			City:        addressData.City,
-			Zipcode:     addressData.Zipcode,
-		}
 		switch {
 		case errors.Is(err, apis.ErrNotFound):
 			return renderWithStatus(http.StatusNotFound, c, components.AddressForm(a, "Sorry, this address couldn't be be identified."))
@@ -63,8 +66,8 @@ func HandlePutAddress(c echo.Context) error {
 			next := strconv.Itoa(int(apis.GetTimeTillNextRequest().Seconds()))
 			return renderWithStatus(http.StatusTooManyRequests, c, components.AddressForm(a, "Rate limiting one user is crazy, atleast allow to add unverified address. Request again after "+next+"s."))
 		default:
-			c.Logger().Error(err)
-			return err
+			utils.Logger().Error(err)
+			return renderWithStatus(http.StatusInternalServerError, c, components.AddressForm(a, "Something went wrong. Please try again later."))
 		}
 	}
 
@@ -80,7 +83,8 @@ func HandlePutAddress(c echo.Context) error {
 		Zipcode:     address.Zipcode,
 	})
 	if err != nil {
-		return err
+		utils.Logger().Error(err)
+		return renderWithStatus(http.StatusInternalServerError, c, components.AddressForm(a, "Something went wrong. Please try again later."))
 	}
 
 	return redirect(c, "/addresses")
