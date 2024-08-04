@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"nedas/shop/pkg/apis"
 	"nedas/shop/pkg/models"
+	"nedas/shop/src/components"
 	"net/http"
 	"strings"
 
@@ -35,6 +36,20 @@ func HandlePutAddress(c echo.Context) error {
 		return err
 	}
 
+  if true {
+			return renderWithStatus(http.StatusNotFound, c, components.AddressForm(models.Address{
+		AddressId:   id,
+		Contact:     addressData.Contact,
+		CountryCode: addressData.CountryCode,
+		Phone:       addressData.Phone,
+		Country:     addressData.CountryCode,
+		Street:      addressData.Street,
+		Region:      addressData.Region,
+		City:        addressData.City,
+		Zipcode:     addressData.Zipcode,
+      }, "not found amigo"))
+  }
+
 	// todo: like give a check if addr even changed
 	address, err := apis.ValidateAddress(apis.Address{
 		Country: addressData.CountryCode,
@@ -46,8 +61,17 @@ func HandlePutAddress(c echo.Context) error {
 	if err != nil {
 		switch {
 		case errors.Is(err, apis.ErrNotFound):
-			// todo: yee handle these
-			return err
+			return renderWithStatus(http.StatusNotFound, c, components.AddressForm(models.Address{
+		AddressId:   id,
+		Contact:     addressData.Contact,
+		CountryCode: addressData.CountryCode,
+		Phone:       addressData.Phone,
+		Country:     addressData.CountryCode,
+		Street:      addressData.Street,
+		Region:      addressData.Region,
+		City:        addressData.City,
+		Zipcode:     addressData.Zipcode,
+      }, "not found amigo"))
 		case errors.Is(err, apis.ErrRateLimited):
 			fmt.Println("time till next req:", apis.GetTimeTillNextRequest())
 			// todo: yee handle these

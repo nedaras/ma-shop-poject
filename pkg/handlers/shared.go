@@ -72,6 +72,16 @@ func redirect(c echo.Context, path string) error {
 	return c.Redirect(http.StatusSeeOther, path)
 }
 
+func redirectB(c echo.Context, path string, comp templ.Component) error {
+  if isHTMX(c) {
+		c.Response().Header().Add("HX-Push-Url", path)
+		c.Response().Header().Add("HX-Retarget", "body")
+		c.Response().Header().Add("HX-Reswap", "innerHTML")
+    return render(c, comp)
+  }
+	return c.Redirect(http.StatusSeeOther, path)
+}
+
 func unauthorized(c echo.Context) error {
 	if isHTMX(c) {
 		// todo: i dont like the redirect when we can manipulate boost with headers

@@ -117,8 +117,7 @@ func HandleSearch(c echo.Context) error {
 		Image:    img,
 	}
 
-	c.Response().Header().Add("HX-Push-Url", "/"+data.ThreadId+"/"+data.Mid)
-	return render(c, views.Sneaker(views.SneakerContext{
+	return redirectB(c, "/"+data.ThreadId+"/"+data.Mid, views.Sneaker(views.SneakerContext{
 		Product:  product,
 		Sizes:    sizes,
 		LoggedIn: getSession(c) != nil,

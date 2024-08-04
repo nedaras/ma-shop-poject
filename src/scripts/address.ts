@@ -1,6 +1,16 @@
 import { StatusNotFound } from "./http"
 
 document.body.addEventListener('htmx:beforeSwap', (e) => {
+  if (!e.detail.pathInfo.requestPath.startsWith("/htmx/address/")) return
+  if (e.detail.xhr.status != StatusNotFound) return
+
+  e.detail.isError = false
+  e.detail.shouldSwap = true
+
+})
+
+
+document.body.addEventListener('htmx:beforeSwap', (e) => {
   if (!e.detail.pathInfo.requestPath.startsWith("/address/")) return
   if (e.detail.xhr.status != StatusNotFound) return
 
@@ -9,6 +19,7 @@ document.body.addEventListener('htmx:beforeSwap', (e) => {
 
 })
 
+// todo: fix this shit
 document.body.addEventListener('htmx:afterSwap', (e) => {
   if (e.detail.failed) return
   if (!e.detail.pathInfo.requestPath.startsWith("/address/")) return

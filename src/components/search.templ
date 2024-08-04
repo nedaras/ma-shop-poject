@@ -5,8 +5,7 @@ templ Search(err string) {
 		class="p-2"
 		action="#"
 		hx-post="/htmx/search"
-		hx-target="body"
-		hx-swap="innerHTML show:window:top"
+		hx-swap="outerHTML"
 	>
 		<input
 			class="border border-gray-400 w-full bg-white rounded-2xl placeholder-gray-400 p-2 outline-none"
