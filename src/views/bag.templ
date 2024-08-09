@@ -8,6 +8,7 @@ import (
 templ Bag(products []components.BagProductContext) {
 	@layouts.Layout("Bag") {
 		@components.Header()
+		<div id="stripe"></div>
 		<main>
 			<ul hx-boost="true" class="flex flex-col gap-4 pt-4 h-[calc(100svh-56px)]">
 				for _, p := range products {

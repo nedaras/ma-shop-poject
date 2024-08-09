@@ -6,11 +6,13 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/stripe/stripe-go/v79"
 
 	"nedas/shop/pkg/apis"
 	"nedas/shop/pkg/handlers"
 	"nedas/shop/pkg/middlewares"
 	"nedas/shop/pkg/storage"
+	"nedas/shop/pkg/utils"
 )
 
 func main() {
@@ -25,6 +27,8 @@ func main() {
 	defer storage.Close()
 
 	apis.SetAddressValidator(apis.NewHere(1000))
+
+	stripe.Key = utils.Getenv("STRIPE_SECRET_KEY")
 
 	e := echo.New()
 	e.Static("/", "public")

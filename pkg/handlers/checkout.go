@@ -8,6 +8,10 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/stripe/stripe-go/v79"
+	"github.com/stripe/stripe-go/v79/checkout/session"
+	"github.com/stripe/stripe-go/v79/price"
+	"github.com/stripe/stripe-go/v79/product"
 )
 
 func HandleCheckout(c echo.Context) error {
@@ -72,7 +76,51 @@ func HandleCheckout(c echo.Context) error {
 		totalPrice += float64(p.Amount) * p.Product.Price
 	}
 
-	fmt.Println("total price", totalPrice)
+	secret, err := getClientSecret()
+	if err != nil {
+		utils.Logger().Error(err)
+		return err
+	}
 
-	return c.NoContent(http.StatusNotFound)
+	fmt.Println("total price", totalPrice)
+	fmt.Println("secret", secret)
+
+	//return c.NoContent(http.StatusNotFound)
+	return c.HTML(http.StatusOK, secret)
+}
+
+func getClientSecret() (string, error) {
+	product, err := product.New(&stripe.ProductParams{Name: stripe.String("T-shirt")})
+	if err != nil {
+		return "", err
+	}
+
+	price, err := price.New(&stripe.PriceParams{
+		Product:    stripe.String(product.ID),
+		UnitAmount: stripe.Int64(2000),
+		Currency:   stripe.String(string(stripe.CurrencyEUR)),
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	params := &stripe.CheckoutSessionParams{
+		UIMode:    stripe.String("embedded"),
+		ReturnURL: stripe.String("http://localhost:3000/stripe?session_id={CHECKOUT_SESSION_ID}"),
+		LineItems: []*stripe.CheckoutSessionLineItemParams{
+			{
+				Price:    stripe.String(price.ID),
+				Quantity: stripe.Int64(1),
+			},
+		},
+		Mode: stripe.String(string(stripe.CheckoutSessionModePayment)),
+	}
+
+	session, err := session.New(params)
+	if err != nil {
+		return "", err
+	}
+
+	return session.ClientSecret, nil
 }
