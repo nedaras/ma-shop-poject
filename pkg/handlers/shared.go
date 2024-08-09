@@ -63,16 +63,7 @@ func isHTMX(c echo.Context) bool {
 	return c.Request().Header.Get("HX-Request") == "true"
 }
 
-func redirect(c echo.Context, path string) error {
-	// todo: make rederect render a view i dont like the 2 trafic proxy like
-	if isHTMX(c) {
-		c.Response().Header().Add("HX-Location", path)
-		return c.NoContent(http.StatusSeeOther)
-	}
-	return c.Redirect(http.StatusSeeOther, path)
-}
-
-func redirectB(c echo.Context, path string, comp templ.Component) error {
+func redirect(c echo.Context, path string, comp templ.Component) error {
 	if isHTMX(c) {
 		c.Response().Header().Add("HX-Push-Url", path)
 		c.Response().Header().Add("HX-Retarget", "body")
@@ -83,11 +74,6 @@ func redirectB(c echo.Context, path string, comp templ.Component) error {
 }
 
 func unauthorized(c echo.Context) error {
-	if isHTMX(c) {
-		// todo: i dont like the redirect when we can manipulate boost with headers
-		//c.Response().Header().Add("HX-Location", "{\"path\":\"/login\",\"values\":{\"fallback\":\""+fallback+"\"}}")
-		c.Response().Header().Add("HX-Location", "/login")
-		return c.NoContent(http.StatusUnauthorized)
-	}
-	return c.Redirect(http.StatusSeeOther, "/login")
+	// todo: i dont like the redirect when we can manipulate boost with headers
+	return redirect(c, "/login", views.Login())
 }

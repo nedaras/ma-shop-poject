@@ -117,7 +117,7 @@ func HandleSearch(c echo.Context) error {
 		Image:    img,
 	}
 
-	return redirectB(c, "/"+data.ThreadId+"/"+data.Mid, views.Sneaker(views.SneakerContext{
+	return redirect(c, "/"+data.ThreadId+"/"+data.Mid, views.Sneaker(views.SneakerContext{
 		Product:  product,
 		Sizes:    sizes,
 		LoggedIn: getSession(c) != nil,

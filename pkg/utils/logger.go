@@ -1,9 +1,9 @@
 package utils
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/labstack/gommon/log"
@@ -11,10 +11,13 @@ import (
 
 var (
 	logger *log.Logger
+	mu     sync.Mutex
 )
 
 func Logger() *log.Logger {
-	fmt.Println("geting the logger")
+	mu.Lock()
+	defer mu.Unlock()
+
 	if logger == nil {
 		exe, err := os.Executable()
 		if err != nil {

@@ -26,5 +26,5 @@ func HandleAddress(c echo.Context) error {
 		}
 	}
 
-	return redirect(c, "/addresses")
+	return redirect(c, "/addresses", views.Addresses(addresses))
 }

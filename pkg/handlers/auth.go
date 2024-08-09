@@ -63,7 +63,7 @@ func HandleLogout(c echo.Context) error {
 	session := getSession(c)
 
 	if session == nil {
-		return redirect(c, "/")
+		return redirect(c, "/", views.Index())
 	}
 
 	cookie := session.Cookie()
@@ -71,7 +71,7 @@ func HandleLogout(c echo.Context) error {
 	cookie.MaxAge = -1
 
 	c.SetCookie(cookie)
-	return redirect(c, "/")
+	return redirect(c, "/", views.Index())
 }
 
 func HandleGoogleLogin(c echo.Context) error {

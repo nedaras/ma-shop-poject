@@ -6,6 +6,7 @@ import (
 	"nedas/shop/pkg/models"
 	"nedas/shop/pkg/utils"
 	"nedas/shop/src/components"
+	"nedas/shop/src/views"
 	"net/http"
 	"strconv"
 	"strings"
@@ -87,7 +88,12 @@ func HandlePutAddress(c echo.Context) error {
 		return renderWithStatus(http.StatusInternalServerError, c, components.AddressForm(a, "Something went wrong. Please try again later."))
 	}
 
-	return redirect(c, "/addresses")
+	addresses, err := storage.GetAddresses(session.UserId)
+	if err != nil {
+		return err
+	}
+
+	return redirect(c, "/addresses", views.Addresses(addresses))
 }
 
 func isCountryCodeValid(code string) bool {

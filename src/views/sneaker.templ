@@ -54,7 +54,7 @@ templ Sneaker(c SneakerContext) {
 						@components.Sizes(c.Sizes, c.Product.PathName, true)
 					</div>
 					if c.LoggedIn {
-						<button id="bag-button" type="submit" class="opacity-indicator bg-black text-white w-full p-4 mt-2">
+						<button id="bag-button" type="submit" class="opacity-indicator bg-black text-white w-full p-4 mt-2 indicator:opacity-95">
 							Add to Bag
 						</button>
 					} else {

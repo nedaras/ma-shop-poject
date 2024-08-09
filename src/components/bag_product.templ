@@ -26,7 +26,7 @@ templ BagProduct(c BagProductContext) {
 			<h1>{ c.Product.Title }</h1>
 			<h2 class="text-xs text-gray-800">£{ strconv.FormatFloat(c.Product.Price, 'f', 2, 32) } / UK { c.Size }</h2>
 		</div>
-		<div class="opacity-indicator-500 mb-2 mr-2 flex items-end justify-end">
+		<div class="mb-2 mr-2 flex items-end justify-end indicator:opacity-75 indicator:pointer-events-none">
 			<div class="flex items-center gap-4">
 				<div>
 					<button

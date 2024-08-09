@@ -48,6 +48,9 @@ type Storage interface {
 	// Any returned error should be of type [*StorageError].
 	GetAddresses(userId string) ([]models.Address, error)
 
+	// Any returned error should be of type [*StorageError].
+	GetAddress(userId string, addressId string) (models.Address, error)
+
 	Close()
 }
 

@@ -11,9 +11,6 @@ import (
 	"time"
 )
 
-// todo: do we need to check the scoring and stuff??? it gives no addresses if addr is fake and idk if someone can even
-//
-//	f there address up
 type HereData struct {
 	Items []struct {
 		Address struct {

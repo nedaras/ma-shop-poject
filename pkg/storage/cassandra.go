@@ -71,10 +71,7 @@ func generateRandomId() string {
 }
 
 func (c *Cassandra) RemoveUser(userId string) error {
-	// todo: check out another db the problem we're having is that we are making a relations and it just dont work well,
-	// biggest problem is with AddAddress we would want to pass bool isDefault,
-	// the problem is it will be 2 queries and what todo if one of them fails, we prob can just ignore the setting to default but still
-	panic("cassandra cant just remove user")
+	panic("cassandra cant just remove an user, idk use postgress or sum")
 }
 
 func (c *Cassandra) GetUser(userId string) (models.StorageUser, error) {
@@ -395,6 +392,41 @@ func (c *Cassandra) GetAddresses(userId string) ([]models.Address, error) {
 	}
 
 	return products, nil
+}
+
+func (c *Cassandra) GetAddress(userId string, addressId string) (models.Address, error) {
+	utils.Assert(userId != "", "user id is empty")
+	utils.Assert(addressId != "", "address id is empty")
+
+	query := c.session.Query(
+		"SELECT address_id, contact, country_code, phone, country, street, region, city, zipcode FROM addresses WHERE user_id = ? AND address_id = ?",
+		userId,
+		addressId,
+	)
+
+	iter := query.Iter()
+
+	if iter.NumRows() == 0 {
+		if err := iter.Close(); err != nil {
+			return models.Address{}, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
+		}
+		return models.Address{}, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: ErrNotFound}
+	}
+
+	address := models.Address{}
+	if ok := iter.Scan(&address.AddressId, &address.Contact, &address.CountryCode, &address.Phone, &address.Country, &address.Street, &address.Region, &address.City, &address.Zipcode); !ok {
+		err := iter.Close()
+		if err != nil {
+			panic("no err and not ok!!!!")
+		}
+		return models.Address{}, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
+	}
+
+	if err := iter.Close(); err != nil {
+		return models.Address{}, &StorageError{Provider: "CASSANDRA", Execution: query.Statement(), Err: err}
+	}
+
+	return address, nil
 }
 
 func (c *Cassandra) Close() {

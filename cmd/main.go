@@ -58,8 +58,6 @@ func main() {
 	e.DELETE("/htmx/product", handlers.HandleProduct)
 	e.DELETE("/htmx/address/:id", handlers.HandleDeleteAddress)
 
-	// todo: we prob will drop cassandra it aint a db for cuz we kinda will be doing joins manually
-
 	e.HTTPErrorHandler = handlers.ErrorHandler
 	e.Logger.Fatal(e.Start(":3000"))
 }
