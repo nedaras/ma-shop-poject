@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"nedas/shop/pkg/models"
 	"nedas/shop/pkg/utils"
+	"nedas/shop/src/components"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -76,51 +77,56 @@ func HandleCheckout(c echo.Context) error {
 		totalPrice += float64(p.Amount) * p.Product.Price
 	}
 
-	secret, err := getClientSecret()
+	url, err := getCheckoutURL(products)
 	if err != nil {
 		utils.Logger().Error(err)
 		return err
 	}
 
-	fmt.Println("total price", totalPrice)
-	fmt.Println("secret", secret)
-
-	//return c.NoContent(http.StatusNotFound)
-	return c.HTML(http.StatusOK, secret)
+	return c.Redirect(http.StatusMovedPermanently, url)
 }
 
-func getClientSecret() (string, error) {
-	product, err := product.New(&stripe.ProductParams{Name: stripe.String("T-shirt")})
+func getCheckoutURL(context []components.BagProductContext) (string, error) {
+	params := make([]*stripe.CheckoutSessionLineItemParams, len(context))
+	for i, c := range context {
+		product, err := product.New(&stripe.ProductParams{
+			Name:        stripe.String(c.Product.Title),
+			Description: stripe.String(c.Product.Subtitle),
+		})
+
+		if err != nil {
+			return "", err
+		}
+
+		price, err := price.New(&stripe.PriceParams{
+			Product:    stripe.String(product.ID),
+			UnitAmount: stripe.Int64(int64(c.Product.Price * 100)),
+			Currency:   stripe.String(string(stripe.CurrencyEUR)),
+		})
+
+		if err != nil {
+			return "", err
+		}
+
+		params[i] = &stripe.CheckoutSessionLineItemParams{
+			Price:    stripe.String(price.ID),
+			Quantity: stripe.Int64(int64(c.Amount)),
+		}
+
+	}
+
+	domain := "http://localhost:3000"
+	a := &stripe.CheckoutSessionParams{
+		LineItems:  params,
+		SuccessURL: stripe.String(domain + "/success.html"),
+		CancelURL:  stripe.String(domain + "/cancel.html"),
+		Mode:       stripe.String(string(stripe.CheckoutSessionModePayment)),
+	}
+
+	session, err := session.New(a)
 	if err != nil {
 		return "", err
 	}
 
-	price, err := price.New(&stripe.PriceParams{
-		Product:    stripe.String(product.ID),
-		UnitAmount: stripe.Int64(2000),
-		Currency:   stripe.String(string(stripe.CurrencyEUR)),
-	})
-
-	if err != nil {
-		return "", err
-	}
-
-	params := &stripe.CheckoutSessionParams{
-		UIMode:    stripe.String("embedded"),
-		ReturnURL: stripe.String("http://localhost:3000/stripe?session_id={CHECKOUT_SESSION_ID}"),
-		LineItems: []*stripe.CheckoutSessionLineItemParams{
-			{
-				Price:    stripe.String(price.ID),
-				Quantity: stripe.Int64(1),
-			},
-		},
-		Mode: stripe.String(string(stripe.CheckoutSessionModePayment)),
-	}
-
-	session, err := session.New(params)
-	if err != nil {
-		return "", err
-	}
-
-	return session.ClientSecret, nil
+	return session.URL, nil
 }

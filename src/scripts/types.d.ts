@@ -23,10 +23,16 @@ type HTMXAfterSwap = {
   }
 }
 
-type HTMXBeforeSwapEvent = CustomEvent<HTMXBeforeSwap>;
-type HTMXAfterSwapEvent = CustomEvent<HTMXAfterSwap>;
+type HTMXHistoryRestore = {
+  path: string
+}
+
+type HTMXBeforeSwapEvent = CustomEvent<HTMXBeforeSwap>
+type HTMXAfterSwapEvent = CustomEvent<HTMXAfterSwap>
+type HTMXHistoryRestoreEvent = CustomEvent<HTMXHistoryRestore>
 
 interface HTMLElementEventMap {
     'htmx:beforeSwap': HTMXBeforeSwapEvent
     'htmx:afterSwap': HTMXAfterSwapEvent
+    'htmx:historyRestore': HTMXHistoryRestoreEvent 
 }

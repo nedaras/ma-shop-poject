@@ -10,6 +10,15 @@ document.body.addEventListener('htmx:beforeSwap', (e) => {
   e.detail.shouldSwap = false
 })
 
+document.addEventListener('click', (e) => {
+  const close = e.target as HTMLElement | null
+  if (close?.id !== "placeholder-close") return
+
+  const placeholder = document.getElementById('placeholder')
+  placeholder && clear(placeholder)
+  
+})
+
 document.body.addEventListener('htmx:beforeSwap', (e) => {
   if (e.detail.isError) return
   if (e.detail.pathInfo.requestPath !== '/bag') return
@@ -40,7 +49,6 @@ document.body.addEventListener('htmx:afterSwap', (e) => {
   for (const image of images) {
     image.onload = () => {
       if (images.length != ++i) return
-      const close = document.getElementById('placeholder-close')
 
       placeholder.style.transitionDuration = ''
       placeholder.style.transform = 'translateY(0%)'
@@ -48,7 +56,6 @@ document.body.addEventListener('htmx:afterSwap', (e) => {
         setTimeout(() => clear(placeholder), 2000)
       )
 
-      close && (close.onclick = () => clear(placeholder))
     }
   }
 })

@@ -8,7 +8,6 @@ import (
 templ Bag(products []components.BagProductContext) {
 	@layouts.Layout("Bag") {
 		@components.Header()
-		<div id="stripe"></div>
 		<main>
 			<ul hx-boost="true" class="flex flex-col gap-4 pt-4 h-[calc(100svh-56px)]">
 				for _, p := range products {
@@ -17,16 +16,14 @@ templ Bag(products []components.BagProductContext) {
 					</li>
 				}
 				<li class="mt-auto">
-					// todo: add that default_address thingy in vals
-					<button
-						class="bg-black text-white text-center w-full p-4"
-						hx-post="/htmx/checkout"
-						hx-target="body"
-						hx-push-url="/address"
-						hx-swap="innerHTML show:window:top"
-					>
-						Checkout
-					</button>
+					<form hx-boost="false" action="/htmx/checkout" method="post">
+						<button
+							type="submit"
+							class="bg-black text-white text-center w-full p-4 indicator:opacity-50"
+						>
+							Checkout
+						</button>
+					</form>
 				</li>
 			</ul>
 		</main>
