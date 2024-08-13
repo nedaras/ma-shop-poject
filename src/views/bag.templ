@@ -9,27 +9,35 @@ templ Bag(products []components.BagProductContext) {
 	@layouts.Layout("Bag") {
 		@components.Header()
 		<main>
-			<ul
-        id="products"
-        hx-boost="true"
-        class="flex flex-col gap-4 pt-4 h-[calc(100svh-56px)]"
-      >
-				for _, p := range products {
-					<li class="px-4">
-						@components.BagProduct(p)
-					</li>
-				}
-				<li class="mt-auto">
+			// todo: fix a bug when all items removed so there would be empty bag thing
+			if len(products) > 0 {
+				<ul
+					id="products"
+					hx-boost="true"
+					class="flex flex-col gap-4 pt-4 h-[calc(100svh-56px)]"
+				>
+					for _, p := range products {
+						<li class="px-4">
+							@components.BagProduct(p)
+						</li>
+					}
+					<li class="mt-auto">
+						// todo: make a page where address is selected and all
 						<button
-              hx-boost="false"
-              hx-post="/htmx/checkout"
-              hx-vals="js:{products: getProducts()}"
-							class="bg-black text-white text-center w-full p-4 indicator:opacity-50"
+							hx-boost="false"
+							hx-post="/htmx/checkout"
+							hx-vals="js:{products: getProducts()}"
+							class="bg-black text-white text-center w-full p-4 indicator:animate-spin"
 						>
 							Checkout
 						</button>
-				</li>
-			</ul>
+					</li>
+				</ul>
+			} else {
+				<div class="text-center text-xl">
+					Your bag is empty
+				</div>
+			}
 		</main>
 	}
 }

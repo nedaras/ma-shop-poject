@@ -130,7 +130,7 @@ func getProduct(id string) (models.Product, error) {
 		ch <- ErrResult[any]{
 			Val: val,
 			Err: err,
-    }
+		}
 	}()
 
 	go func() {

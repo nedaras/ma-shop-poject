@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"nedas/shop/pkg/models"
 	"nedas/shop/pkg/utils"
 	"nedas/shop/src/components"
 	"net/http"
@@ -18,70 +17,35 @@ import (
 )
 
 type ProductBody struct {
-  ThreadId string `json:"tid"`
-  Mid string `json:"mid"`
-  Amount string `json:"amount"`
-  Size string `json:"size"`
+	ThreadId string `json:"tid"`
+	Mid      string `json:"mid"`
+	Amount   string `json:"amount"`
+	Size     string `json:"size"`
 }
 
 func HandleCheckout(c echo.Context) error {
 	session := getSession(c)
-	storage := getStorage(c)
 
-  if session == nil {
-    return unauthorized(c)
-  }
+	if session == nil {
+		return unauthorized(c)
+	}
 
-  products, err := getParamProducts(c.FormValue("products"))
-  if err != nil {
-    if errors.Is(err, ErrNotFound) {
-      return newHTTPError(http.StatusNotFound, "product could not be found")
-    }
-    utils.Logger().Error(err)
-    return err
-  }
+	products, err := getParamProducts(c.FormValue("products"))
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return newHTTPError(http.StatusNotFound, "product could not be found")
+		}
+		utils.Logger().Error(err)
+		return err
+	}
 
 	if len(products) == 0 {
 		return newHTTPError(http.StatusNotFound, http.StatusText(http.StatusNotFound))
 	}
 
 	var (
-		address    models.Address
 		totalPrice float64
 	)
-
-	addressId := c.FormValue("address_id")
-	if addressId == "" {
-		addresses, err := storage.GetAddresses(session.UserId)
-		if err != nil {
-			utils.Logger().Error(err)
-			return err
-		}
-
-		if len(addresses) == 0 {
-			// todo:
-			panic("redirect to add address")
-		}
-
-		if len(addresses) > 1 {
-			// todo:
-			panic("not implemented.")
-		}
-
-		address = addresses[0]
-	} else {
-		a, err := storage.GetAddress(session.UserId, addressId)
-		if err != nil {
-			if errors.Is(err, StorageErrNotFound) {
-				return newHTTPError(http.StatusNotFound, "form has invalid 'address_id'")
-			}
-			utils.Logger().Error(err)
-			return err
-		}
-		address = a
-	}
-
-  _ = address
 
 	for _, p := range products {
 		totalPrice += float64(p.Amount) * p.Product.Price
@@ -93,12 +57,12 @@ func HandleCheckout(c echo.Context) error {
 		return err
 	}
 
-  if isHTMX(c) {
-    c.Response().Header().Add("HX-Redirect", url) 
-    return c.NoContent(http.StatusTemporaryRedirect)
-  }
+	if isHTMX(c) {
+		c.Response().Header().Add("HX-Redirect", url)
+		return c.NoContent(http.StatusTemporaryRedirect)
+	}
 
-  return c.Redirect(http.StatusTemporaryRedirect, url)
+	return c.Redirect(http.StatusTemporaryRedirect, url)
 }
 
 func getCheckoutURL(context []components.BagProductContext) (string, error) {
@@ -114,8 +78,8 @@ func getCheckoutURL(context []components.BagProductContext) (string, error) {
 		}
 
 		price, err := price.New(&stripe.PriceParams{
-			Product:    stripe.String(product.ID),
-      // todo: make prce like and int cuz floats sucks
+			Product: stripe.String(product.ID),
+			// todo: make prce like and int cuz floats sucks
 			UnitAmount: stripe.Int64(int64(c.Product.Price * 100)),
 			Currency:   stripe.String(string(stripe.CurrencyEUR)),
 		})
@@ -131,11 +95,10 @@ func getCheckoutURL(context []components.BagProductContext) (string, error) {
 
 	}
 
-	domain := "http://localhost:3000"
 	a := &stripe.CheckoutSessionParams{
 		LineItems:  params,
-		SuccessURL: stripe.String(domain + "/success.html"),
-		CancelURL:  stripe.String(domain + "/cancel.html"),
+		SuccessURL: stripe.String(utils.Getenv("HOST") + "/not_implemented"),
+		CancelURL:  stripe.String(utils.Getenv("HOST") + "/bag"),
 		Mode:       stripe.String(string(stripe.CheckoutSessionModePayment)),
 	}
 
@@ -148,93 +111,92 @@ func getCheckoutURL(context []components.BagProductContext) (string, error) {
 }
 
 func getParamProducts(param string) ([]components.BagProductContext, error) {
-  if param == "" {
-    return []components.BagProductContext{}, newHTTPError(http.StatusBadRequest, "form has missing 'product' field")
-  }
+	if param == "" {
+		return []components.BagProductContext{}, newHTTPError(http.StatusBadRequest, "form has missing 'product' field")
+	}
 
-  var products []ProductBody
-  if err := json.Unmarshal([]byte(param), &products); err != nil {
-    if errors.Is(err, io.EOF) {
-      return []components.BagProductContext{}, newHTTPError(http.StatusBadRequest, "'product' field is in invalid json form")
-    }
-    utils.Logger().Error(err)
-    return []components.BagProductContext{}, err
-  }
+	var products []ProductBody
+	if err := json.Unmarshal([]byte(param), &products); err != nil {
+		if errors.Is(err, io.EOF) {
+			return []components.BagProductContext{}, newHTTPError(http.StatusBadRequest, "'product' field is in invalid json form")
+		}
+		utils.Logger().Error(err)
+		return []components.BagProductContext{}, err
+	}
 
+	result := make([]components.BagProductContext, len(products))
+	ch := make(chan ErrResult[components.BagProductContext], len(products))
 
-  result := make([]components.BagProductContext, len(products))
-  ch := make(chan ErrResult[components.BagProductContext], len(products))
+	for _, p := range products {
+		if p.ThreadId == "" {
+			return []components.BagProductContext{}, newHTTPError(http.StatusBadRequest, "'product' field has missing 'tid' param")
+		}
+		if p.Mid == "" {
+			return []components.BagProductContext{}, newHTTPError(http.StatusBadRequest, "'product' field has missing 'mid' param")
+		}
 
-  for _, p := range products {
-    if p.ThreadId == "" {
-      return []components.BagProductContext{}, newHTTPError(http.StatusBadRequest, "'product' field has missing 'tid' param")
-    }
-    if p.Mid == "" {
-      return []components.BagProductContext{}, newHTTPError(http.StatusBadRequest, "'product' field has missing 'mid' param")
-    }
+		if p.Amount == "" {
+			return []components.BagProductContext{}, newHTTPError(http.StatusBadRequest, "'product' field has missing 'amount' param")
+		}
 
-    if p.Amount == "" {
-      return []components.BagProductContext{}, newHTTPError(http.StatusBadRequest, "'product' field has missing 'amount' param")
-    }
+		amount, err := strconv.ParseInt(p.Amount, 10, 8)
+		if err != nil {
+			return []components.BagProductContext{}, newHTTPError(http.StatusBadRequest, "'product' field has invalid 'amount' param")
+		}
 
-    amount, err := strconv.ParseInt(p.Amount, 10, 8)
-    if err != nil {
-      return []components.BagProductContext{}, newHTTPError(http.StatusBadRequest, "'product' field has invalid 'amount' param")
-    }
+		if p.Size == "" {
+			return []components.BagProductContext{}, newHTTPError(http.StatusBadRequest, "'product' field has missing 'size' param")
+		}
+		if len(p.Size) > 4 {
+			return []components.BagProductContext{}, newHTTPError(http.StatusBadRequest, "'product' field has invalid 'size' param")
+		}
+		if _, err := strconv.ParseFloat(p.Amount, 32); err != nil {
+			return []components.BagProductContext{}, newHTTPError(http.StatusBadRequest, "'product' field has invalid 'size' param")
+		}
 
-    if p.Size == "" {
-      return []components.BagProductContext{}, newHTTPError(http.StatusBadRequest, "'product' field has missing 'size' param")
-    }
-    if len(p.Size) > 4 {
-      return []components.BagProductContext{}, newHTTPError(http.StatusBadRequest, "'product' field has invalid 'size' param")
-    }
-    if _, err := strconv.ParseFloat(p.Amount, 32); err != nil {
-      return []components.BagProductContext{}, newHTTPError(http.StatusBadRequest, "'product' field has invalid 'size' param")
-    }
+		go func() {
+			product, err := getProduct(p.ThreadId + ":" + p.Mid)
+			if err != nil {
+				ch <- ErrResult[components.BagProductContext]{
+					Val: components.BagProductContext{},
+					Err: err,
+				}
+			}
 
-    go func() {
-      product, err := getProduct(p.ThreadId + ":" + p.Mid)
-      if err != nil {
-        ch <- ErrResult[components.BagProductContext]{
-          Val: components.BagProductContext{},
-          Err: err,
-        }
-      }
+			ok, err := validateSize(product.PathName, p.Size)
+			if err != nil {
+				ch <- ErrResult[components.BagProductContext]{
+					Val: components.BagProductContext{},
+					Err: err,
+				}
+			}
 
-      ok, err := validateSize(product.PathName, p.Size)
-      if err != nil {
-        ch <- ErrResult[components.BagProductContext]{
-          Val: components.BagProductContext{},
-          Err: err,
-        }
-      }
+			if !ok {
+				ch <- ErrResult[components.BagProductContext]{
+					Val: components.BagProductContext{},
+					Err: ErrNotFound,
+				}
+			}
 
-      if !ok {
-        ch <- ErrResult[components.BagProductContext]{
-          Val: components.BagProductContext{},
-          Err: ErrNotFound,
-        }
-      }
+			ch <- ErrResult[components.BagProductContext]{
+				Val: components.BagProductContext{
+					Product: product,
+					Size:    p.Size,
+					Amount:  uint8(amount),
+				},
+				Err: nil,
+			}
 
-      ch <- ErrResult[components.BagProductContext]{
-        Val: components.BagProductContext{
-          Product: product,
-          Size: p.Size,
-          Amount: uint8(amount),
-        },
-        Err: nil,
-      }
+		}()
+	}
 
-    }()
-  }
+	for i := range len(products) {
+		res := <-ch
+		if res.Err != nil {
+			return []components.BagProductContext{}, res.Err
+		}
+		result[i] = res.Val
+	}
 
-  for i := range len(products) {
-    res := <-ch
-    if res.Err != nil {
-      return []components.BagProductContext{}, res.Err
-    }
-    result[i] = res.Val
-  }
-
-  return result, nil
+	return result, nil
 }

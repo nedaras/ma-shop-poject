@@ -15,13 +15,12 @@ type BagProductContext struct {
 
 templ BagProduct(c BagProductContext) {
 	<section
-    aria-tid={c.Product.ThreadId}
-    aria-mid={c.Product.Mid}
-    aria-amount={strconv.Itoa(int(c.Amount))}
-    aria-size={c.Size}
-
-    class="grid grid-cols-[40%_auto] gap-4"
-  >
+		aria-tid={ c.Product.ThreadId }
+		aria-mid={ c.Product.Mid }
+		aria-amount={ strconv.Itoa(int(c.Amount)) }
+		aria-size={ c.Size }
+		class="grid grid-cols-[40%_auto] gap-4"
+	>
 		<a
 			hx-boost="true"
 			href={ templ.SafeURL(c.RedirectURL) }

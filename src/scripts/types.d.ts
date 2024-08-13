@@ -3,6 +3,7 @@ type HTMXBeforeSwap = {
   shouldSwap: boolean
   isError: boolean
   serverResponse: string
+  elt: HTMLElement
   pathInfo: {
     finalRequestPath: string
     requestPath: string
@@ -27,12 +28,19 @@ type HTMXHistoryRestore = {
   path: string
 }
 
-type HTMXBeforeSwapEvent = CustomEvent<HTMXBeforeSwap>
-type HTMXAfterSwapEvent = CustomEvent<HTMXAfterSwap>
-type HTMXHistoryRestoreEvent = CustomEvent<HTMXHistoryRestore>
+type HTMXAfterOnLoad = {
+  elt: HTMLElement,
+  xhr: XMLHttpRequest,
+  pathInfo: {
+    finalRequestPath: string
+    requestPath: string
+    responsePath: string
+  }
+}
 
 interface HTMLElementEventMap {
-    'htmx:beforeSwap': HTMXBeforeSwapEvent
-    'htmx:afterSwap': HTMXAfterSwapEvent
-    'htmx:historyRestore': HTMXHistoryRestoreEvent 
+    'htmx:beforeSwap': CustomEvent<HTMXBeforeSwap>
+    'htmx:afterSwap': CustomEvent<HTMXAfterSwap>
+    'htmx:historyRestore': CustomEvent<HTMXHistoryRestore>
+    'htmx:afterOnLoad': CustomEvent<HTMXAfterOnLoad>
 }
