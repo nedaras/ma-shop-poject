@@ -4,16 +4,23 @@ import "nedas/shop/pkg/models"
 
 // todo: make like if no addresses add button to create address
 templ AddressSelector(addresses []models.Address) {
-	<button
-		hx-post="/htmx/checkout"
-		class="bg-black text-white text-center w-full p-4"
-	>
-		Continue
-	</button>
-	<div id="placeholder" class="max-h-[75%] overflow-x-scroll bg-white fixed bottom-0 right-0 transition-transform duration-200 shadow-flipped">
+  <style>
+    .htmx-swapping#placeholder {
+      transform: translateY(100%);
+    }
+  </style>
+	<div id="placeholder" class="max-h-[75%] overflow-x-scroll bg-white fixed bottom-0 right-0 transition-transform duration-200 shadow-flipped hx-added:translate-y-full">
 		<h1 class="m-2 relative text-center">
 			Select address
-			<button id="placeholder-close" class="absolute right-0 fa fa-times"></button>
+			<button
+        hx-target="closest div"
+        hx-swap="outerHTML delete swap:200ms"
+        hx-get="/delete"
+        id="remove" 
+        class="absolute right-0"
+      >
+        <i class="fa fa-times"></i>
+      </button>
 		</h1>
 		<ul class="flex flex-col gap-4 mb-4">
 			for _, a := range addresses {

@@ -10,8 +10,11 @@ module.exports = {
   },
   plugins: [
     function ({ addVariant }) {
-      addVariant('indicator', ['.htmx-request&', '.htmx-request &'])
-    }
+      addVariant('indicator', ['.htmx-request&', '.htmx-request &']) // todo: update to hx-indicator
+    },
+    function ({ addVariant }) {
+      addVariant('hx-added', ['.htmx-added&', '.htmx-added&'])
+    },
   ],
 }
 
