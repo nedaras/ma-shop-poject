@@ -8,6 +8,11 @@ import (
 templ Bag(products []components.BagProductContext) {
 	@layouts.Layout("Bag") {
 		@components.Header()
+		<style>
+      .htmx-added#placeholder {
+        transform: translateY(100%);
+      }
+    </style>
 		<main>
 			// todo: fix a bug when all items removed so there would be empty bag thing
 			if len(products) > 0 {
@@ -22,12 +27,13 @@ templ Bag(products []components.BagProductContext) {
 						</li>
 					}
 					<li class="mt-auto">
-						// todo: make a page where address is selected and all
+						// todo: hx include address or sum tbh this could be obb
+						//hx-vals="js:{products: getProducts()}"
+						//hx-target="#placeholder ul"
 						<button
-							hx-boost="false"
+							hx-swap="outerHTML"
 							hx-post="/htmx/checkout"
-							hx-vals="js:{products: getProducts()}"
-							class="bg-black text-white text-center w-full p-4 indicator:animate-spin"
+							class="bg-black text-white text-center w-full p-4"
 						>
 							Checkout
 						</button>

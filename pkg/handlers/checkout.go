@@ -25,10 +25,22 @@ type ProductBody struct {
 
 func HandleCheckout(c echo.Context) error {
 	session := getSession(c)
+	storage := getStorage(c)
 
 	if session == nil {
 		return unauthorized(c)
 	}
+
+	addressId := c.FormValue("address_id")
+	if addressId == "" {
+		addresses, err := storage.GetAddresses(session.UserId)
+		if err != nil {
+			return err
+		}
+		return render(c, components.AddressSelector(addresses))
+	}
+
+	// todo: where the f do i store the address validate it
 
 	products, err := getParamProducts(c.FormValue("products"))
 	if err != nil {

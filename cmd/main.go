@@ -15,6 +15,7 @@ import (
 	"nedas/shop/pkg/utils"
 )
 
+// todo: on address delete remove default_address
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatal(err)
