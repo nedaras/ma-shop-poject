@@ -26,7 +26,7 @@ templ Bag(products []components.BagProductContext) {
 						//hx-vals="js:{products: getProducts()}"
 						//hx-target="#placeholder ul"
 						<button
-              hx-target="closest li"
+							hx-target="closest ul"
 							hx-swap="afterend"
 							hx-post="/htmx/checkout"
 							class="bg-black text-white text-center w-full p-4"

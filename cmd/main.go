@@ -35,6 +35,11 @@ func main() {
 	e := echo.New()
 	e.Static("/", "public")
 
+	// todo: simulate this in client
+	e.GET("/delete", func(c echo.Context) error {
+		return c.NoContent(http.StatusOK)
+	})
+
 	e.Use(middleware.Logger())
 	e.Use(middlewares.StorageMiddleware(storage))
 	e.Use(middlewares.AuthMiddleware)
