@@ -5,6 +5,7 @@ import './bag'
 import './sneaker'
 import './address'
 import './checkout'
-import './address_selector'
 
+// @ts-ignore
+htmx.config.selfRequestsOnly = false 
 customElements.define("address-checkbox", AddressCheckbox)

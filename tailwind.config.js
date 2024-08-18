@@ -15,6 +15,9 @@ module.exports = {
     function ({ addVariant }) {
       addVariant('hx-added', ['.htmx-added&', '.htmx-added&'])
     },
+    function ({ addVariant }) {
+      addVariant('hx-swapping', ['.htmx-swapping&', '.htmx-swapping&'])
+    },
   ],
 }
 

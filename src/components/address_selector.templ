@@ -4,19 +4,14 @@ import "nedas/shop/pkg/models"
 
 // todo: make like if no addresses add button to create address
 templ AddressSelector(addresses []models.Address) {
-	<style>
-    .htmx-swapping#placeholder {
-      transform: translateY(100%);
-    }
-  </style>
-	<div id="placeholder" class="max-h-[75%] overflow-x-scroll bg-white fixed bottom-0 right-0 transition-transform duration-200 shadow-flipped hx-added:translate-y-full">
+	<div id="placeholder" class="max-h-[75%] overflow-x-scroll bg-white fixed bottom-0 right-0 transition-transform duration-200 shadow-flipped hx-added:translate-y-full hx-swapping:translate-y-full">
 		<h1 class="m-2 relative text-center">
 			Select address
 			<button
+				id="delete"
+				hx-get="data:text/plain,"
 				hx-target="#placeholder"
 				hx-swap="outerHTML swap:200ms"
-				hx-get="/delete"
-				id="remove"
 				class="absolute right-0"
 			>
 				<i class="fa fa-times"></i>
