@@ -1,6 +1,6 @@
 import { StatusOK } from "./http"
 
-export default class AddressCheckbox extends HTMLElement {
+export class AddressCheckbox extends HTMLElement {
 
   constructor() {
     super()
@@ -16,16 +16,40 @@ export default class AddressCheckbox extends HTMLElement {
   }
   
   isDefaultAddress() {
-    const defaultAddress = localStorage.getItem("default_address")
+    const defaultAddress = localStorage.getItem('default_address')
     if (defaultAddress == null) return false
 
-    return defaultAddress === this.getAttribute("address")
+    return defaultAddress === this.getAttribute('address')
   }
 
   isChecked() {
     return (this.querySelector('input') as HTMLInputElement).checked
   }
 
+}
+
+export class AddressRadio extends HTMLElement {
+
+  constructor() {
+    super()
+
+    const checked = () => {
+      const defaultAddress = localStorage.getItem('default_address')
+      return defaultAddress ? defaultAddress === this.getAttribute('address') : false
+    }
+
+    this.innerHTML = `<label class="block">
+      <input
+        type="radio" 
+        id="address-${this.getAttribute("address")}"
+        class="peer appearance-none absolute outline-none"
+        name="address"
+        value="${this.getAttribute("address")}"
+        ${checked() ? "checked" : ""}
+      >
+        ${this.innerHTML}
+    </label>`
+  }
 }
 
 function afterOnLoad(e: CustomEvent<HTMXBeforeSwap>) {

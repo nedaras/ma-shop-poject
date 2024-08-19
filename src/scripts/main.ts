@@ -1,4 +1,4 @@
-import AddressCheckbox from './AddressCheckbox'
+import { AddressCheckbox, AddressRadio } from './components'
 
 import './index'
 import './bag'
@@ -8,4 +8,6 @@ import './checkout'
 
 // @ts-ignore
 htmx.config.selfRequestsOnly = false 
+
 customElements.define("address-checkbox", AddressCheckbox)
+customElements.define("address-radio", AddressRadio)

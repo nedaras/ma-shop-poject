@@ -4,7 +4,7 @@ import "nedas/shop/pkg/models"
 
 // todo: make like if no addresses add button to create address
 templ AddressSelector(addresses []models.Address) {
-	<div id="placeholder" class="max-h-[75%] overflow-x-scroll bg-white fixed bottom-0 right-0 transition-transform duration-200 shadow-flipped hx-added:translate-y-full hx-swapping:translate-y-full">
+	<div id="placeholder" class="flex flex-col h-3/4 w-full overflow-x-scroll bg-white fixed bottom-0 right-0 transition-transform duration-200 shadow-flipped hx-added:translate-y-full hx-swapping:translate-y-full">
 		<h1 class="m-2 relative text-center">
 			Select address
 			<button
@@ -17,12 +17,19 @@ templ AddressSelector(addresses []models.Address) {
 				<i class="fa fa-times"></i>
 			</button>
 		</h1>
-		<ul class="flex flex-col gap-4 mb-4">
+		<ul class="flex flex-col gap-4 mb-24">
 			for _, a := range addresses {
-				<li class="shadow border border-gray-200 rounded mx-4">
-					@Address(a)
+				<li>
+					<address-radio address={ a.AddressId }>
+						<div class="block shadow border border-gray-200 peer-checked:border-blue-400 rounded mx-4">
+							@Address(a)
+						</div>
+					</address-radio>
 				</li>
 			}
 		</ul>
+		<button class="fixed bottom-0 mt-auto bg-black text-white text-center w-full p-4">
+			Continue
+		</button>
 	</div>
 }
