@@ -28,7 +28,12 @@ templ AddressSelector(addresses []models.Address) {
 				</li>
 			}
 		</ul>
-		<button class="fixed bottom-0 mt-auto bg-black text-white text-center w-full p-4">
+		<button
+			hx-post="/htmx/checkout"
+      hx-vals="js:{products: getProducts()}"
+      hx-include="#placeholder ul"
+      class="fixed bottom-0 mt-auto bg-black text-white text-center w-full p-4"
+    >
 			Continue
 		</button>
 	</div>

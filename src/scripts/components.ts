@@ -43,9 +43,10 @@ export class AddressRadio extends HTMLElement {
         type="radio" 
         id="address-${this.getAttribute("address")}"
         class="peer appearance-none absolute outline-none"
-        name="address"
+        name="address_id"
         value="${this.getAttribute("address")}"
         ${checked() ? "checked" : ""}
+        required
       >
         ${this.innerHTML}
     </label>`
