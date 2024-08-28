@@ -35,7 +35,7 @@ templ Sneaker(c SneakerContext) {
 			@components.Header()
 			<main>
 				<div class="p-4">
-					<h1 class="text-2xl font-semibold mb-2">{ c.Product.Title }</h1>
+					<h1 class="mb-2 text-2xl font-semibold">{ c.Product.Title }</h1>
 					<div class="flex gap-2">
 						<h3 class="text-gray-800">£{ strconv.FormatFloat(c.Product.Price, 'f', 2, 64) }</h3>
 						<a
@@ -54,13 +54,13 @@ templ Sneaker(c SneakerContext) {
 						@components.Sizes(c.Sizes, c.Product.PathName, true)
 					</div>
 					if c.LoggedIn {
-						<button id="bag-button" type="submit" class="opacity-indicator bg-black text-white w-full p-4 mt-2 indicator:opacity-95">
+						<button id="bag-button" type="submit" class="opacity-indicator mt-2 w-full bg-black p-4 text-white indicator:opacity-95">
 							Add to Bag
 						</button>
 					} else {
 						<button
 							id="bag-button"
-							class="opacity-indicator bg-black text-white w-full p-4 mt-2"
+							class="opacity-indicator mt-2 w-full bg-black p-4 text-white"
 							hx-post="/htmx/login"
 							hx-vals={ "{\"fallback\":\"" + string(templ.URL("/"+c.Product.ThreadId+"/"+c.Product.Mid)) + "\"}" }
 							hx-push-url="/login"
@@ -70,10 +70,10 @@ templ Sneaker(c SneakerContext) {
 						</button>
 					}
 				}
-				<div id="placeholder" class="bg-white fixed bottom-0 right-0 translate-y-full transition-transform duration-200 shadow-flipped">
-					<h1 class="m-2 relative text-center">
+				<div id="placeholder" class="fixed bottom-0 right-0 translate-y-full bg-white shadow-flipped transition-transform duration-200">
+					<h1 class="relative m-2 text-center">
 						Added to Bag
-						<button id="placeholder-close" class="absolute right-0 fa fa-times"></button>
+						<button id="placeholder-close" class="fa fa-times absolute right-0"></button>
 					</h1>
 					<div></div>
 				</div>

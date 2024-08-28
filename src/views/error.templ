@@ -29,10 +29,10 @@ templ Error(c int, msg string) {
 			<link rel="stylesheet" href="/styles.css"/>
 			<link rel="icon" href="/favicon.ico" type="image/x-icon"/>
 		</head>
-		<body class="grid place-items-center h-full font-mono p-2">
-			<div class="max-w-[420px] flex items-center">
+		<body class="grid h-full place-items-center p-2 font-mono">
+			<div class="flex max-w-[420px] items-center">
 				<h1 class="text-4xl font-semibold">{ strconv.Itoa(c) }</h1>
-				<p class="leading-tight pl-4 py-2 ml-4 border-l border-l-gray-200">{ msg }.</p>
+				<p class="ml-4 border-l border-l-gray-200 py-2 pl-4 leading-tight">{ msg }.</p>
 			</div>
 		</body>
 	</html>

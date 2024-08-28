@@ -14,7 +14,7 @@ templ Bag(products []components.BagProductContext) {
 				<ul
 					id="products"
 					hx-boost="true"
-					class="flex flex-col gap-4 pt-4 h-[calc(100svh-56px)]"
+					class="flex h-[calc(100svh-56px)] flex-col gap-4 pt-4"
 				>
 					for _, p := range products {
 						<li class="px-4">
@@ -26,7 +26,7 @@ templ Bag(products []components.BagProductContext) {
 							hx-target="closest ul"
 							hx-swap="afterend"
 							hx-post="/htmx/checkout"
-							class="bg-black text-white text-center w-full p-4"
+							class="w-full bg-black p-4 text-center text-white"
 						>
 							Checkout
 						</button>

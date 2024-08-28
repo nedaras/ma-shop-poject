@@ -24,19 +24,19 @@ templ BagProduct(c BagProductContext) {
 		<a
 			hx-boost="true"
 			href={ templ.SafeURL(c.RedirectURL) }
-			class="row-span-2 bg-gray-50 grid place-items-center"
+			class="row-span-2 grid place-items-center bg-gray-50"
 		>
 			<img class="w-full" alt={ c.Product.Title } src={ string(templ.URL(c.Product.Image + "&wid=512")) }/>
 		</a>
-		<div class="mt-2 mr-2">
+		<div class="mr-2 mt-2">
 			<h1>{ c.Product.Title }</h1>
 			<h2 class="text-xs text-gray-800">£{ strconv.FormatFloat(c.Product.Price, 'f', 2, 32) } / UK { c.Size }</h2>
 		</div>
-		<div class="mb-2 mr-2 flex items-end justify-end indicator:opacity-75 indicator:pointer-events-none">
+		<div class="mb-2 mr-2 flex items-end justify-end indicator:pointer-events-none indicator:opacity-75">
 			<div class="flex items-center gap-4">
 				<div>
 					<button
-						class="text-sm fa-solid fa-minus"
+						class="fa-solid fa-minus text-sm"
 						hx-post={ fmt.Sprintf("/htmx/product/decrement?tid=%s&mid=%s&size=%s", c.Product.ThreadId, c.Product.Mid, c.Size) }
 						hx-target="closest section"
 						hx-swap="outerHTML"
@@ -44,7 +44,7 @@ templ BagProduct(c BagProductContext) {
 					></button>
 					{ strconv.Itoa(int(c.Amount)) }
 					<button
-						class="text-sm fa-solid fa-plus"
+						class="fa-solid fa-plus text-sm"
 						hx-post={ fmt.Sprintf("/htmx/product/increment?tid=%s&mid=%s&size=%s", c.Product.ThreadId, c.Product.Mid, c.Size) }
 						hx-target="closest section"
 						hx-swap="outerHTML"
@@ -53,7 +53,7 @@ templ BagProduct(c BagProductContext) {
 				</div>
 				<button
 					class="fa-solid fa-trash"
-					class="text-sm fa-solid fa-plus"
+					class="fa-solid fa-plus text-sm"
 					hx-delete={ fmt.Sprintf("/htmx/product?tid=%s&mid=%s&size=%s", c.Product.ThreadId, c.Product.Mid, c.Size) }
 					hx-target="closest section"
 					hx-swap="outerHTML"

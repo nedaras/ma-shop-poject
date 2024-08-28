@@ -4,7 +4,7 @@ import "fmt"
 
 templ Sizes(sizes []string, path string, men bool) {
 	<div id="sizes">
-		<div class="flex flex-row gap-2 mb-2">
+		<div class="mb-2 flex flex-row gap-2">
 			<button
 				class={ "w-full border border-gray-200 rounded p-2 text-center", templ.KV("bg-black", men), templ.KV("text-white", men) }
 				disabled?={ men }
@@ -27,8 +27,8 @@ templ Sizes(sizes []string, path string, men bool) {
 		<ul class="grid grid-cols-3 gap-2">
 			for _, s := range sizes {
 				<li>
-					<input class="peer appearance-none absolute outline-none" id={ "size-" + s } type="radio" name="size" value={ s } required/>
-					<label class="block w-full border border-gray-200 peer-checked:border-black rounded p-2 text-center cursor-pointer hover:border-black" for={ "size-" + s }>
+					<input class="peer absolute appearance-none outline-none" id={ "size-" + s } type="radio" name="size" value={ s } required/>
+					<label class="block w-full cursor-pointer rounded border border-gray-200 p-2 text-center hover:border-black peer-checked:border-black" for={ "size-" + s }>
 						UK { s }
 					</label>
 				</li>

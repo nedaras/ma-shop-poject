@@ -4,8 +4,8 @@ import "nedas/shop/pkg/models"
 
 // todo: make like if no addresses add button to create address
 templ AddressSelector(addresses []models.Address) {
-	<div id="placeholder" class="flex flex-col h-3/4 w-full overflow-x-scroll bg-white fixed bottom-0 right-0 transition-transform duration-200 shadow-flipped hx-added:translate-y-full hx-swapping:translate-y-full">
-		<h1 class="m-2 relative text-center">
+	<div id="placeholder" class="fixed bottom-0 right-0 flex h-3/4 w-full flex-col overflow-x-scroll bg-white shadow-flipped transition-transform duration-200 hx-added:translate-y-full hx-swapping:translate-y-full">
+		<h1 class="relative m-2 text-center">
 			Select address
 			<button
 				id="delete"
@@ -17,11 +17,11 @@ templ AddressSelector(addresses []models.Address) {
 				<i class="fa fa-times"></i>
 			</button>
 		</h1>
-		<ul class="flex flex-col gap-4 mb-24">
+		<ul class="mb-24 flex flex-col gap-4">
 			for _, a := range addresses {
 				<li>
 					<address-radio address={ a.AddressId }>
-						<div class="block shadow border border-gray-200 peer-checked:border-blue-400 rounded mx-4">
+						<div class="mx-4 block rounded border border-gray-200 shadow peer-checked:border-blue-400">
 							@Address(a)
 						</div>
 					</address-radio>
@@ -32,7 +32,7 @@ templ AddressSelector(addresses []models.Address) {
 			hx-post="/htmx/checkout"
       hx-vals="js:{products: getProducts()}"
       hx-include="#placeholder ul"
-      class="fixed bottom-0 mt-auto bg-black text-white text-center w-full p-4"
+      class="fixed bottom-0 mt-auto w-full bg-black p-4 text-center text-white"
     >
 			Continue
 		</button>

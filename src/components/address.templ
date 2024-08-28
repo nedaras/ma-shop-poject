@@ -13,9 +13,9 @@ templ Address(address models.Address) {
 			<br/>
 			{ address.City }, { address.Region }, { address.Country }, { address.CountryCode }-{ address.Zipcode }
 		</h2>
-		<div class="flex justify-between mt-2">
+		<div class="mt-2 flex justify-between">
 			<a hx-boost="true" href={ templ.URL("/address/" + address.AddressId) }>
-				<button class="underline text-sm italic text-blue-400">
+				<button class="text-sm italic text-blue-400 underline">
 					Edit
 				</button>
 			</a>

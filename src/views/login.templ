@@ -10,11 +10,11 @@ import (
 templ Login() {
 	@layouts.Layout("Login") {
 		@components.Header()
-		<main class="text-center px-2">
-			<h1 class="text-xl my-4">Login to your Account</h1>
+		<main class="px-2 text-center">
+			<h1 class="my-4 text-xl">Login to your Account</h1>
 			<a href={ templ.SafeURL(getGoogleLoginURL()) }>
-				<button class="w-full p-2 rounded-full bg-blue-500 text-white">
-					<span class="bg-white rounded-full inline-grid place-items-center w-6 h-6">
+				<button class="w-full rounded-full bg-blue-500 p-2 text-white">
+					<span class="inline-grid h-6 w-6 place-items-center rounded-full bg-white">
 						<i class="fa-brands fa-google"></i>
 					</span>
 					Continue with Google
