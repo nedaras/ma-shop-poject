@@ -63,7 +63,7 @@ func HandleCheckout(c echo.Context) error {
 		totalPrice += float64(p.Amount) * p.Product.Price
 	}
 
-	url, err := getCheckoutURL(products, "/success?session_id={CHECKOUT_SESSION_ID}&address_id=" + addressId, "/bag")
+	url, err := getCheckoutURL(products, "/success?session_id={CHECKOUT_SESSION_ID}&address_id="+addressId, "/bag")
 	if err != nil {
 		utils.Logger().Error(err)
 		return err
