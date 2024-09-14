@@ -63,7 +63,7 @@ func HandleCheckout(c echo.Context) error {
 		totalPrice += float64(p.Amount) * p.Product.Price
 	}
 
-	url, err := getCheckoutURL(products, "/success?session_id={CHECKOUT_SESSION_ID}&address_id="+addressId, "/bag")
+	url, err := getCheckoutURL(session.UserId, products, "/bag", "/bag")
 	if err != nil {
 		utils.Logger().Error(err)
 		return err
@@ -77,8 +77,10 @@ func HandleCheckout(c echo.Context) error {
 	return c.Redirect(http.StatusTemporaryRedirect, url)
 }
 
-func getCheckoutURL(context []components.BagProductContext, success string, cancel string) (string, error) {
+func getCheckoutURL(userId string, context []components.BagProductContext, success string, cancel string) (string, error) {
+	utils.Assert(userId != "", "user id is null")
 	params := make([]*stripe.CheckoutSessionLineItemParams, len(context))
+
 	for i, c := range context {
 		product, err := product.New(&stripe.ProductParams{
 			Name:        stripe.String(c.Product.Title),
@@ -94,6 +96,11 @@ func getCheckoutURL(context []components.BagProductContext, success string, canc
 			// todo: make prce like and int cuz floats sucks
 			UnitAmount: stripe.Int64(int64(c.Product.Price * 100)),
 			Currency:   stripe.String(string(stripe.CurrencyEUR)),
+			Metadata: map[string]string {
+				"tid": c.Product.ThreadId,
+				"mid": c.Product.Mid,
+				"size": c.Size,
+			},
 		})
 
 		if err != nil {
@@ -112,6 +119,9 @@ func getCheckoutURL(context []components.BagProductContext, success string, canc
 		SuccessURL: stripe.String(utils.Getenv("HOST") + success),
 		CancelURL:  stripe.String(utils.Getenv("HOST") + cancel),
 		Mode:       stripe.String(string(stripe.CheckoutSessionModePayment)),
+		Metadata: map[string]string{
+			"user_id": userId,
+		},
 	}
 
 	session, err := session.New(a)
