@@ -96,9 +96,9 @@ func getCheckoutURL(userId string, context []components.BagProductContext, succe
 			// todo: make prce like and int cuz floats sucks
 			UnitAmount: stripe.Int64(int64(c.Product.Price * 100)),
 			Currency:   stripe.String(string(stripe.CurrencyEUR)),
-			Metadata: map[string]string {
-				"tid": c.Product.ThreadId,
-				"mid": c.Product.Mid,
+			Metadata: map[string]string{
+				"tid":  c.Product.ThreadId,
+				"mid":  c.Product.Mid,
 				"size": c.Size,
 			},
 		})

@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"nedas/shop/pkg/utils"
 	"net/http"
@@ -13,6 +12,8 @@ import (
 	"github.com/stripe/stripe-go/v79/webhook"
 )
 
+// users shoud have list of order_ids
+// db: order_id -> ...product, ...address, status
 func HandleStripeWebhook(c echo.Context) error {
 	storage := getStorage(c)
 
@@ -50,6 +51,7 @@ func HandleStripeWebhook(c echo.Context) error {
 				return err
 			}
 
+			// todo: we should check if database has other products so we would not remove like all products
 			if err := storage.DeleteProduct(userId, tid, mid, size); err != nil {
 				_ = product
 				utils.Logger().Error(err)
@@ -58,7 +60,7 @@ func HandleStripeWebhook(c echo.Context) error {
 		}
 	}
 
-	return c.NoContent(http.StatusOK);
+	return c.NoContent(http.StatusOK)
 }
 
 func getLineItems(id string) *stripe.LineItemList {
@@ -66,5 +68,5 @@ func getLineItems(id string) *stripe.LineItemList {
 		Session: stripe.String(id),
 	}
 
-	return session.ListLineItems(params).LineItemList();
+	return session.ListLineItems(params).LineItemList()
 }

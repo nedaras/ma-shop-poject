@@ -47,7 +47,7 @@ func main() {
 	e.GET("/:thread_id/:mid", handlers.HandleSneaker)
 	e.GET("/address/:id", handlers.HandleAddress)
 
-	e.POST("/webh", handlers.HandleStripeWebhook);
+	e.POST("/webh", handlers.HandleStripeWebhook)
 	e.POST("/htmx/search", handlers.HandleSearch)
 	e.POST("/htmx/add_to_bag", handlers.AddToBag)
 	e.POST("/htmx/login", handlers.HandleLogin)
